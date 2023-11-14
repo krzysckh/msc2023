@@ -1,5 +1,2 @@
-ok
-
-https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Optyka.pdf
-https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Teoria_koloru.pdf
-https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Gry_wektorowe.pdf
+$ raco pkg install gui-easy
+$ racket src/main.rkt
