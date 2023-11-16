@@ -18,7 +18,7 @@
 
 (define (print s . v)
   (display s)
-  (for-each (λ (x) (display " ") (display x)) v)
+  (for-each (lambda (x) (display " ") (display x)) v)
   (newline))
 
 ; TODO szczerze nie mam pojecia czy robi to poprawnie
@@ -42,9 +42,9 @@
                  (else
                    (RGB 0 0 0))))) ; idk lol podobno nie powinno sie wydarzyc
     (RGB
-      (exact-round (* 100 (+ (RGB-r RGB1) m)))
-      (exact-round (* 100 (+ (RGB-g RGB1) m)))
-      (exact-round (* 100 (+ (RGB-b RGB1) m))))))
+      (exact-round (* 255 (+ (RGB-r RGB1) m)))
+      (exact-round (* 255 (+ (RGB-g RGB1) m)))
+      (exact-round (* 255 (+ (RGB-b RGB1) m))))))
 
 ; nie podoba mi sie jak malo funkcyjne sa (obs x)
 ; ale no cos za cos, easy-gui bardzo pomaga
@@ -54,11 +54,11 @@
          (g (RGB-g rgb))
          (b (RGB-b rgb)))
     (print "nowy kolor: " (list r g b))
-    (<~ @cur-color (λ (_) (G:make-color r g b)))))
+    (<~ @cur-color (lambda (_) (G:make-color r g b)))))
 
 (render
   (window
-    #:title "λ-kolory"
+    #:title "lambda-kolory"
     #:position 'center
     (text (~> (~> @hsv HSV-h) number->string))
     (text (~> (~> @hsv HSV-s) number->string))
@@ -70,8 +70,8 @@
 
     (slider
       (~> @hsv HSV-h)
-      (λ (x)
-        (<~ @hsv (λ (v) (HSV x (HSV-s v) (HSV-v v))))
+      (lambda (x)
+        (<~ @hsv (lambda (v) (HSV x (HSV-s v) (HSV-v v))))
         (update-cur-color))
 
       #:min-value 0
@@ -79,16 +79,16 @@
 
     (slider
       (~> @hsv HSV-s)
-      (λ (x)
-        (<~ @hsv (λ (v) (HSV (HSV-h v) x (HSV-v v))))
+      (lambda (x)
+        (<~ @hsv (lambda (v) (HSV (HSV-h v) x (HSV-v v))))
         (update-cur-color))
       #:min-value 0
       #:max-value 100)
 
     (slider
       (~> @hsv HSV-v)
-      (λ (x)
-        (<~ @hsv (λ (v) (HSV (HSV-h v) (HSV-s v) x)))
+      (lambda (x)
+        (<~ @hsv (lambda (v) (HSV (HSV-h v) (HSV-s v) x)))
         (update-cur-color))
       #:min-value 0
       #:max-value 100)))
