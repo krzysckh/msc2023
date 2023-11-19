@@ -1,0 +1,22 @@
+#+title: Próba zrobienia zadania "optyka" z raylib w c99
+#+author: Krzysztof M.
+
+#+begin_src shell
+  $ mypaint ./notatki.ora
+  $ ./build.sh
+  $ ./main
+
+  $ BUILD_WINDOWS=yes ./build.sh
+  $ wine ./main.exe
+#+end_src
+
+Piszę tą próbę w C, bo nie znalazłem żadnej dobrej biblioteki do pisania "gier" dla racketa.
+Oczywiście jest wrapper dla raylib, ale dużo szybciej dla mnie jest napisać to najpierw w
+C + raylib a potem dopiero (jeśli w ogóle) próbować przeportować to do racketowego wrappera
+dla raylib.
+
+Jest to bardzo nieokiełznany *proof-of-concept*, który musi zostać opatrzony w wiele wiecej
+struktur itp itd, żeby przypominał jakkolwiek to, o co prosi zadanie. Ma na celu sprawdzenie jak
+wyglądałoby pisanie tego w C + raylib.
+
+[[https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Optyka.pdf][zadanie]]
