@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <raylib.h>
 #include <raymath.h>
+#include <stdlib.h>
 #include <math.h>
 #include <limits.h>
 
@@ -20,14 +21,19 @@ typedef struct {
   float angle; // 0-359
 } source_t;
 
-bounceable_t bounceables[] = {
-  (bounceable_t){.p1 = (Vector2){600, 50}, .p2 = (Vector2){700, 400}},
-  (bounceable_t){.p1 = (Vector2){200, 200}, .p2 = (Vector2){0, 200}},
-  (bounceable_t){.p1 = (Vector2){10, 500}, .p2 = (Vector2){70, 500}},
-  (bounceable_t){.p1 = (Vector2){300, 550}, .p2 = (Vector2){500, 550}},
-};
-#define N_BOUNCEABLES (sizeof(bounceables)/sizeof(*bounceables))
+static int N_BOUNCEABLES = 0;
+bounceable_t *bounceables = NULL;
 
+void init_bounceables(void)
+{
+  bounceables = malloc(sizeof(bounceable_t) * 4);
+  bounceables[0] = (bounceable_t){(Vector2){800, 50},  (Vector2){700, 400}};
+  bounceables[1] = (bounceable_t){(Vector2){200, 200}, (Vector2){0, 200}};
+  bounceables[2] = (bounceable_t){(Vector2){10, 200},  (Vector2){70, 500}};
+  bounceables[3] = (bounceable_t){(Vector2){300, 550}, (Vector2){500, 550}};
+
+  N_BOUNCEABLES = 4;
+}
 
 float absf(float x)
 {
@@ -90,7 +96,7 @@ bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_
 
     for (i = 0; i < N_BOUNCEABLES; ++i) {
       if (CheckCollisionPointLine(source, bounceables[i].p1, bounceables[i].p2, 1)) {
-        hit_bounceable = &bounceables[i];
+        *hit_bounceable = bounceables[i];
         ret->x = source.x, ret->y = source.y;
         return true;
       }
@@ -123,7 +129,7 @@ void _draw_light(source_t *s, int max_depth)
     .x = s->pt.x - 10,
     .y = s->pt.y - 10
   }, cur_target = s->target;
-  float cur_angle = s->angle, theta, m1, m2;
+  float cur_angle = s->angle, hit_angle;
   bounceable_t hit_bounceable;
   Color colors[10] = { BLUE, RED, VIOLET, GREEN, PURPLE, BLACK, ORANGE, BLUE, RED, VIOLET };
   bool bounced = true;
@@ -131,17 +137,17 @@ void _draw_light(source_t *s, int max_depth)
   // TODO: cos tu nie dziala ale nie mam juz sily
   for (i = 0; i < max_depth && bounced; ++i) {
     bounced = cast_light(cur_target, cur, &next, &hit_bounceable);
-    cur_angle = Vector2Angle(cur, next) * 180 / PI;
 
-    m1 = (MAX(hit_bounceable.p1.y, hit_bounceable.p2.y) - MIN(hit_bounceable.p2.y, hit_bounceable.p1.y))
-      / (MAX(hit_bounceable.p1.x, hit_bounceable.p2.x) - MIN(hit_bounceable.p1.x, hit_bounceable.p2.x));
-    m2 = (MAX(cur.y, next.y) - MIN(cur.y, next.y)) / (MAX(cur.x, next.x) - MIN(cur.x, next.x));
+    hit_angle = Vector2Angle(hit_bounceable.p1, hit_bounceable.p2) * 180 / PI;
+    // printf("ANG: %f (for [%f %f] [%f %f]\n", hit_angle,
+    //       hit_bounceable.p1.x, hit_bounceable.p1.y, 
+    //       hit_bounceable.p2.x, hit_bounceable.p2.y);
 
-    theta = atan((MAX(m2,m1) - MIN(m2,m1)) / (1 + (m1 * m2)));
+    if (hit_angle == 0 || hit_angle == 180)
+      cur_angle = normalize_angle(Vector2Angle(cur, next) * -180 / PI);
+    else
+      cur_angle = normalize_angle(Vector2Angle(cur, next) * 180 / PI);
 
-    cur_angle = theta * -180 / PI / 2;
-
-    printf("cur_angle: %f\n", cur_angle);
 
     DrawLineV(cur, next, colors[i % 10]);
 
@@ -157,6 +163,8 @@ int main (void)
     .angle = 90
   };
 
+  init_bounceables();
+
   InitWindow(800, 600, "giga optyka");
 
   while (!WindowShouldClose()) {
@@ -171,4 +179,6 @@ int main (void)
     }
     EndDrawing();
   }
+
+  free(bounceables);
 }
