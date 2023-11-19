@@ -1,6 +1,6 @@
-CC=clang-16
-CFLAGS=-Wall -Wextra
-LDFLAGS=-lraylib -lm
+CC=clang
+CFLAGS=-Wall -Wextra `pkg-config --cflags raylib | tr -d '"'`
+LDFLAGS=-lm `pkg-config --libs raylib | tr -d '"'`
 
 CFILES=main.c
 OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
@@ -9,7 +9,7 @@ OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
 
 
 .c.o:
-	$(CC) $(CFLAGS) -c $< -std=c99
+	$(CC) -c $< -std=c99 $(CFLAGS)
 all: $(OFILES)
 	$(CC) $(LDFLAGS) $(OFILES) -o ./main
 build-windows:
