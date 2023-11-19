@@ -11,17 +11,32 @@
 #define MIN(x,y) (((x)<(y))?(x):(y))
 
 typedef struct {
+  Vector2 p1, p2;
+} bounceable_t;
+
+typedef struct {
   Vector2 target; /* imaginary target */
   Vector2 pt;
   float angle; // 0-359
 } source_t;
 
-float absf(float x) {
+bounceable_t bounceables[] = {
+  (bounceable_t){.p1 = (Vector2){600, 50}, .p2 = (Vector2){700, 400}},
+  (bounceable_t){.p1 = (Vector2){200, 200}, .p2 = (Vector2){0, 200}},
+  (bounceable_t){.p1 = (Vector2){10, 500}, .p2 = (Vector2){70, 500}},
+  (bounceable_t){.p1 = (Vector2){300, 550}, .p2 = (Vector2){500, 550}},
+};
+#define N_BOUNCEABLES (sizeof(bounceables)/sizeof(*bounceables))
+
+
+float absf(float x)
+{
   return x > 0 ? x : -x;
 }
 
 // via ./notatki.ora
-Vector2 create_target(Vector2 a, Vector2 b, float angle) {
+Vector2 create_target(Vector2 a, Vector2 b, float angle)
+{
   if (angle >= -180 && angle <= 0)
     return (Vector2){a.x + ((b.x - a.x) * a.y) / (a.y - b.y), 0};
   else
@@ -46,6 +61,13 @@ void draw_source(source_t *s)
   DrawRectanglePro(rect, (Vector2){10, 10}, s->angle, RED);
 }
 
+void draw_all_bounceables() {
+  size_t i;
+  for (i = 0; i < N_BOUNCEABLES; ++i) {
+    DrawLineV(bounceables[i].p1, bounceables[i].p2, BLACK);
+  }
+}
+
 void draw_line_by_lenght_angle(Vector2 pos, int len, int angle, Color c)
 {
   Rectangle rect = {
@@ -58,23 +80,27 @@ void draw_line_by_lenght_angle(Vector2 pos, int len, int angle, Color c)
   DrawRectanglePro(rect, (Vector2){0, 0}, angle, c);
 }
 
-// TODO: tu dodaj odbijanie się od przeróżnych elementów
 #define CAST_LIGHT_STEP_SIZE 1
-void cast_light(Vector2 target, Vector2 source, Vector2 *ret, int angle)
+bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_bounceable)
 {
   int max_iter = 4096;
+  size_t i;
   while (max_iter) {
-    //Source.x += CAST_LIGHT_STEP_SIZE, source.y += CAST_LIGHT_STEP_SIZE;
     source = Vector2MoveTowards(source, target, CAST_LIGHT_STEP_SIZE);
 
-    if (!CheckCollisionPointRec(source, (Rectangle){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT})) {
-      break;
+    for (i = 0; i < N_BOUNCEABLES; ++i) {
+      if (CheckCollisionPointLine(source, bounceables[i].p1, bounceables[i].p2, 1)) {
+        hit_bounceable = &bounceables[i];
+        ret->x = source.x, ret->y = source.y;
+        return true;
+      }
     }
 
     max_iter--;
   }
 
-  ret->x = source.x, ret->y = source.y;
+  ret->x = source.x, ret->y = source.y, hit_bounceable = NULL;
+  return false;
 }
 
 float normalize_angle(float f)
@@ -96,25 +122,31 @@ void _draw_light(source_t *s, int max_depth)
   Vector2 next, cur = {
     .x = s->pt.x - 10,
     .y = s->pt.y - 10
-  };
-  float cur_angle = s->angle;
-  Vector2 cur_target = s->target;
-
+  }, cur_target = s->target;
+  float cur_angle = s->angle, theta, m1, m2;
+  bounceable_t hit_bounceable;
   Color colors[10] = { BLUE, RED, VIOLET, GREEN, PURPLE, BLACK, ORANGE, BLUE, RED, VIOLET };
+  bool bounced = true;
 
-  for (i = 0; i < max_depth; ++i) {
-    cast_light(cur_target, cur, &next, cur_angle);
-    cur_angle = Vector2Angle(cur, next);
-    DrawLineV(cur, next, colors[i]);
+  // TODO: cos tu nie dziala ale nie mam juz sily
+  for (i = 0; i < max_depth && bounced; ++i) {
+    bounced = cast_light(cur_target, cur, &next, &hit_bounceable);
+    cur_angle = Vector2Angle(cur, next) * 180 / PI;
 
+    m1 = (MAX(hit_bounceable.p1.y, hit_bounceable.p2.y) - MIN(hit_bounceable.p2.y, hit_bounceable.p1.y))
+      / (MAX(hit_bounceable.p1.x, hit_bounceable.p2.x) - MIN(hit_bounceable.p1.x, hit_bounceable.p2.x));
+    m2 = (MAX(cur.y, next.y) - MIN(cur.y, next.y)) / (MAX(cur.x, next.x) - MIN(cur.x, next.x));
 
-    cur_angle = normalize_angle(cur_angle + cur_angle);
-    if (next.y == 0 || next.y == SCREEN_HEIGHT) {
-      cur_angle = normalize_angle(cur_angle + 180);
-    }
+    theta = atan((MAX(m2,m1) - MIN(m2,m1)) / (1 + (m1 * m2)));
+
+    cur_angle = theta * -180 / PI / 2;
+
+    printf("cur_angle: %f\n", cur_angle);
+
+    DrawLineV(cur, next, colors[i % 10]);
 
     cur_target = create_target(next, (Vector2){cur.x + (2 * (next.x - cur.x)), cur.y}, cur_angle);
-    cur = next;
+    cur = Vector2MoveTowards(next, cur_target, 2);
   }
 }
 
@@ -131,6 +163,8 @@ int main (void)
     BeginDrawing();
     {
       ClearBackground(WHITE);
+
+      draw_all_bounceables();
 
       draw_source(&src);
       draw_light(&src);

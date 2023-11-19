@@ -10,6 +10,8 @@
   $ wine ./main.exe
 #+end_src
 
+nie dziala.
+
 Piszę tą próbę w C, bo nie znalazłem żadnej dobrej biblioteki do pisania "gier" dla racketa.
 Oczywiście jest wrapper dla raylib, ale dużo szybciej dla mnie jest napisać to najpierw w
 C + raylib a potem dopiero (jeśli w ogóle) próbować przeportować to do racketowego wrappera
