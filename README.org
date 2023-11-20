@@ -3,14 +3,12 @@
 
 #+begin_src shell
   $ mypaint ./notatki.ora
-  $ ./build.sh
+  $ make
   $ ./main
 
-  $ BUILD_WINDOWS=yes ./build.sh
+  $ make build-windows
   $ wine ./main.exe
 #+end_src
-
-nie dziala.
 
 Piszę tą próbę w C, bo nie znalazłem żadnej dobrej biblioteki do pisania "gier" dla racketa.
 Oczywiście jest wrapper dla raylib, ale dużo szybciej dla mnie jest napisać to najpierw w
