@@ -14,8 +14,8 @@ all: $(OFILES)
 	$(CC) $(LDFLAGS) $(OFILES) -o ./main
 build-windows:
 	[ -f "libraylib.a" ] || wget -O libraylib.a https://pub.krzysckh.org/libraylib.a
-	x86_64-w64-mingw32-gcc -std=gnu11 $(CFLAGS) $(CFILES) ./libraylib.a \
-		$(LDFLAGS) -lm -lopengl32 -lgdi32 -lwinmm -lmingw32 -lssp \
-		-fstack-protector -o main.exe
+	x86_64-w64-mingw32-gcc -std=gnu11 $(CFLAGS) $(CFILES) -L. -l:libraylib.a \
+		-lm -lwinmm -lgdi32 \
+		-static -o main.exe
 clean:
 	rm -f $(TARGET) $(OFILES) *.core
