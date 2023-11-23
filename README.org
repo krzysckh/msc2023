@@ -1,5 +1,6 @@
 #+title: Próba zrobienia zadania "optyka" z raylib w c99
 #+author: Krzysztof M.
+#+OPTIONS: tex:t
 
 #+begin_src shell
   $ mypaint ./notatki.ora
@@ -10,8 +11,26 @@
   $ wine ./main.exe
 #+end_src
 
-** uwaga:
-testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam odwalili z liczeniem wektorów lololol
+*** uwagi
+- testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam odwalili z liczeniem wektorów lololol
+- wzory są wyjęte z dupy, np
+
+#+begin_src latex
+H = wysokość okna \\
+
+\operatorname{target}(a, b, k) = \begin{cases}
+\begin{bmatrix}
+  (x_{a} + ((x_{b} - x_{a}) * y_{a}) / (y_{a} - y_{b})) \\
+  0
+\end{bmatrix} & \text{ jeśli } -180 \le k \le 0
+\\
+\begin{bmatrix}
+  x_{a} + ((x_{b} - x_{a}) * (H - y_{a})) / (y_{b} - y_{a}) \\
+  H
+\end{bmatrix} & \text{ w innych wypadkach }
+
+\end{cases}
+#+end_src
 
 
 Piszę tą próbę w C, bo nie znalazłem żadnej dobrej biblioteki do pisania "gier" dla racketa.
