@@ -9,11 +9,12 @@ $ wine ./main.exe
 
 ### uwagi
 
+-   nie edytuj README.md - jest generowane automatycznie z README.org
 -   testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam
     odwalili z liczeniem wektorów lololol
 -   wzory i pomysły są wyjęte z dupy, np
 
-$$ \framebox{H = \text{wysokość okna}} $$
+$$ H = \text{wysokość okna} $$
 
 $$
 \operatorname{target}(a, b, k) = \begin{cases}
@@ -27,8 +28,10 @@ $$
   H
 \end{bmatrix} & \text{ w innych wypadkach }
 \end{cases}
-$$ w notatkach oczywiscie cos tam jest skad one sie biora, ale sa
-zupelnie nie po kolei i nawet sam sie juz po nich nie doczytam lolololol
+$$
+
+w notatkach oczywiscie cos tam jest skad one sie biora, ale sa zupelnie
+nie po kolei i nawet sam sie juz po nich nie doczytam lolololol
 
 Piszę tą próbę w C, bo nie znalazłem żadnej dobrej biblioteki do pisania
 \"gier\" dla racketa. Oczywiście jest wrapper dla raylib, ale dużo

@@ -18,6 +18,6 @@ build-windows:
 		-lm -lwinmm -lgdi32 \
 		-static -o main.exe
 clean:
-	rm -f $(TARGET) $(OFILES) *.core
+	rm -f $(TARGET) $(OFILES) *.core README.md
 README.md:
 	pandoc README.org -o README.md
