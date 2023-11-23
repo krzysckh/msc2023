@@ -13,11 +13,11 @@
 
 *** uwagi
 - testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam odwalili z liczeniem wektorów lololol
-- wzory są wyjęte z dupy, np
+- wzory i pomysły są wyjęte z dupy, np
 
-\begin{aligned}
-H = wysokość okna \\
+$$ H = \text{wysokość okna} $$
 
+$$
 \operatorname{target}(a, b, k) = \begin{cases}
 \begin{bmatrix}
   (x_{a} + ((x_{b} - x_{a}) * y_{a}) / (y_{a} - y_{b})) \\
@@ -28,9 +28,8 @@ H = wysokość okna \\
   x_{a} + ((x_{b} - x_{a}) * (H - y_{a})) / (y_{b} - y_{a}) \\
   H
 \end{bmatrix} & \text{ w innych wypadkach }
-
 \end{cases}
-\end{aligned}
+$$
 
 
 Piszę tą próbę w C, bo nie znalazłem żadnej dobrej biblioteki do pisania "gier" dla racketa.
