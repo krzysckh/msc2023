@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Wall -Wextra -L/usr/local/include
+CFLAGS=-Wall -Wextra -I/usr/local/include
 LDFLAGS=-lm -L/usr/local/lib -lraylib
 
 CFILES=main.c

@@ -7,7 +7,7 @@ $ make build-windows
 $ wine ./main.exe
 ```
 
-### uwagi
+## uwagi
 
 -   nie edytuj README.md - jest generowane automatycznie z README.org
 -   testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam
@@ -29,12 +29,12 @@ $$ H = \text{wysokość okna} $$
 $$
 \operatorname{target}(a, b, k) = \begin{cases}
 \begin{bmatrix}
-  \frac{x_{a} + y_{a}(x_{b} - x_{a})}{y_{a} - y_{b}} \\
+  ctg(\frac{\pi}{180}(180-k))y_{a}+x_{a} \\
   0
-\end{bmatrix} & \text{ jeśli } -180 \le k \le 0
+\end{bmatrix} & \text{ jeśli } k \in \left\langle 180, 360 \right\rangle \cup \left\{ 0 \right\}
 \\
 \begin{bmatrix}
-  \frac{x_{a} + (x_{b} - x_{a})(H - y_{a})}{y_{b} - y_{a}} \\
+  x_{a}+\frac{(H-y_{a})}{ctg((90-k)\frac{\pi}{180})} \\
   H
 \end{bmatrix} & \text{ w innych wypadkach }
 \end{cases}
@@ -54,4 +54,11 @@ opatrzony w wiele wiecej struktur itp itd, żeby przypominał jakkolwiek
 to, o co prosi zadanie. Ma na celu sprawdzenie jak wyglądałoby pisanie
 tego w C + raylib.
 
-[zadanie](https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Optyka.pdf)
+## keybindingi
+
+-   *+* - zwiększa grubość linii o 1 (max = 8)
+-   *-* - zmniejsza grubość linii o 1 (min = 1)
+
+## odniesienia
+
+-   [zadanie](https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Optyka.pdf)
