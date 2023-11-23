@@ -15,7 +15,7 @@
 - testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam odwalili z liczeniem wektorów lololol
 - wzory są wyjęte z dupy, np
 
-#+begin_src latex
+\begin{aligned}
 H = wysokość okna \\
 
 \operatorname{target}(a, b, k) = \begin{cases}
@@ -30,7 +30,7 @@ H = wysokość okna \\
 \end{bmatrix} & \text{ w innych wypadkach }
 
 \end{cases}
-#+end_src
+\end{aligned}
 
 
 Piszę tą próbę w C, bo nie znalazłem żadnej dobrej biblioteki do pisania "gier" dla racketa.
