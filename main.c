@@ -193,25 +193,25 @@ void handle_source_repositioning(source_t *s, struct mouse_information_t *mi) {
   if (!mi->pressed_moving)
     return;
 
+  /* to +10 żeby łatwiej się łapało. jak będzie przeszkadzać można usunąć */
   Rectangle rect = {
-    .x = s->pt.x - s->size,
-    .y = s->pt.y - s->size,
-    .width = s->size,
-    .height = s->size
+    .x = s->pt.x - (10 + s->size),
+    .y = s->pt.y - (10 + s->size),
+    .width = s->size + 10,
+    .height = s->size + 10
   };
-
-  if (mi->first_click) {
-    mi->_dx = mi->pos.x - s->pt.x;
-    mi->_dy = mi->pos.y - s->pt.y;
-  }
 
   // DrawRectangleRec(rect, PURPLE);
 
-  if (mi->_currently_moving == s || CheckCollisionPointRec(mi->pos, rect)) {
+
+  if ((mi->_currently_moving == s || mi->_currently_moving == NULL)
+      && CheckCollisionPointRec(mi->pos, rect)) {
     if (!mi->first_click) {
       s->pt.x = mi->pos.x - mi->_dx;
       s->pt.y = mi->pos.y - mi->_dy;
     } else {
+      mi->_dx = mi->pos.x - s->pt.x;
+      mi->_dy = mi->pos.y - s->pt.y;
       mi->_currently_moving = s;
     }
   }
@@ -238,12 +238,23 @@ int main(void)
   InitWindow(800, 600, "giga optyka");
 
   while (!WindowShouldClose()) {
+    mi.pos = GetMousePosition();
+
     switch (GetCharPressed()) {
     case L'+':
       current_line_thickness = MIN(current_line_thickness + 1.f, MAX_LINE_THICKNESS);
       break;
     case L'-':
       current_line_thickness = MAX(current_line_thickness - 1.f, 1);
+      break;
+    case L'A':
+      sources = realloc(sources, sizeof(source_t) * (1 + n_sources));
+      sources[n_sources] = (source_t){
+        .size = 20,
+          .pt = mi.pos,
+          .angle = 90
+      };
+      ++n_sources;
       break;
     }
 
@@ -254,13 +265,13 @@ int main(void)
 
     if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT) && mi.pressed_moving) {
       mi.pressed_moving = false, mi.first_click = false;
+      mi._dx = mi._dy = 0, mi._currently_moving = NULL;
     }
 
 
     BeginDrawing();
     {
       ClearBackground(WHITE);
-      mi.pos = GetMousePosition();
 
       draw_all_bounceables();
 
@@ -277,5 +288,6 @@ int main(void)
     mi.first_click = false;
   }
 
+  free(sources);
   free(bounceables);
 }

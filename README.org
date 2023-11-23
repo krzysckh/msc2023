@@ -56,6 +56,7 @@ wyglądałoby pisanie tego w C + raylib.
 ** keybindingi
 - /+/ - zwiększa grubość linii o 1 (max = 8)
 - /-/ - zmniejsza grubość linii o 1 (min = 1)
+- /A/ - dodaje sztynks
 
 ** odniesienia
 - [[https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Optyka.pdf][zadanie]]

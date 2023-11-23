@@ -58,6 +58,7 @@ tego w C + raylib.
 
 -   *+* - zwiększa grubość linii o 1 (max = 8)
 -   *-* - zmniejsza grubość linii o 1 (min = 1)
+-   *A* - dodaje sztynks
 
 ## odniesienia
 
