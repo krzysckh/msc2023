@@ -67,7 +67,8 @@ void draw_source(source_t *s)
   DrawRectanglePro(rect, (Vector2){10, 10}, s->angle, RED);
 }
 
-void draw_all_bounceables() {
+void draw_all_bounceables()
+{
   size_t i;
   for (i = 0; i < N_BOUNCEABLES; ++i) {
     DrawLineV(bounceables[i].p1, bounceables[i].p2, BLACK);
@@ -86,6 +87,7 @@ void draw_line_by_lenght_angle(Vector2 pos, int len, int angle, Color c)
   DrawRectanglePro(rect, (Vector2){0, 0}, angle, c);
 }
 
+// jeśli miałoby coś się ścinać, zwiększże **TROCHĘ** tą liczbę żeby zwiększyć wydajność kosztem dokładności
 #define CAST_LIGHT_STEP_SIZE 1
 bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_bounceable)
 {
@@ -95,7 +97,7 @@ bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_
     source = Vector2MoveTowards(source, target, CAST_LIGHT_STEP_SIZE);
 
     for (i = 0; i < N_BOUNCEABLES; ++i) {
-      if (CheckCollisionPointLine(source, bounceables[i].p1, bounceables[i].p2, 1)) {
+      if (CheckCollisionPointLine(source, bounceables[i].p1, bounceables[i].p2, CAST_LIGHT_STEP_SIZE)) {
         *hit_bounceable = bounceables[i];
         ret->x = source.x, ret->y = source.y;
         return true;
@@ -120,7 +122,7 @@ float normalize_angle(float f)
 }
 
 // https://www.physicsclassroom.com/class/refln/Lesson-1/The-Law-of-Reflection
-#define max_draw_lines 10
+#define max_draw_lines 100
 #define draw_light(s) _draw_light(s, max_draw_lines)
 void _draw_light(source_t *s, int max_depth)
 {

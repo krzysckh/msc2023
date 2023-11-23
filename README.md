@@ -12,7 +12,17 @@ $ wine ./main.exe
 -   nie edytuj README.md - jest generowane automatycznie z README.org
 -   testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam
     odwalili z liczeniem wektorów lololol
--   wzory i pomysły są wyjęte z dupy, np
+
+``` shell
+$ git clone https://github.com/raysan5/raylib
+$ cd raylib
+$ git checkout 4.5.0
+$ cd src/
+$ make
+$ sudo make install
+```
+
+-   wzory i pomysły są wyjęte z dupy, np.:
 
 $$ H = \text{wysokość okna} $$
 
