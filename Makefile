@@ -19,3 +19,5 @@ build-windows:
 		-static -o main.exe
 clean:
 	rm -f $(TARGET) $(OFILES) *.core
+README.md:
+	pandoc README.org -o README.md
