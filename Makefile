@@ -21,7 +21,8 @@ tinyscheme/libtinyscheme.a:
 build-windows:
 	[ -f "libraylib.a" ] || wget -O libraylib.a https://pub.krzysckh.org/libraylib.a
 	[ -f "libtinyscheme-w64.a" ] || wget -O libtinyscheme-w64.a https://pub.krzysckh.org/libtinyscheme-w64.a
-	x86_64-w64-mingw32-gcc -std=gnu11 $(CFLAGS) $(CFILES) -L. -l:libraylib.a \
+	$(MAKE) clean $(OFILES) CC=x86_64-w64-mingw32-gcc
+	x86_64-w64-mingw32-gcc -std=gnu11 $(CFLAGS) $(OFILES) -L. -l:libraylib.a \
 		-l:libtinyscheme-w64.a \
 		-lm -lwinmm -lgdi32 \
 		-static -o main.exe
