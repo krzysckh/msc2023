@@ -2,9 +2,10 @@ CC=clang
 CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include -g
 LDFLAGS=-lm -L/usr/local/lib -lraylib
 
-SCMFILES=tinyscheme/r5rs.scm
+SCMFILES!=echo tinyscheme/r5rs.scm `find scm -type f -name '*.scm'`
 
-CFILES=`find src -type f -name '*.[cC]'` `echo $(SCMFILES) | sed 's/\.scm/.scm.c/g'`
+CFILES!=echo load-compiled-scripts.c \
+			 `find src -type f -name '*.[cC]'` `echo $(SCMFILES) | sed 's/\.scm/.scm.c/g'`
 OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
 
 .PHONY: all build-windows clean
@@ -12,6 +13,8 @@ OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
 
 all: $(OFILES) tinyscheme/libtinyscheme.a
 	$(CC) $(OFILES) ./tinyscheme/libtinyscheme.a $(LDFLAGS) -o ./main
+load-compiled-scripts.c:
+	./create-load-compiled-scripts.pl $(SCMFILES) > load-compiled-scripts.c
 tinyscheme/libtinyscheme.a:
 	$(MAKE) -C tinyscheme
 .scm.scm.c:
@@ -27,7 +30,7 @@ build-windows:
 		-lm -lwinmm -lgdi32 \
 		-static -o main.exe
 clean:
-	rm -f $(TARGET) $(OFILES) *.core README.md main *.scm.c
+	rm -f $(TARGET) $(OFILES) *.core README.md main *.scm.c load-compiled-scripts.c
 README.md:
 	pandoc README.org -o README.md
 pre-publish: clean README.md

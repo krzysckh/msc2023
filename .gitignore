@@ -6,3 +6,4 @@
 main
 *\~
 ltximg
+load-compiled-scripts.c

@@ -19,3 +19,8 @@
   (iota 0 1 (length xs)))
 
 (create-bounceable 0 300 400 600)
+
+(define (kp-hook c)
+  (print (list 'pressed c)))
+
+(add-hook 'keypress kp-hook)

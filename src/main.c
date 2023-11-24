@@ -16,6 +16,7 @@
 
 extern scheme scm;
 extern char tinyscheme_r5rs_scm[];
+extern hookable_event_t keypress;
 
 #define MAX_INPUT_BUFFER_SIZE 4096
 static void (*input_func)(void) = NULL;
@@ -224,7 +225,7 @@ static void show_and_eval_scheme(void)
 int main(void)
 {
   extern scheme scm;
-  int i;
+  int i, c;
   struct mouse_information_t mi = {
     .first_click = false,
     .pos = {0,0},
@@ -238,7 +239,9 @@ int main(void)
     mi.pos = GetMousePosition();
 
     if (input_func == NULL) {
-      switch (GetCharPressed()) {
+      c = GetCharPressed();
+      switch (c) {
+      case 0: break;
       case L'+':
         current_line_thickness = MIN(current_line_thickness + 1.f,
           MAX_LINE_THICKNESS);
@@ -246,12 +249,11 @@ int main(void)
       case L'-':
         current_line_thickness = MAX(current_line_thickness - 1.f, 1);
         break;
-      case L'A':
-        add_source(mi.pos, 20, 90, true);
-        break;
       case L'e':
         input_func = show_and_eval_scheme;
         break;
+      default:
+        do_hooks(&keypress, cons(&scm, mk_character(&scm, c), scm.NIL));
       }
     } else {
       input_func();
