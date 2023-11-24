@@ -23,6 +23,7 @@ $ sudo make install
 ```
 
 -   wymaga raygui
+-   wymaga **GNU Make** (bsd make ma problem z *.SUFFIXES*)
 -   wzory i pomysły są wyjęte z dupy, np.:
 
 $$ H = \text{wysokość okna} $$

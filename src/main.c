@@ -45,7 +45,7 @@ typedef struct {
 } source_t;
 
 scheme scm;
-extern char tinyscheme_init_scm[];
+extern char tinyscheme_r5rs_scm[];
 
 #define MAX_INPUT_BUFFER_SIZE 4096
 static void (*input_func)(void) = NULL;
@@ -285,8 +285,8 @@ void initialize_scheme(void)
 
   scheme_define(&scm, scm.global_env, mk_symbol(&scm, "*version*"), mk_string(&scm, "0.0"));
 
-  scheme_load_string(&scm, tinyscheme_init_scm);
-  TraceLog(LOG_INFO, "loaded builtin init.scm");
+  scheme_load_string(&scm, tinyscheme_r5rs_scm);
+  TraceLog(LOG_INFO, "loaded builtin r5rs.scm");
 
   load_scheme_cfunctions();
 }
