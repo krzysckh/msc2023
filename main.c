@@ -1,9 +1,17 @@
 #include <stdio.h>
-#include <raylib.h>
-#include <raymath.h>
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+
+#include <raylib.h>
+#include <raymath.h>
+#define RAYGUI_IMPLEMENTATION
+#include <raygui.h>
+
+#include "tinyscheme/scheme.h"
+#include "tinyscheme/scheme-private.h"
+
+#include "cxr.h"
 
 #define DEBUG 0
 #undef DEBUG
@@ -35,6 +43,13 @@ typedef struct {
   Vector2 pt;
   float angle; // 0-359
 } source_t;
+
+scheme scm;
+extern char tinyscheme_init_scm[];
+
+#define MAX_INPUT_BUFFER_SIZE 4096
+static void (*input_func)(void) = NULL;
+static char input_buffer[MAX_INPUT_BUFFER_SIZE] = {0};
 
 #define BOUNCEABLE_THICKNESS 1
 static int N_BOUNCEABLES = 0;
@@ -217,8 +232,87 @@ void handle_source_repositioning(source_t *s, struct mouse_information_t *mi) {
   }
 }
 
+void add_bounceable(Vector2 p1, Vector2 p2)
+{
+  bounceables = realloc(bounceables, sizeof(bounceable_t) * (1 + N_BOUNCEABLES));
+  bounceables[N_BOUNCEABLES] = (bounceable_t){ p1, p2 };
+
+  TraceLog(LOG_INFO, "adding bounceable [%f %f] [%f %f]", p1.x, p1.y, p2.x, p2.y);
+
+  N_BOUNCEABLES++;
+}
+
+// (create-bounceable x1 y1 x2 y2) → #f | #t
+pointer scm_create_bounceable(scheme *sc, pointer args)
+{
+  int x1, y1, x2, y2;
+
+  if (args != sc->NIL) {
+    if (list_length(sc, args) != 4) {
+      TraceLog(LOG_WARNING, "create-bounceable called with invalid n of args (expected 4)");
+      return sc->NIL;
+    }
+  }
+
+  x1 = rvalue(car(args));
+  y1 = rvalue(cadr(args));
+  x2 = rvalue(caddr(args));
+  y2 = rvalue(cadddr(args));
+
+  add_bounceable((Vector2){x1,y1}, (Vector2){x2,y2});
+
+  return sc->NIL;
+}
+
+void load_scheme_cfunctions(void)
+{
+  extern scheme scm;
+
+  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "create-bounceable"),
+                mk_foreign_func(&scm, scm_create_bounceable));
+  TraceLog(LOG_INFO, "defined create-bounceable");
+}
+
+void initialize_scheme(void)
+{
+  extern scheme scm;
+
+  scheme_init(&scm);
+  TraceLog(LOG_INFO, "loaded tinyscheme");
+
+  scheme_set_input_port_file(&scm, stdin);
+  scheme_set_output_port_file(&scm, stdout);
+
+  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "*version*"), mk_string(&scm, "0.0"));
+
+  scheme_load_string(&scm, tinyscheme_init_scm);
+  TraceLog(LOG_INFO, "loaded builtin init.scm");
+
+  load_scheme_cfunctions();
+}
+
+void show_and_eval_scheme(void)
+{
+  int res;
+  extern scheme scm;
+
+  res = GuiTextInputBox((Rectangle){100, 100, 400, 200}, "eval",
+                        "ewaluuj wyrażanie tinyscheme", "ok;anuluj", input_buffer,
+                        MAX_INPUT_BUFFER_SIZE, NULL);
+
+  switch (res) {
+  case 1: // ok
+    scheme_load_string(&scm, input_buffer);
+    /* fallthrough */
+  case 2: //anuluj
+    input_func = NULL;
+    input_buffer[0] = 0;
+  }
+}
+
 int main(void)
 {
+  extern scheme scm;
   int i, n_sources = 1;
   source_t *sources = malloc(sizeof(source_t) * n_sources);
   struct mouse_information_t mi = {
@@ -236,26 +330,34 @@ int main(void)
   init_bounceables();
 
   InitWindow(800, 600, "giga optyka");
+  initialize_scheme();
 
   while (!WindowShouldClose()) {
     mi.pos = GetMousePosition();
 
-    switch (GetCharPressed()) {
-    case L'+':
-      current_line_thickness = MIN(current_line_thickness + 1.f, MAX_LINE_THICKNESS);
-      break;
-    case L'-':
-      current_line_thickness = MAX(current_line_thickness - 1.f, 1);
-      break;
-    case L'A':
-      sources = realloc(sources, sizeof(source_t) * (1 + n_sources));
-      sources[n_sources] = (source_t){
-        .size = 20,
-          .pt = mi.pos,
-          .angle = 90
-      };
-      ++n_sources;
-      break;
+    if (input_func == NULL) {
+      switch (GetCharPressed()) {
+      case L'+':
+        current_line_thickness = MIN(current_line_thickness + 1.f, MAX_LINE_THICKNESS);
+        break;
+      case L'-':
+        current_line_thickness = MAX(current_line_thickness - 1.f, 1);
+        break;
+      case L'A':
+        sources = realloc(sources, sizeof(source_t) * (1 + n_sources));
+        sources[n_sources] = (source_t){
+          .size = 20,
+            .pt = mi.pos,
+            .angle = 90
+        };
+        ++n_sources;
+        break;
+      case L'e':
+        input_func = show_and_eval_scheme;
+        break;
+      }
+    } else {
+      input_func();
     }
 
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && mi.pressed_moving == false) {
@@ -267,7 +369,6 @@ int main(void)
       mi.pressed_moving = false, mi.first_click = false;
       mi._dx = mi._dy = 0, mi._currently_moving = NULL;
     }
-
 
     BeginDrawing();
     {
@@ -290,4 +391,5 @@ int main(void)
 
   free(sources);
   free(bounceables);
+  scheme_deinit(&scm);
 }

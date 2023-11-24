@@ -22,6 +22,7 @@
   $ make
   $ sudo make install
 #+END_SRC
+- wymaga raygui
 - wzory i pomysły są wyjęte z dupy, np.:
 
 $$ H = \text{wysokość okna} $$
@@ -53,10 +54,20 @@ Jest to bardzo nieokiełznany *proof-of-concept*, który musi zostać opatrzony 
 struktur itp itd, żeby przypominał jakkolwiek to, o co prosi zadanie. Ma na celu sprawdzenie jak
 wyglądałoby pisanie tego w C + raylib.
 
+
+** scheme
+*MIMO* tego że program jest napisany w C, możliwe jest skryptowanie wszystkiego
+w tinyscheme, bo bardzo łatwy jest /interop/ między C a tinyscheme, co widać tu o.
+
+Zimplementowane funkcje:
+- ~(create-bounceable x1 y1 x2 y2)~ tworzy bounceable (jak na razie bez typu etc).
+
+
 ** keybindingi
 - /+/ - zwiększa grubość linii o 1 (max = 8)
 - /-/ - zmniejsza grubość linii o 1 (min = 1)
 - /A/ - dodaje sztynks
+- /e/ - pokazuje okno wykonywania scheme (do poprawki lolololol)
 
 ** odniesienia
 - [[https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Optyka.pdf][zadanie]]
