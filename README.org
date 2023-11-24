@@ -62,7 +62,9 @@ w tinyscheme, bo bardzo łatwy jest /interop/ między C a tinyscheme, co widać 
 
 Zimplementowane funkcje:
 - ~(create-bounceable x1 y1 x2 y2)~ tworzy bounceable (jak na razie bez typu etc).
+- ~(create-source x y sz angle rel?)~ tworzy ~source_t~
 
++ na początek odpala ~./rc.scm~
 
 ** keybindingi
 - /+/ - zwiększa grubość linii o 1 (max = 8)
