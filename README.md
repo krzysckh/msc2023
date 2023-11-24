@@ -28,7 +28,7 @@ $ sudo make install
 $$ H = \text{wysokość okna} $$
 
 $$
-\operatorname{target}(a, b, k) = \begin{cases}
+\operatorname{target}(a, k) = \begin{cases}
 \begin{bmatrix}
   ctg(\frac{\pi}{180}(180-k))y_{a}+x_{a} \\
   0

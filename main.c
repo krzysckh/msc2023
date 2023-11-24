@@ -83,7 +83,7 @@ float absf(float x)
 }
 
 // via ./notatki.ora
-Vector2 create_target(Vector2 a, Vector2 b, float angle)
+Vector2 create_target(Vector2 a, float angle)
 {
   if ((angle >= 180 && angle <= 360) || angle == 0)
     return (Vector2){(ctg((180-angle)*(PI/180.f))*a.y+a.x), 0};
@@ -95,18 +95,18 @@ void draw_source(source_t *s)
 {
   Vector2 cur_mouse;
   Rectangle rect = {
-    .x = s->pt.x - (s->size / 2),
-    .y = s->pt.y - (s->size / 2),
+    .x = s->pt.x - (s->size / 2.f),
+    .y = s->pt.y - (s->size / 2.f),
     .width = s->size,
-    .height = s->size 
+    .height = s->size
   };
 
   cur_mouse = GetMousePosition();
 
   s->angle = normalize_angle(Vector2Angle((Vector2){rect.x, rect.y}, cur_mouse) * 180 / PI);
-  s->target = create_target((Vector2){rect.x, rect.y}, cur_mouse, s->angle);
+  s->target = create_target((Vector2){rect.x, rect.y}, s->angle);
 
-  DrawRectanglePro(rect, (Vector2){s->size / 2, s->size / 2}, s->angle, RED);
+  DrawRectanglePro(rect, (Vector2){s->size / 2.f, s->size / 2.f}, s->angle, RED);
 }
 
 void draw_all_bounceables()
@@ -198,7 +198,7 @@ void _draw_light(source_t *s, int max_depth)
     }
 #endif
 
-    cur_target = create_target(next, (Vector2){cur.x + (2 * (next.x - cur.x)), cur.y}, cur_angle);
+    cur_target = create_target(next, cur_angle);
     cur = Vector2MoveTowards(next, cur_target, 1);
   }
 }
