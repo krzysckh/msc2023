@@ -1,0 +1,41 @@
+tinyscheme - oryginalnie (c) Dimitrios Souflis (1998-2023)
+             drobne zmiany względem 1.42 - (c) Krzysztof Michałczyk (2023)
+             [https://tinyscheme.sourceforge.net/home.html]
+
+raylib-nuklear - oryginalnie (c) Rob Loach (2020) na licencji zlib
+                 drobne zmiany względem 988c447 - (c) Krzysztof Michałczyk (2023)
+                 [https://github.com/RobLoach/raylib-nuklear]
+
+raylib-nuklear/vendor/nuklear - domena publiczna
+                                [https://github.com/Immediate-Mode-UI/Nuklear]
+
+raylib - (c) Ramon Santamaria 2013-2023 na licencji zlib
+         [https://github.com/raysan5/raylib]
+raygui - (c) Ramon Santamaria 2013-2023 na licencji zlib
+         [https://github.com/raysan5/raygui]
+
+
+cała reszta:
+Copyright (c) 2023, Krzysztof Michałczyk <kpm@linux.pl>
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
