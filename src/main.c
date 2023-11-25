@@ -28,9 +28,6 @@ static int N_BOUNCEABLES = 0,
 static bounceable_t *bounceables = NULL;
 static source_t *sources = NULL;
 
-#define MAX_LINE_THICKNESS 8
-static float current_line_thickness = 1.f;
-
 float normalize_angle(float f)
 {
   while (f >= 360) f -= 360;
@@ -138,7 +135,7 @@ static void _draw_light(source_t *s, int max_depth)
         hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
     cur_angle = normalize_angle(hit_angle + rel_angle);
 
-    DrawLineEx(cur, next, current_line_thickness, colors[i % 10]);
+    DrawLineEx(cur, next, s->thickness, colors[i % 10]);
 
     cur_target = create_target(next, cur_angle);
     cur = Vector2MoveTowards(next, cur_target, 1);
@@ -187,17 +184,19 @@ void add_bounceable(Vector2 p1, Vector2 p2)
   N_BOUNCEABLES++;
 }
 
-void add_source(Vector2 p, int size, float angle, bool mouse_reactive) {
+void add_source(source_t s)
+{
   sources = realloc(sources, sizeof(source_t) * (1 + N_SOURCES));
 
   sources[N_SOURCES] = (source_t){
-    .pt = p,
-    .angle = normalize_angle(angle),
-    .size = size,
-    .mouse_reactive = mouse_reactive
+    .pt = s.pt,
+    .angle = normalize_angle(s.angle),
+    .size = s.size,
+    .thickness = s.thickness,
+    .mouse_reactive = s.mouse_reactive
   };
 
-  TraceLog(LOG_INFO, "adding source [%f %f] ang. %f", p.x, p.y, angle);
+  TraceLog(LOG_INFO, "adding source [%f %f] ang. %f", s.pt.x, s.pt.y, s.angle);
 
   ++N_SOURCES;
 }
@@ -242,13 +241,6 @@ int main(void)
       c = GetCharPressed();
       switch (c) {
       case 0: break;
-      case L'+':
-        current_line_thickness = MIN(current_line_thickness + 1.f,
-          MAX_LINE_THICKNESS);
-        break;
-      case L'-':
-        current_line_thickness = MAX(current_line_thickness - 1.f, 1);
-        break;
       case L'e':
         input_func = show_and_eval_scheme;
         break;

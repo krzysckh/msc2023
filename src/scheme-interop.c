@@ -98,18 +98,18 @@ static pointer scm_create_bounceable(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-// (create-source x y sz angle rel?) → nil
-// rel? to #t | #f
+// (real-create-source x y sz angle thickness reactive) → nil
+// reactive? to #t | #f
 static pointer scm_create_source(scheme *sc, pointer args)
 {
-  float x, y, sz, angle;
+  float x, y, sz, thickness, angle;
   bool rel;
 
   if (args == sc->NIL) return sc->NIL;
 
-  if (list_length(sc, args) != 5) {
+  if (list_length(sc, args) != 6) {
     TraceLog(LOG_WARNING, "create-source called with invalid n of args "
-        "(expected 5)");
+        "(expected 6)");
 
     return sc->NIL;
   }
@@ -118,9 +118,16 @@ static pointer scm_create_source(scheme *sc, pointer args)
   y = rvalue(cadr(args));
   sz = rvalue(caddr(args));
   angle = rvalue(cadddr(args));
-  rel = cadddr(cdr(args)) == sc->T;
+  thickness = rvalue(cadddr(cdr(args)));
+  rel = cadddr(cddr(args)) == sc->T;
 
-  add_source((Vector2){x, y}, sz, angle, rel);
+  add_source((source_t){
+    .mouse_reactive = rel,
+    .size = sz,
+    .pt = (Vector2){x, y},
+    .thickness = thickness,
+    .angle = angle
+  });
 
   return sc->NIL;
 }
@@ -132,7 +139,7 @@ static void load_scheme_cfunctions(void)
     mk_foreign_func(&scm, scm_create_bounceable));
   TraceLog(LOG_INFO, "defined create-bounceable");
 
-  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "create-source"),
+  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "real-create-source"),
     mk_foreign_func(&scm, scm_create_source));
   TraceLog(LOG_INFO, "defined create-source");
 

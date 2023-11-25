@@ -27,6 +27,7 @@ typedef struct {
   int size;
   Vector2 target; /* imaginary target */
   Vector2 pt;
+  float thickness;
   float angle; // 0-359
 } source_t;
 
@@ -38,7 +39,7 @@ typedef struct {
 float normalize_angle(float f);
 float absf(float x);
 void add_bounceable(Vector2 p1, Vector2 p2);
-void add_source(Vector2 p, int size, float angle, bool mouse_reactive);
+void add_source(source_t s);
 
 void initialize_scheme(void);
 void do_hooks(hookable_event_t *he, pointer args);

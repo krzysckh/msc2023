@@ -69,7 +69,7 @@ Zimplementowane funkcje:
 -   `(create-bounceable x1 y1 x2 y2)` tworzy bounceable (jak na razie
     bez typu etc).
 
--   `(create-source x y sz angle rel?)` tworzy `source_t`
+-   `(create-source alist)` tworzy `source_t`
 
 -   `(add-hook h f)` dodaje hook `f` do akcji *h*
 
@@ -79,8 +79,6 @@ Zimplementowane funkcje:
 
 ## keybindingi
 
--   *+* - zwiększa grubość linii o 1 (max = 8)
--   *-* - zmniejsza grubość linii o 1 (min = 1)
 -   *A* - dodaje sztynks
 -   *e* - pokazuje okno wykonywania scheme (do poprawki lolololol)
 
