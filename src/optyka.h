@@ -12,6 +12,8 @@
 struct mouse_information_t {
   bool first_click;
   bool pressed_moving;
+  bool left;
+  bool right;
   Vector2 pos;
 
   int _dx, _dy; /* the javascript way */
@@ -42,6 +44,7 @@ void add_bounceable(Vector2 p1, Vector2 p2);
 void add_source(source_t s);
 
 void initialize_scheme(void);
+pointer scheme_click_info(struct mouse_information_t *mi);
 void do_hooks(hookable_event_t *he, pointer args);
 
 void load_compiled_scripts(void);

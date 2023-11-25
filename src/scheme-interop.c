@@ -9,13 +9,26 @@ hookable_event_t keypress = {
   .n_hooks = 0
 };
 
+hookable_event_t click = {
+  .hooks = NULL,
+  .n_hooks = 0
+};
+
+hookable_event_t unclick = {
+  .hooks = NULL,
+  .n_hooks = 0
+};
+
+
 struct hlist_el {
   char *nam;
   hookable_event_t *he;
 };
 
 static struct hlist_el hookable_events_list[] = {
-  {"keypress", &keypress}
+  {"keypress", &keypress},
+  {"click", &click},
+  {"unclick", &unclick},
 };
 static int n_hookable_events = sizeof(hookable_events_list)/
   sizeof(*hookable_events_list);
@@ -28,6 +41,35 @@ void do_hooks(hookable_event_t *he, pointer args)
   }
 }
 
+#define expect_args(func,n) \
+  if (list_length(sc, args) != n) { \
+    TraceLog(LOG_WARNING, \
+        func " called with invalid n of args (expected " #n ")"); \
+    return sc->F; }
+
+// (real-draw-line x1 y1 x2 y2 thickness r g b a) → nil
+static pointer scm_draw_line(scheme *sc, pointer args)
+{
+  float x1, y1, x2, y2, thick, r, g, b, a;
+
+  expect_args("real-draw-line", 9);
+
+  x1    = rvalue(car(args));
+  y1    = rvalue(cadr(args));
+  x2    = rvalue(caddr(args));
+  y2    = rvalue(cadddr(args));
+  thick = rvalue(cadddr(cdr(args)));
+  r     = rvalue(cadddr(cddr(args)));
+  g     = rvalue(cadddr(cdddr(args)));
+  b     = rvalue(cadddr(cddddr(args)));
+  a     = rvalue(cadddr(cddddr(cdr(args)))); // swiete gowno
+
+  DrawLineEx((Vector2){ x1, y1 }, (Vector2){ x2, y2 }, thick,
+    (Color){ r, g, b, a });
+
+  return sc->NIL;
+}
+
 // (add-hook 'type f) → #t | #f
 static pointer scm_add_hook(scheme *sc, pointer args)
 {
@@ -36,12 +78,7 @@ static pointer scm_add_hook(scheme *sc, pointer args)
   int i;
   hookable_event_t *he;
 
-  if (args == sc->NIL) return sc->F;
-  if (list_length(sc, args) != 2) {
-    TraceLog(LOG_WARNING,
-        "add-hook called with invalid n of args (expected 2)");
-    return sc->F;
-  }
+  expect_args("add-hook", 2);
 
   name = symname(car(args));
   f = cadr(args);
@@ -80,13 +117,7 @@ static pointer scm_create_bounceable(scheme *sc, pointer args)
 {
   int x1, y1, x2, y2;
 
-  if (args == sc->NIL) return sc->NIL;
-
-  if (list_length(sc, args) != 4) {
-    TraceLog(LOG_WARNING,
-        "create-bounceable called with invalid n of args (expected 4)");
-    return sc->NIL;
-  }
+  expect_args("create-bounceable", 4);
 
   x1 = rvalue(car(args));
   y1 = rvalue(cadr(args));
@@ -105,14 +136,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
   float x, y, sz, thickness, angle;
   bool rel;
 
-  if (args == sc->NIL) return sc->NIL;
-
-  if (list_length(sc, args) != 6) {
-    TraceLog(LOG_WARNING, "create-source called with invalid n of args "
-        "(expected 6)");
-
-    return sc->NIL;
-  }
+  expect_args("real-create-source", 6);
 
   x = rvalue(car(args));
   y = rvalue(cadr(args));
@@ -150,6 +174,10 @@ static void load_scheme_cfunctions(void)
   scheme_define(&scm, scm.global_env, mk_symbol(&scm, "get-mouse-position"),
     mk_foreign_func(&scm, scm_get_mouse_position));
   TraceLog(LOG_INFO, "defined get-mouse-position");
+
+  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "real-draw-line"),
+    mk_foreign_func(&scm, scm_draw_line));
+  TraceLog(LOG_INFO, "defined real-draw-line");
 }
 
 void initialize_scheme(void)
@@ -169,4 +197,11 @@ void initialize_scheme(void)
   load_compiled_scripts();
 
   scheme_load_string(&scm, "(load \"rc.scm\")");
+}
+
+pointer scheme_click_info(struct mouse_information_t *mi)
+{
+  return cons(&scm, mi->first_click ? scm.T : scm.F,
+      cons(&scm, mi->left ? scm.T : scm.F,
+        cons(&scm, mi->right ? scm.T : scm.F, scm.NIL)));
 }

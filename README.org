@@ -67,6 +67,9 @@ Zimplementowane funkcje:
 - ~(create-source alist)~ tworzy ~source_t~
 - ~(add-hook h f)~ dodaje hook ~f~ do akcji /h/
 - ~(get-mouse-position)~ zwraca ~(x . y)~ myszki
+- ~(draw-line p1 p2 thickness color)~ rysuje linię. p1 i p2 = ~(x . y)~,
+  color = ~(r g b a)~
+
 
 + na początek odpala ~./rc.scm~
 

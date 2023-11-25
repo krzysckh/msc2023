@@ -16,7 +16,10 @@
 
 extern scheme scm;
 extern char tinyscheme_r5rs_scm[];
+
 extern hookable_event_t keypress;
+extern hookable_event_t click;
+extern hookable_event_t unclick;
 
 #define MAX_INPUT_BUFFER_SIZE 4096
 static void (*input_func)(void) = NULL;
@@ -228,7 +231,9 @@ int main(void)
   struct mouse_information_t mi = {
     .first_click = false,
     .pos = {0,0},
-    .pressed_moving = false
+    .pressed_moving = false,
+    .left = false,
+    .right = false,
   };
 
   InitWindow(800, 600, "giga optyka");
@@ -251,14 +256,33 @@ int main(void)
       input_func();
     }
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && mi.pressed_moving == false) {
+    if ((IsMouseButtonDown(MOUSE_BUTTON_LEFT) ||
+          IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+        && mi.pressed_moving == false) {
       mi.pressed_moving = true;
       mi.first_click = true;
+
+      // bardzo nie podoba mi się fakt, że nie moge tego sprawdzić jakimiś
+      // flagami typu IsMouseButtonDown(L | R);
+      // (sprawdzałem implementację - nie mogę)
+      if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+        mi.left = true;
+
+      if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
+        mi.right = true;;
     }
 
-    if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT) && mi.pressed_moving) {
-      mi.pressed_moving = false, mi.first_click = false;
+    if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
+        !IsMouseButtonDown(MOUSE_BUTTON_RIGHT)
+        && mi.pressed_moving) {
+      mi.pressed_moving = mi.first_click = mi.left = mi.right = false;
       mi._dx = mi._dy = 0, mi._currently_moving = NULL;
+
+      do_hooks(&unclick, scheme_click_info(&mi));
+    }
+
+    if (mi.pressed_moving) {
+      do_hooks(&click, scheme_click_info(&mi));
     }
 
     BeginDrawing();

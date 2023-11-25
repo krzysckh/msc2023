@@ -75,6 +75,9 @@ Zimplementowane funkcje:
 
 -   `(get-mouse-position)` zwraca `(x . y)` myszki
 
+-   `(draw-line p1 p2 thickness color)` rysuje linię. p1 i p2 =
+    `(x . y)`, color = `(r g b a)`
+
 -   na początek odpala `./rc.scm`
 
 ## keybindingi
