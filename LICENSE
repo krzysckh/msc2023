@@ -1,14 +1,6 @@
 tinyscheme - oryginalnie (c) Dimitrios Souflis (1998-2023)
              drobne zmiany względem 1.42 - (c) Krzysztof Michałczyk (2023)
              [https://tinyscheme.sourceforge.net/home.html]
-
-raylib-nuklear - oryginalnie (c) Rob Loach (2020) na licencji zlib
-                 drobne zmiany względem 988c447 - (c) Krzysztof Michałczyk (2023)
-                 [https://github.com/RobLoach/raylib-nuklear]
-
-raylib-nuklear/vendor/nuklear - domena publiczna
-                                [https://github.com/Immediate-Mode-UI/Nuklear]
-
 raylib - (c) Ramon Santamaria 2013-2023 na licencji zlib
          [https://github.com/raysan5/raylib]
 raygui - (c) Ramon Santamaria 2013-2023 na licencji zlib

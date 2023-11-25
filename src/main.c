@@ -204,7 +204,6 @@ void add_source(source_t s)
   ++N_SOURCES;
 }
 
-// TODO: zmień to na nuklear gui
 static void show_and_eval_scheme(void)
 {
   int res;
