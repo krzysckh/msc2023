@@ -28,9 +28,9 @@ build-windows:
 	x86_64-w64-mingw32-gcc -std=gnu11 $(CFLAGS) $(OFILES) -L. -l:libraylib.a \
 		-l:libtinyscheme-w64.a \
 		-lm -lwinmm -lgdi32 \
-		-static -o main.exe
+		-static -o rl-optyka-test.exe
 clean:
-	rm -f $(TARGET) $(OFILES) *.core README.md main *.scm.c load-compiled-scripts.c
+	rm -f $(TARGET) $(OFILES) *.core README.md main *.scm.c load-compiled-scripts.c *.exe
 README.md:
 	pandoc README.org -o README.md
 pre-publish: clean README.md
