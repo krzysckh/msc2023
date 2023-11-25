@@ -1,6 +1,12 @@
 CC=clang
+OS!=uname -s | tr -d '\n'
+
+ifeq "$(OS)" "OpenBSD"
+LDFLAGS+=-lglfw
+endif
+
 CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include -g
-LDFLAGS=-lm -L/usr/local/lib -lraylib
+LDFLAGS+=-lm -L/usr/local/lib -lraylib
 
 SCMFILES!=echo tinyscheme/r5rs.scm `find scm -type f -name '*.scm'`
 

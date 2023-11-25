@@ -18,7 +18,7 @@
 #AR= echo
 
 # Unix, generally
-CC = gcc -fpic -pedantic
+CC = clang -fpic -pedantic
 DEBUG=-g -Wall -Wno-char-subscripts -O
 Osuf=o
 SOsuf=so
@@ -30,7 +30,7 @@ RM= -rm -f
 AR= ar crs
 
 # Linux
-LD = gcc
+LD = clang
 LDFLAGS = -shared
 DEBUG=-g -Wno-char-subscripts -O
 SYS_LIBS= -ldl -lm
