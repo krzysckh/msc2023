@@ -129,14 +129,14 @@ static pointer scm_create_bounceable(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-// (real-create-source x y sz angle thickness reactive) → nil
+// (real-create-source x y sz angle thickness reactive r g b a) → nil
 // reactive? to #t | #f
 static pointer scm_create_source(scheme *sc, pointer args)
 {
-  float x, y, sz, thickness, angle;
+  float x, y, sz, thickness, angle, r, g, b, a;
   bool rel;
 
-  expect_args("real-create-source", 6);
+  expect_args("real-create-source", 10);
 
   x = rvalue(car(args));
   y = rvalue(cadr(args));
@@ -144,13 +144,18 @@ static pointer scm_create_source(scheme *sc, pointer args)
   angle = rvalue(cadddr(args));
   thickness = rvalue(cadddr(cdr(args)));
   rel = cadddr(cddr(args)) == sc->T;
+  r = rvalue(cadddr(cdddr(args)));
+  g = rvalue(cadddr(cddddr(args)));
+  b = rvalue(cadddr(cddddr(cdr(args))));
+  a = rvalue(cadddr(cddddr(cddr(args)))); // lol
 
   add_source((source_t){
     .mouse_reactive = rel,
     .size = sz,
     .pt = (Vector2){x, y},
     .thickness = thickness,
-    .angle = angle
+    .angle = angle,
+    .color = (Color){r,g,b,a}
   });
 
   return sc->NIL;

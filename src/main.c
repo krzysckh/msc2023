@@ -121,9 +121,6 @@ static void _draw_light(source_t *s, int max_depth)
   }, cur_target = s->target;
   float cur_angle = s->angle, hit_angle, rel_angle;
   bounceable_t hit_bounceable;
-  Color colors[10] = {
-    BLUE, RED, VIOLET, GREEN, PURPLE, BLACK, ORANGE, BLUE, RED, VIOLET
-  };
   bool bounced = true;
 
   for (i = 0; i < max_depth && bounced; ++i) {
@@ -138,7 +135,7 @@ static void _draw_light(source_t *s, int max_depth)
         hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
     cur_angle = normalize_angle(hit_angle + rel_angle);
 
-    DrawLineEx(cur, next, s->thickness, colors[i % 10]);
+    DrawLineEx(cur, next, s->thickness, s->color);
 
     cur_target = create_target(next, cur_angle);
     cur = Vector2MoveTowards(next, cur_target, 1);
@@ -192,6 +189,7 @@ void add_source(source_t s)
   sources = realloc(sources, sizeof(source_t) * (1 + N_SOURCES));
 
   sources[N_SOURCES] = (source_t){
+    .color = s.color,
     .pt = s.pt,
     .angle = normalize_angle(s.angle),
     .size = s.size,
@@ -280,10 +278,6 @@ int main(void)
       do_hooks(&unclick, scheme_click_info(&mi));
     }
 
-    if (mi.pressed_moving) {
-      do_hooks(&click, scheme_click_info(&mi));
-    }
-
     BeginDrawing();
     {
       ClearBackground(WHITE);
@@ -299,6 +293,10 @@ int main(void)
       }
     }
     EndDrawing();
+
+    if (mi.pressed_moving && mi._currently_moving == NULL) {
+      do_hooks(&click, scheme_click_info(&mi));
+    }
 
     mi.first_click = false;
   }

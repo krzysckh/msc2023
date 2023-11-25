@@ -29,6 +29,7 @@ typedef struct {
   int size;
   Vector2 target; /* imaginary target */
   Vector2 pt;
+  Color color;
   float thickness;
   float angle; // 0-359
 } source_t;
