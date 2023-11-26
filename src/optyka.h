@@ -51,7 +51,13 @@ typedef struct {
 
 typedef struct {
   bounceable_type_t t;
-  void *data;
+  union {
+    mirror_data_t *mirror;
+    lens_data_t   *lens;
+
+    void          *p; // dla jakiegokolwiek wskaźnika, żeby nie było mi źle na duszy
+  } data;
+  //void *data;
 } bounceable_t;
 
 typedef struct {

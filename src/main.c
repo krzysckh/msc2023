@@ -72,8 +72,8 @@ static void draw_lens(bounceable_t *b)
 
 static void draw_mirror(bounceable_t *b)
 {
-  Vector2 p1 = ((mirror_data_t*)b->data)->p1,
-          p2 = ((mirror_data_t*)b->data)->p2;
+  Vector2 p1 = b->data.mirror->p1,
+          p2 = b->data.mirror->p2;
   DrawLineEx(p1, p2, MIRROR_THICKNESS, BLACK);
 }
 
@@ -108,8 +108,8 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
       switch (bounceables[i].t) {
       case B_MIRROR:
         if (CheckCollisionPointLine(source,
-              ((mirror_data_t*)bounceables[i].data)->p1,
-              ((mirror_data_t*)bounceables[i].data)->p2,
+              bounceables[i].data.mirror->p1,
+              bounceables[i].data.mirror->p2,
               CAST_LIGHT_STEP_SIZE)) {
           *hit_bounceable = bounceables[i];
           ret->x = source.x, ret->y = source.y;
@@ -138,10 +138,11 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next)
   switch (b->t) {
   case B_MIRROR:
     hit_angle = MAX(
-      normalize_angle(Vector2Angle(((mirror_data_t*)b->data)->p2,
-          ((mirror_data_t*)b->data)->p1) * 180 / PI),
-      normalize_angle(Vector2Angle(((mirror_data_t*)b->data)->p1,
-          ((mirror_data_t*)b->data)->p2) * 180 / PI));
+      normalize_angle(Vector2Angle(b->data.mirror->p2, b->data.mirror->p1)
+        * 180 / PI),
+      normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2)
+        * 180 / PI)
+    );
     rel_angle = normalize_angle(
         hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
     cur_angle = normalize_angle(hit_angle + rel_angle);
@@ -212,7 +213,7 @@ void add_bounceable(bounceable_type_t t, void *data)
 
   bounceables[N_BOUNCEABLES] = (bounceable_t){
     .t = t,
-    .data = data
+    .data.p = data
   };
 
   TraceLog(LOG_INFO, "new bounceable with T = %02x", t);
