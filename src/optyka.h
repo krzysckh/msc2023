@@ -55,9 +55,9 @@ typedef struct {
     mirror_data_t *mirror;
     lens_data_t   *lens;
 
-    void          *p; // dla jakiegokolwiek wskaźnika, żeby nie było mi źle na duszy
+    void          *p;
+    // p dla jakiegokolwiek wskaźnika, żeby nie było mi źle na duszy
   } data;
-  //void *data;
 } bounceable_t;
 
 typedef struct {

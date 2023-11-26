@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [ -Wall, -Wextra, -I.., -I., -I./src, -I/usr/local/include, -std=c99, -pedantic ]
+  Add: [ -Wall, -Wextra, -I.., -I., -I./src, -I/usr/local/include, -std=gnu11, -pedantic ]
