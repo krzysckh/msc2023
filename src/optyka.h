@@ -19,6 +19,8 @@
 #ifdef PROD
 #define panic(fmt,...) (void)(0);
 #else
+// TODO: zrob tak zeby nie trzeba bylo miec  __VA_OPT__ bo chcialbym zeby dalo
+// sie to skompilowac uzywajac tcc lol
 #define panic(fmt, ...) errx(1, "PANIC: " #fmt __VA_OPT__(,) __VA_ARGS__)
 #endif
 
