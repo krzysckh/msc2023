@@ -63,7 +63,7 @@ w tinyscheme, bo bardzo łatwy jest /interop/ między C a tinyscheme, co widać 
 pre-kompiluje i uruchamia od razu wszystko w ~scm/~
 
 Zimplementowane funkcje:
-- ~(create-bounceable x1 y1 x2 y2)~ tworzy bounceable (jak na razie bez typu etc).
+- ~(create-mirror x1 y1 x2 y2)~ tworzy zwierciadło (jak na razie bez typu etc).
 - ~(create-source alist)~ tworzy ~source_t~
 - ~(add-hook h f)~ dodaje hook ~f~ do akcji /h/
 - ~(get-mouse-position)~ zwraca ~(x . y)~ myszki

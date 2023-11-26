@@ -66,8 +66,8 @@ pre-kompiluje i uruchamia od razu wszystko w `scm/`
 
 Zimplementowane funkcje:
 
--   `(create-bounceable x1 y1 x2 y2)` tworzy bounceable (jak na razie
-    bez typu etc).
+-   `(create-mirror x1 y1 x2 y2)` tworzy zwierciadło (jak na razie bez
+    typu etc).
 
 -   `(create-source alist)` tworzy `source_t`
 

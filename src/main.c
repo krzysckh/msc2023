@@ -8,24 +8,14 @@
 #define DEBUG 0
 #undef DEBUG
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
-
-#define MAX(x,y) (((x)>(y))?(x):(y))
-#define MIN(x,y) (((x)<(y))?(x):(y))
-
 extern scheme scm;
-extern char tinyscheme_r5rs_scm[];
-
-extern hookable_event_t keypress;
-extern hookable_event_t click;
-extern hookable_event_t unclick;
+extern hookable_event_t keypress, click, unclick;
 
 #define MAX_INPUT_BUFFER_SIZE 4096
 static void (*input_func)(void) = NULL;
 static char input_buffer[MAX_INPUT_BUFFER_SIZE] = {0};
 
-#define BOUNCEABLE_THICKNESS 1
+#define MIRROR_THICKNESS 1
 static int N_BOUNCEABLES = 0,
            N_SOURCES = 0;
 static bounceable_t *bounceables = NULL;
@@ -74,12 +64,33 @@ static void draw_source(source_t *s)
   DrawRectanglePro(rect, (Vector2){s->size / 2.f, s->size / 2.f}, s->angle, RED);
 }
 
+static void draw_lens(bounceable_t *b)
+{
+  (void)b;
+  TODO("draw_lens not implemented");
+}
+
+static void draw_mirror(bounceable_t *b)
+{
+  Vector2 p1 = ((mirror_data_t*)b->data)->p1,
+          p2 = ((mirror_data_t*)b->data)->p2;
+  DrawLineEx(p1, p2, MIRROR_THICKNESS, BLACK);
+}
+
 static void draw_all_bounceables(void)
 {
   int i;
   for (i = 0; i < N_BOUNCEABLES; ++i) {
-    DrawLineEx(bounceables[i].p1, bounceables[i].p2, BOUNCEABLE_THICKNESS,
-      BLACK);
+    switch (bounceables[i].t) {
+    case B_MIRROR:
+      draw_mirror(&bounceables[i]);
+      break;
+    case B_LENS:
+      draw_lens(&bounceables[i]);
+      break;
+    default:
+      panic("unreachable");
+    }
   }
 }
 
@@ -94,11 +105,22 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
     source = Vector2MoveTowards(source, target, CAST_LIGHT_STEP_SIZE);
 
     for (i = 0; i < N_BOUNCEABLES; ++i) {
-      if (CheckCollisionPointLine(source, bounceables[i].p1, bounceables[i].p2,
-            CAST_LIGHT_STEP_SIZE)) {
-        *hit_bounceable = bounceables[i];
-        ret->x = source.x, ret->y = source.y;
-        return true;
+      switch (bounceables[i].t) {
+      case B_MIRROR:
+        if (CheckCollisionPointLine(source,
+              ((mirror_data_t*)bounceables[i].data)->p1,
+              ((mirror_data_t*)bounceables[i].data)->p2,
+              CAST_LIGHT_STEP_SIZE)) {
+          *hit_bounceable = bounceables[i];
+          ret->x = source.x, ret->y = source.y;
+          return true;
+        }
+        break;
+      case B_LENS:
+        TODO("B_LENS not implemented.");
+        break;
+      default:
+        panic("unreachable");
       }
     }
 
@@ -107,6 +129,27 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
 
   ret->x = source.x, ret->y = source.y, hit_bounceable = NULL;
   return false;
+}
+
+Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next)
+{
+  float cur_angle, hit_angle, rel_angle;
+
+  switch (b->t) {
+  case B_MIRROR:
+    hit_angle = MAX(
+      normalize_angle(Vector2Angle(((mirror_data_t*)b->data)->p2,
+          ((mirror_data_t*)b->data)->p1) * 180 / PI),
+      normalize_angle(Vector2Angle(((mirror_data_t*)b->data)->p1,
+          ((mirror_data_t*)b->data)->p2) * 180 / PI));
+    rel_angle = normalize_angle(
+        hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
+    cur_angle = normalize_angle(hit_angle + rel_angle);
+
+    return create_target(next, cur_angle);
+  case B_LENS:
+    TODO("lens not implemented");
+  }
 }
 
 // https://www.physicsclassroom.com/class/refln/Lesson-1/The-Law-of-Reflection
@@ -119,25 +162,15 @@ static void _draw_light(source_t *s, int max_depth)
     .x = s->pt.x - 10,
     .y = s->pt.y - 10
   }, cur_target = s->target;
-  float cur_angle = s->angle, hit_angle, rel_angle;
   bounceable_t hit_bounceable;
   bool bounced = true;
 
   for (i = 0; i < max_depth && bounced; ++i) {
     bounced = cast_light(cur_target, cur, &next, &hit_bounceable);
-
-    hit_angle = MAX(
-      normalize_angle(
-        Vector2Angle(hit_bounceable.p2, hit_bounceable.p1) * 180 / PI),
-      normalize_angle(
-        Vector2Angle(hit_bounceable.p1, hit_bounceable.p2) * 180 / PI));
-    rel_angle = normalize_angle(
-        hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
-    cur_angle = normalize_angle(hit_angle + rel_angle);
-
     DrawLineEx(cur, next, s->thickness, s->color);
 
-    cur_target = create_target(next, cur_angle);
+    cur_target = create_target_by_hit(&hit_bounceable, cur, next);
+    //cur_target = create_target(next, cur_angle);
     cur = Vector2MoveTowards(next, cur_target, 1);
   }
 }
@@ -172,16 +205,35 @@ static void handle_source_repositioning(source_t *s,
   }
 }
 
-void add_bounceable(Vector2 p1, Vector2 p2)
+void add_bounceable(bounceable_type_t t, void *data)
 {
   bounceables = realloc(bounceables, sizeof(bounceable_t) *
     (1 + N_BOUNCEABLES));
-  bounceables[N_BOUNCEABLES] = (bounceable_t){ p1, p2 };
 
-  TraceLog(LOG_INFO, "adding bounceable [%f %f] [%f %f]", p1.x, p1.y, p2.x,
-    p2.y);
+  bounceables[N_BOUNCEABLES] = (bounceable_t){
+    .t = t,
+    .data = data
+  };
 
+  TraceLog(LOG_INFO, "new bounceable with T = %02x", t);
   N_BOUNCEABLES++;
+}
+
+void add_mirror(Vector2 p1, Vector2 p2)
+{
+  mirror_data_t *md = malloc(sizeof(mirror_data_t));
+  md->p1 = p1;
+  md->p2 = p2;
+
+  add_bounceable(B_MIRROR, md);
+}
+
+void add_lens(Vector2 p, float r1, float r2, float d, float opacity)
+{
+  lens_data_t *ld = malloc(sizeof(lens_data_t));
+  ld->d = d, ld->opacity = opacity, ld->r1 = r1, ld->r2 = r2, ld->p = p;
+
+  add_bounceable(B_LENS, ld);
 }
 
 void add_source(source_t s)

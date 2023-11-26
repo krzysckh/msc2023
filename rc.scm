@@ -7,27 +7,27 @@
                      ;(y . ,(list-ref ys v)))))
   ;(iota 0 1 (length xs)))
 
-;(create-bounceable 0 300 400 600)
+;(create-mirror 0 300 400 600)
 
 (define last-x 0)
 (define last-y 0)
-(define drawing-new-bounceable #f)
+(define drawing-new-mirror #f)
 
 (define (click-hook first left right)
   (when (and first left)
-    (set! drawing-new-bounceable #t)
+    (set! drawing-new-mirror #t)
     (set! last-x (car (get-mouse-position)))
     (set! last-y (cdr (get-mouse-position))))
-  (when (and (not first) drawing-new-bounceable)
+  (when (and (not first) drawing-new-mirror)
     (draw-line `(,last-x . ,last-y)
                `(,(car (get-mouse-position)) . ,(cdr (get-mouse-position)))
                2
                '(0 0 255 255))))
 
 (define (unclick-hook first left right)
-  (when drawing-new-bounceable
-    (set! drawing-new-bounceable #f)
-    (create-bounceable
+  (when drawing-new-mirror
+    (set! drawing-new-mirror #f)
+    (create-mirror
       last-x last-y (car (get-mouse-position)) (cdr (get-mouse-position)))))
 
 (add-hook 'click click-hook)

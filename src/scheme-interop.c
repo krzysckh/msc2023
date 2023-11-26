@@ -112,19 +112,19 @@ static pointer scm_get_mouse_position(scheme *sc, pointer args)
   return cons(sc, mk_integer(sc, pos.x), mk_integer(sc, pos.y));
 }
 
-// (create-bounceable x1 y1 x2 y2) → nil
-static pointer scm_create_bounceable(scheme *sc, pointer args)
+// (create-mirror x1 y1 x2 y2) → nil
+static pointer scm_create_mirror(scheme *sc, pointer args)
 {
   int x1, y1, x2, y2;
 
-  expect_args("create-bounceable", 4);
+  expect_args("create-mirror", 4);
 
   x1 = rvalue(car(args));
   y1 = rvalue(cadr(args));
   x2 = rvalue(caddr(args));
   y2 = rvalue(cadddr(args));
 
-  add_bounceable((Vector2){x1,y1}, (Vector2){x2,y2});
+  add_mirror((Vector2){x1,y1}, (Vector2){x2,y2});
 
   return sc->NIL;
 }
@@ -167,7 +167,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 
 static void load_scheme_cfunctions(void)
 {
-  SCHEME_FF(scm_create_bounceable,  "create-bounceable");
+  SCHEME_FF(scm_create_mirror,      "create-mirror");
   SCHEME_FF(scm_create_source,      "real-create-source");
   SCHEME_FF(scm_add_hook,           "add-hook");
   SCHEME_FF(scm_get_mouse_position, "get-mouse-position");
