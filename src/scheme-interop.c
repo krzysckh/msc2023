@@ -161,28 +161,17 @@ static pointer scm_create_source(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-// TODO: napisać jakieś makro żeby to ułatwić
+#define SCHEME_FF(f,sym) \
+	scheme_define(&scm, scm.global_env, mk_symbol(&scm, sym), \
+	  mk_foreign_func(&scm, f)); TraceLog(LOG_INFO, "defined " sym);
+
 static void load_scheme_cfunctions(void)
 {
-  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "create-bounceable"),
-    mk_foreign_func(&scm, scm_create_bounceable));
-  TraceLog(LOG_INFO, "defined create-bounceable");
-
-  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "real-create-source"),
-    mk_foreign_func(&scm, scm_create_source));
-  TraceLog(LOG_INFO, "defined create-source");
-
-  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "add-hook"),
-    mk_foreign_func(&scm, scm_add_hook));
-  TraceLog(LOG_INFO, "defined add-hook");
-
-  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "get-mouse-position"),
-    mk_foreign_func(&scm, scm_get_mouse_position));
-  TraceLog(LOG_INFO, "defined get-mouse-position");
-
-  scheme_define(&scm, scm.global_env, mk_symbol(&scm, "real-draw-line"),
-    mk_foreign_func(&scm, scm_draw_line));
-  TraceLog(LOG_INFO, "defined real-draw-line");
+  SCHEME_FF(scm_create_bounceable,  "create-bounceable");
+  SCHEME_FF(scm_create_source,      "real-create-source");
+  SCHEME_FF(scm_add_hook,           "add-hook");
+  SCHEME_FF(scm_get_mouse_position, "get-mouse-position");
+  SCHEME_FF(scm_draw_line,          "real-draw-line");
 }
 
 void initialize_scheme(void)
