@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+@ARGV = sort @ARGV;
+
 print <<_
 #include "optyka.h"
 extern scheme scm;

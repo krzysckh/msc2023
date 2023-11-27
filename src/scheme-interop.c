@@ -227,6 +227,7 @@ static pointer scm_add_hook(scheme *sc, pointer args)
       he->hooks[he->n_hooks] = f;
       he->n_hooks++;
 
+      TraceLog(LOG_INFO, "successfully added hook %p for %s", f, name);
       return sc->T;
     }
   }

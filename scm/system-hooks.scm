@@ -35,8 +35,8 @@
   (set! *click-can-be-handled* #t)
   (set! repositioning-source #f))
 
-(add-hook 'click reposition-source-hook)
-(add-hook 'unclick reposition-source-end-hook)
+(add-system-hook 'click reposition-source-hook)
+(add-system-hook 'unclick reposition-source-end-hook)
 
 ;; RYSOWANIE ZWIERCIADEŁ
 (define mirror-last-x 0)
@@ -64,8 +64,8 @@
       mirror-last-x mirror-last-y
       (car (get-mouse-position)) (cdr (get-mouse-position)))))
 
-(add-hook 'click start-drawing-mirror-hook)
-(add-hook 'unclick end-drawing-mirror-hook)
+(add-system-hook 'click start-drawing-mirror-hook)
+(add-system-hook 'unclick end-drawing-mirror-hook)
 
 ;; DOMYŚLNE KEYBINDINGI
 (define (keypress-default-hook c)
@@ -75,4 +75,4 @@
     (cond
       ((eqv? c #\A) (create-source `((x . ,mx) (y . ,my) (reactive . #t)))))))
 
-(add-hook 'keypress keypress-default-hook)
+(add-system-hook 'keypress keypress-default-hook)

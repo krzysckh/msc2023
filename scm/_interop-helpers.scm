@@ -1,3 +1,4 @@
+; ten plik ma _ przed nazwą, bo musi być ładowany pierwszy XDD
 (define *sources* '())
 
 (define (aq e alist)
@@ -82,6 +83,8 @@
         (a (list-ref color 3))
         (spc (if (null? spacing) *default-spacing* spacing)))
     (real-draw-text text x y sz spc r g b a)))
+
+(define add-system-hook real-add-hook)
 
 (define (add-user-hook s f)
   (real-add-hook s f))

@@ -149,12 +149,9 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next)
 
   switch (b->t) {
   case B_MIRROR:
-    hit_angle = MAX(
-      normalize_angle(Vector2Angle(b->data.mirror->p2, b->data.mirror->p1)
-        * 180 / PI),
+    hit_angle =
       normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2)
-        * 180 / PI)
-    );
+        * 180 / PI);
     rel_angle = normalize_angle(
         hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
     cur_angle = normalize_angle(hit_angle + rel_angle);
@@ -175,16 +172,18 @@ static void _draw_light(source_t *s, int max_depth)
     .x = s->pt.x - 10,
     .y = s->pt.y - 10
   }, cur_target = s->target;
-  bounceable_t hit_bounceable;
+  bounceable_t hit_bounceable = {0};
   bool bounced = true;
 
   for (i = 0; i < max_depth && bounced; ++i) {
     bounced = cast_light(cur_target, cur, &next, &hit_bounceable);
     DrawLineEx(cur, next, s->thickness, s->color);
 
-    cur_target = create_target_by_hit(&hit_bounceable, cur, next);
-    //cur_target = create_target(next, cur_angle);
-    cur = Vector2MoveTowards(next, cur_target, 1);
+    if (bounced) {
+      cur_target = create_target_by_hit(&hit_bounceable, cur, next);
+      //cur_target = create_target(next, cur_angle);
+      cur = Vector2MoveTowards(next, cur_target, 1);
+    }
   }
 }
 
@@ -205,8 +204,8 @@ void add_bounceable(bounceable_type_t t, void *data)
 void add_mirror(Vector2 p1, Vector2 p2)
 {
   mirror_data_t *md = malloc(sizeof(mirror_data_t));
-  md->p1 = p1;
-  md->p2 = p2;
+  md->p1 = (Vector2){p1.x,p1.y};
+  md->p2 = (Vector2){p2.x,p2.y};
 
   add_bounceable(B_MIRROR, md);
 }
@@ -224,8 +223,8 @@ void add_source(source_t s)
   sources = realloc(sources, sizeof(source_t) * (1 + N_SOURCES));
 
   sources[N_SOURCES] = (source_t){
-    .color = s.color,
-    .pt = s.pt,
+    .color = (Color){s.color.r, s.color.g, s.color.b, s.color.a},
+    .pt = (Vector2){ s.pt.x, s.pt.y },
     .angle = normalize_angle(s.angle),
     .size = s.size,
     .thickness = s.thickness,
