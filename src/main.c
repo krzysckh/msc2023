@@ -15,11 +15,23 @@ extern hookable_event_t keypress, click, unclick;
 static void (*input_func)(void) = NULL;
 static char input_buffer[MAX_INPUT_BUFFER_SIZE] = {0};
 
+Font default_font;
+
 #define MIRROR_THICKNESS 1
 int N_BOUNCEABLES = 0,
     N_SOURCES = 0;
 bounceable_t *bounceables = NULL;
 source_t *sources = NULL;
+
+void load_default_font(void)
+{
+  extern unsigned int proggy_otf_len;
+  extern unsigned char proggy_otf[];
+
+  default_font = LoadFontFromMemory(".otf", proggy_otf, proggy_otf_len,
+    20, NULL, 0);
+  TraceLog(LOG_INFO, "loaded default font");
+}
 
 float normalize_angle(float f)
 {
@@ -257,69 +269,69 @@ int main(void)
   };
 
   InitWindow(800, 600, "giga optyka");
+  load_default_font();
   initialize_scheme();
 
   while (!WindowShouldClose()) {
     mi.pos = GetMousePosition();
 
-    if (input_func == NULL) {
-      c = GetCharPressed();
-      switch (c) {
-      case 0: break;
-      case L'e':
-        input_func = show_and_eval_scheme;
-        break;
-      default:
-        do_hooks(&keypress, cons(&scm, mk_character(&scm, c), scm.NIL));
-      }
-    } else {
-      input_func();
-    }
-
-    if ((IsMouseButtonDown(MOUSE_BUTTON_LEFT) ||
-          IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-        && mi.pressed_moving == false) {
-      mi.pressed_moving = true;
-      mi.first_click = true;
-
-      // bardzo nie podoba mi się fakt, że nie moge tego sprawdzić jakimiś
-      // flagami typu IsMouseButtonDown(L | R);
-      // (sprawdzałem implementację - nie mogę)
-      if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
-        mi.left = true;
-
-      if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
-        mi.right = true;;
-    }
-
-    if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
-        !IsMouseButtonDown(MOUSE_BUTTON_RIGHT)
-        && mi.pressed_moving) {
-      mi.pressed_moving = mi.first_click = mi.left = mi.right = false;
-      mi._dx = mi._dy = 0, mi._currently_moving = NULL;
-
-      do_hooks(&unclick, scheme_click_info(&mi));
-    }
-
     BeginDrawing();
     {
       ClearBackground(WHITE);
 
+      if (input_func == NULL) {
+        c = GetCharPressed();
+        switch (c) {
+        case 0: break;
+        case L'e':
+          input_func = show_and_eval_scheme;
+          break;
+        default:
+          do_hooks(&keypress, cons(&scm, mk_character(&scm, c), scm.NIL));
+        }
+      } else {
+        input_func();
+      }
+
+      if ((IsMouseButtonDown(MOUSE_BUTTON_LEFT) ||
+            IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+          && mi.pressed_moving == false) {
+        mi.pressed_moving = true;
+        mi.first_click = true;
+
+        // bardzo nie podoba mi się fakt, że nie moge tego sprawdzić jakimiś
+        // flagami typu IsMouseButtonDown(L | R);
+        // (sprawdzałem implementację - nie mogę)
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+          mi.left = true;
+
+        if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
+          mi.right = true;;
+      }
+
+      if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
+          !IsMouseButtonDown(MOUSE_BUTTON_RIGHT)
+          && mi.pressed_moving) {
+        mi.pressed_moving = mi.first_click = mi.left = mi.right = false;
+        mi._dx = mi._dy = 0, mi._currently_moving = NULL;
+
+        do_hooks(&unclick, scheme_click_info(&mi));
+      }
+
       draw_all_bounceables();
 
-      //printf("%b %b\n", mi.pressed_moving, mi.first_click);
+      // TODO: to powinno być w osobnej funkcji. ale to kiedyś
       for (i = 0; i < N_SOURCES; ++i) {
-        /*handle_source_repositioning(&sources[i], &mi);*/
-
         draw_source(&sources[i]);
         draw_light(&sources[i]);
       }
+
+      if (mi.pressed_moving && mi._currently_moving == NULL) {
+        do_hooks(&click, scheme_click_info(&mi));
+      }
+
     }
     EndDrawing();
-
-    if (mi.pressed_moving && mi._currently_moving == NULL) {
-      do_hooks(&click, scheme_click_info(&mi));
-    }
 
     mi.first_click = false;
   }

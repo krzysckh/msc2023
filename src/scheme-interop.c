@@ -47,6 +47,49 @@ void do_hooks(hookable_event_t *he, pointer args)
         func " called with invalid n of args (expected " #n ")"); \
     return sc->F; }
 
+// (real-draw-text text x y sz spacing r g b a) → #t
+static pointer scm_draw_text(scheme *sc, pointer args)
+{
+  extern Font default_font;
+  float x, y, sz, spacing, r, g, b, a;
+  char *s;
+
+  expect_args("real-draw-text", 9);
+
+  s       = string_value(car(args));
+  x       = rvalue(cadr(args));
+  y       = rvalue(caddr(args));
+  sz      = rvalue(cadddr(args));
+  spacing = rvalue(cadddr(cdr(args)));
+  r       = rvalue(cadddr(cddr(args)));
+  g       = rvalue(cadddr(cdddr(args)));
+  b       = rvalue(cadddr(cddddr(args)));
+  a       = rvalue(cadddr(cddddr(cdr(args))));
+
+  DrawTextEx(default_font, s, (Vector2){x,y}, sz, spacing, (Color){r,g,b,a});
+
+  return sc->T;
+}
+
+// (real-measure-text text size spacing) → size
+static pointer scm_measure_text(scheme *sc, pointer args)
+{
+  extern Font default_font;
+  char *s;
+  float sz, spacing;
+  Vector2 ret;
+
+  expect_args("measure-text", 2);
+
+  s = string_value(car(args));
+  sz = rvalue(cadr(args));
+  spacing = rvalue(caddr(args));
+
+  ret = MeasureTextEx(default_font, s, sz, spacing);
+
+  return cons(sc, mk_integer(sc, ret.x), mk_integer(sc, ret.y));
+}
+
 // (real-set-source! n x y angle thickness r g b a)
 static pointer scm_set_source(scheme *sc, pointer args)
 {
@@ -57,7 +100,7 @@ static pointer scm_set_source(scheme *sc, pointer args)
   int n;
   float x, y, angle, thickness, r, g, b, a;
 
-  expect_args("set-source!", 9);
+  expect_args("real-set-source!", 9);
 
   // TODO: boze krzysztof napisz ncar(n,lst)
   n         = rvalue(car(args));
@@ -256,6 +299,8 @@ static pointer scm_create_source(scheme *sc, pointer args)
 
 static void load_scheme_cfunctions(void)
 {
+  SCHEME_FF(scm_measure_text,       "real-measure-text");
+  SCHEME_FF(scm_draw_text,          "real-draw-text");
   SCHEME_FF(scm_set_source,         "real-set-source!");
   SCHEME_FF(scm_get_source,         "get-source");
   SCHEME_FF(scm_get_all_sources,    "get-all-sources");

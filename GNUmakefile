@@ -13,11 +13,12 @@ LDFLAGS+=-lm -L/usr/local/lib -lraylib
 SCMFILES!=echo tinyscheme/r5rs.scm `find scm -type f -name '*.scm'`
 
 CFILES!=echo load-compiled-scripts.c \
-			 `find src -type f -name '*.[cC]'` `echo $(SCMFILES) | sed 's/\.scm/.scm.c/g'`
+	proggy.c \
+	`find src -type f -name '*.[cC]'` `echo $(SCMFILES) | sed 's/\.scm/.scm.c/g'`
 OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
 
 .PHONY: all build-windows clean
-.SUFFIXES: .c .o .scm .scm.c
+.SUFFIXES: .c .o .scm .scm.c .otf .c
 
 all: $(OFILES) tinyscheme/libtinyscheme.a
 	$(CC) $(OFILES) ./tinyscheme/libtinyscheme.a $(LDFLAGS) -o ./main
@@ -25,6 +26,8 @@ load-compiled-scripts.c:
 	./create-load-compiled-scripts.pl $(SCMFILES) > load-compiled-scripts.c
 tinyscheme/libtinyscheme.a:
 	$(MAKE) -C tinyscheme
+.otf.c:
+	xxd --include $< > $@
 .scm.scm.c:
 	./f2c.pl $< > $@
 .c.o:

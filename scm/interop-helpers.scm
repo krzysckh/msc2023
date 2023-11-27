@@ -65,6 +65,24 @@
       (set-source! n x y ang thickness r g b a)))
   (update-sources))
 
+(define *default-spacing* 8)
+
+; (measure-text text size . spacing) → (w . h)
+(define (measure-text text size . spacing)
+  (let ((spacing (if (null? spacing) *default-spacing* spacing)))
+    (real-measure-text text size spacing)))
+
+; (real-draw-text text x y sz spacing r g b a) → #t
+(define (draw-text text pos sz color . spacing)
+  (let ((x (car pos))
+        (y (cdr pos))
+        (r (list-ref color 0))
+        (g (list-ref color 1))
+        (b (list-ref color 2))
+        (a (list-ref color 3))
+        (spc (if (null? spacing) *default-spacing* spacing)))
+    (real-draw-text text x y sz spc r g b a)))
+
 (define (add-user-hook s f)
   (real-add-hook s f))
 

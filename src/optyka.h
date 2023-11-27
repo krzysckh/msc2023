@@ -26,6 +26,9 @@
 
 #define TODO(s) panic("TODO: %s", s)
 
+extern unsigned int proggy_otf_len;
+extern unsigned char proggy_otf[];
+
 struct mouse_information_t {
   bool first_click;
   bool pressed_moving;

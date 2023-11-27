@@ -66,6 +66,10 @@ pre-kompiluje i uruchamia od razu wszystko w `scm/`
 
 Zimplementowane funkcje:
 
+-   `(measure-text text sz . spacing)`
+
+-   `(draw-text text pos sz color . spacing)`
+
 -   `(get-all-sources)` zwraca wszystkie źródła. lepiej używać
     `*sources*`, bo ma zawsze takie same wartości, a jest zmienną a nie
     funkcją.
