@@ -47,6 +47,95 @@ void do_hooks(hookable_event_t *he, pointer args)
         func " called with invalid n of args (expected " #n ")"); \
     return sc->F; }
 
+// (real-set-source! n x y angle thickness r g b a)
+static pointer scm_set_source(scheme *sc, pointer args)
+{
+  extern int N_SOURCES;
+  extern source_t *sources;
+  source_t *s;
+
+  int n;
+  float x, y, angle, thickness, r, g, b, a;
+
+  expect_args("set-source!", 9);
+
+  // TODO: boze krzysztof napisz ncar(n,lst)
+  n         = rvalue(car(args));
+  x         = rvalue(cadr(args));
+  y         = rvalue(caddr(args));
+  angle     = rvalue(cadddr(args));
+  thickness = rvalue(cadddr(cdr(args)));
+  r         = rvalue(cadddr(cddr(args)));
+  g         = rvalue(cadddr(cdddr(args)));
+  b         = rvalue(cadddr(cddddr(args)));
+  a         = rvalue(cadddr(cddddr(cdr(args))));
+
+  if (n >= N_SOURCES) {
+    TraceLog(LOG_WARNING, "no such source: %d", n);
+    return sc->F;
+  }
+
+  s = &sources[n];
+  s->pt.x = x, s->pt.y = y, s->angle = angle,
+  s->thickness = thickness, s->color = (Color){r,g,b,a};
+
+  return sc->T;
+}
+
+// (real-get-source n) → (x y sz angle thickness r g b a)
+static pointer scm_get_source(scheme *sc, pointer args)
+{
+  extern int N_SOURCES;
+  extern source_t *sources;
+
+  float n;
+  source_t *s;
+
+  expect_args("get-source", 1);
+  n = rvalue(car(args));
+
+  if (n > N_SOURCES) {
+    TraceLog(LOG_WARNING, "get-source: no such source: %d", n);
+    return sc->F;
+  }
+  s = &sources[(int)n];
+
+  return cons(sc,
+    cons(sc, mk_integer(sc, s->pt.x), mk_integer(sc, s->pt.y)),
+      cons(sc, mk_integer(sc, s->angle),
+        cons(sc, mk_integer(sc, s->thickness),
+          cons(sc, cons(sc, mk_integer(sc, s->color.r),
+              cons(sc, mk_integer(sc, s->color.g),
+                cons(sc, mk_integer(sc, s->color.b),
+                  cons(sc, mk_integer(sc, s->color.a), sc->NIL)))), sc->NIL))));
+}
+
+// (get-all-sources) → '((id x y sz...) ...)
+static pointer scm_get_all_sources(scheme *sc, pointer args)
+{
+  extern int N_SOURCES;
+  extern source_t *sources;
+  (void)args;
+
+  pointer ret, cur;
+  int i;
+
+  if (N_SOURCES < 1)
+    return sc->F;
+
+  ret = cons(sc, scm_get_source(sc, cons(sc, mk_integer(sc, 0), sc->NIL)),
+    sc->NIL);
+  cur = ret;
+
+  for (i = 1; i < N_SOURCES; ++i) {
+    set_cdr(cur, cons(sc, scm_get_source(sc, cons(sc, mk_integer(sc, i),
+      sc->NIL)), sc->NIL));
+    cur = cdr(cur);
+  }
+
+  return ret;
+}
+
 // (real-draw-line x1 y1 x2 y2 thickness r g b a) → nil
 static pointer scm_draw_line(scheme *sc, pointer args)
 {
@@ -70,7 +159,7 @@ static pointer scm_draw_line(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-// (add-hook 'type f) → #t | #f
+// (real-add-hook 'type f) → #t | #f
 static pointer scm_add_hook(scheme *sc, pointer args)
 {
   char *name;
@@ -167,9 +256,12 @@ static pointer scm_create_source(scheme *sc, pointer args)
 
 static void load_scheme_cfunctions(void)
 {
+  SCHEME_FF(scm_set_source,         "real-set-source!");
+  SCHEME_FF(scm_get_source,         "get-source");
+  SCHEME_FF(scm_get_all_sources,    "get-all-sources");
   SCHEME_FF(scm_create_mirror,      "create-mirror");
   SCHEME_FF(scm_create_source,      "real-create-source");
-  SCHEME_FF(scm_add_hook,           "add-hook");
+  SCHEME_FF(scm_add_hook,           "real-add-hook");
   SCHEME_FF(scm_get_mouse_position, "get-mouse-position");
   SCHEME_FF(scm_draw_line,          "real-draw-line");
 }

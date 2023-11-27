@@ -63,6 +63,14 @@ w tinyscheme, bo bardzo łatwy jest /interop/ między C a tinyscheme, co widać 
 pre-kompiluje i uruchamia od razu wszystko w ~scm/~
 
 Zimplementowane funkcje:
+- ~(get-all-sources)~ zwraca wszystkie źródła. lepiej używać ~*sources*~, bo ma
+  zawsze takie same wartości, a jest zmienną a nie funkcją.
+- ~(get-source n)~ zwraca dane o źródle ~(x y sz angle thickness r g b a)~
+- ~(set-source! n x y ang thickness r g b a)~ - aktualizuje źródło n, leiej
+  używać ~(set-source-e!)~
+- ~(set-source-e! n sym v)~ aktualizuje jedną rzez dla źródła /n/,
+  ~sym~ to ~'pos | 'angle | 'thickness | 'color~. v to wartość, dla ~'pos~
+  ~(x . y)~, dla ~'color~ ~(r g b a)~
 - ~(create-mirror x1 y1 x2 y2)~ tworzy zwierciadło (jak na razie bez typu etc).
 - ~(create-source alist)~ tworzy ~source_t~
 - ~(add-hook h f)~ dodaje hook ~f~ do akcji /h/

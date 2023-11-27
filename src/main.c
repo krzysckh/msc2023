@@ -16,10 +16,10 @@ static void (*input_func)(void) = NULL;
 static char input_buffer[MAX_INPUT_BUFFER_SIZE] = {0};
 
 #define MIRROR_THICKNESS 1
-static int N_BOUNCEABLES = 0,
-           N_SOURCES = 0;
-static bounceable_t *bounceables = NULL;
-static source_t *sources = NULL;
+int N_BOUNCEABLES = 0,
+    N_SOURCES = 0;
+bounceable_t *bounceables = NULL;
+source_t *sources = NULL;
 
 float normalize_angle(float f)
 {
@@ -176,36 +176,6 @@ static void _draw_light(source_t *s, int max_depth)
   }
 }
 
-/* TODO: ta funkcja nie wie o obrocie source_t */
-static void handle_source_repositioning(source_t *s,
-    struct mouse_information_t *mi) {
-  if (!mi->pressed_moving)
-    return;
-
-  /* to +10 żeby łatwiej się łapało. jak będzie przeszkadzać można usunąć */
-  Rectangle rect = {
-    .x = s->pt.x - (10 + s->size),
-    .y = s->pt.y - (10 + s->size),
-    .width = s->size + 10,
-    .height = s->size + 10
-  };
-
-  // DrawRectangleRec(rect, PURPLE);
-
-
-  if ((mi->_currently_moving == s || mi->_currently_moving == NULL)
-      && CheckCollisionPointRec(mi->pos, rect)) {
-    if (!mi->first_click) {
-      s->pt.x = mi->pos.x - mi->_dx;
-      s->pt.y = mi->pos.y - mi->_dy;
-    } else {
-      mi->_dx = mi->pos.x - s->pt.x;
-      mi->_dy = mi->pos.y - s->pt.y;
-      mi->_currently_moving = s;
-    }
-  }
-}
-
 void add_bounceable(bounceable_type_t t, void *data)
 {
   bounceables = realloc(bounceables, sizeof(bounceable_t) *
@@ -339,7 +309,7 @@ int main(void)
 
       //printf("%b %b\n", mi.pressed_moving, mi.first_click);
       for (i = 0; i < N_SOURCES; ++i) {
-        handle_source_repositioning(&sources[i], &mi);
+        /*handle_source_repositioning(&sources[i], &mi);*/
 
         draw_source(&sources[i]);
         draw_light(&sources[i]);
