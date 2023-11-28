@@ -64,6 +64,11 @@ tinyscheme, co widać tu o.
 
 pre-kompiluje i uruchamia od razu wszystko w `scm/`
 
+dokumentacja funkcji scheme będzie/jest dostępna
+[tutaj](https://pub.krzysckh.org/msc2023.html) (jeszcze nie) lub może
+być zbudowana używając `make scheme-docs` (wymaga perla i sporej ilości
+modułów)
+
 Zimplementowane funkcje:
 
 -   `(measure-text text sz . spacing)`

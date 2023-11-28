@@ -41,7 +41,9 @@ build-windows:
 		-lm -lwinmm -lgdi32 \
 		-static -o rl-optyka-test.exe
 clean:
-	rm -f $(TARGET) $(OFILES) *.core README.md main *.scm.c load-compiled-scripts.c *.exe
+	rm -f $(TARGET) $(OFILES) *.core README.md main *.scm.c load-compiled-scripts.c *.exe scdoc.html
 README.md:
 	pandoc README.org -o README.md
 pre-publish: clean README.md
+scheme-docs:
+	perl generate-docs.pl > scdoc.html
