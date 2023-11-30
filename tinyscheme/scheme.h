@@ -71,6 +71,8 @@ extern "C" {
 # define USE_STRING_PORTS 1
 #endif
 
+#define USE_STRING_PORTS 1
+
 #ifndef USE_TRACING
 # define USE_TRACING 1
 #endif

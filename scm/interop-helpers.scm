@@ -36,7 +36,6 @@
 
   @[(create-source '((x . 500) (y . 500) (reactive . #t))),tworzy reagujące na
   myszkę źródło na pozycji [500,500]]"
-
   (let* ((x (aq-or 'x a 100))
          (y (aq-or 'y a 100))
          (size (aq-or 'size a 20))
@@ -93,7 +92,7 @@
       (set-source! n x y ang thickness r g b a)))
   (update-sources))
 
-(define *default-spacing* 8)
+(define *default-spacing* 4)
 
 ; (measure-text text size . spacing) → (w . h)
 (define (measure-text text size . spacing)

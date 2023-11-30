@@ -1,9 +1,20 @@
 #!/usr/bin/perl
 
+use v5.10;
+
 use strict;
 use warnings;
 
-@ARGV = sort @ARGV;
+my @l = (
+  "tinyscheme/r5rs.scm",
+  "scm/interop-helpers.scm",
+  "scm/system-hooks.scm"
+);
+
+for (@ARGV) {
+  my $cur = $_;
+  push @l, $cur if (not grep { $_ eq $cur } @l);
+}
 
 print <<_
 #include "optyka.h"
@@ -16,7 +27,7 @@ void load_compiled_scripts(void) {
 __
 ;
 
-for (@ARGV) {
+for (@l) {
   my $orig = $_;
   $_ =~ s/[\._\-\/]/_/g;
   print <<_

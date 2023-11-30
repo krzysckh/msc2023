@@ -16,6 +16,16 @@
 
 #define ctg(x) (pow(tan((x)),-1))
 
+#define SCHEME_FF(f,sym) \
+	scheme_define(&scm, scm.global_env, mk_symbol(&scm, sym), \
+	  mk_foreign_func(&scm, f)); TraceLog(LOG_INFO, "defined " sym);
+
+#define expect_args(func,n) \
+  if (list_length(sc, args) != n) { \
+    TraceLog(LOG_WARNING, \
+        func " called with invalid n of args (expected " #n ")"); \
+    return sc->F; }
+
 #ifdef PROD
 #define panic(fmt,...) (void)(0);
 #else
@@ -87,5 +97,6 @@ void add_source(source_t s);
 void initialize_scheme(void);
 pointer scheme_click_info(struct mouse_information_t *mi);
 void do_hooks(hookable_event_t *he, pointer args);
+pointer ncdr(int n, pointer x);
 
 void load_compiled_scripts(void);

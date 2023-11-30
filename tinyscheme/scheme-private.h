@@ -133,11 +133,11 @@ char    gc_verbose;      /* if gc_verbose is not zero, print gc status */
 char    no_memory;       /* Whether mem. alloc. has failed */
 
 #ifndef LINESIZE
-#define LINESIZE 1024
+#define LINESIZE 4096
 #endif
 char    linebuff[LINESIZE];
 #ifndef STRBUFFSIZE
-#define STRBUFFSIZE 256
+#define STRBUFFSIZE 16384 /* a BIG STRBUFFSIZE because docs */
 #endif
 char    strbuff[STRBUFFSIZE];
 

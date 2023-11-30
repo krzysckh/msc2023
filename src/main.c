@@ -9,7 +9,7 @@
 #undef DEBUG
 
 extern scheme scm;
-extern hookable_event_t keypress, click, unclick;
+extern hookable_event_t keypress, click, unclick, frame;
 
 #define MAX_INPUT_BUFFER_SIZE 4096
 static void (*input_func)(void) = NULL;
@@ -29,7 +29,7 @@ void load_default_font(void)
   extern unsigned char proggy_otf[];
 
   default_font = LoadFontFromMemory(".otf", proggy_otf, proggy_otf_len,
-    20, NULL, 0);
+    30, NULL, 0);
   TraceLog(LOG_INFO, "loaded default font");
 }
 
@@ -236,6 +236,12 @@ void add_source(source_t s)
   ++N_SOURCES;
 }
 
+static void initialize_raygui(void)
+{
+  load_default_font();
+  GuiSetFont(default_font);
+}
+
 static void show_and_eval_scheme(void)
 {
   int res;
@@ -258,7 +264,7 @@ static void show_and_eval_scheme(void)
 int main(void)
 {
   extern scheme scm;
-  int i, c;
+  int i, c, k, charsize;
   struct mouse_information_t mi = {
     .first_click = false,
     .pos = {0,0},
@@ -268,7 +274,7 @@ int main(void)
   };
 
   InitWindow(800, 600, "giga optyka");
-  load_default_font();
+  initialize_raygui();
   initialize_scheme();
 
   while (!WindowShouldClose()) {
@@ -278,19 +284,11 @@ int main(void)
     {
       ClearBackground(WHITE);
 
-      if (input_func == NULL) {
-        c = GetCharPressed();
-        switch (c) {
-        case 0: break;
-        case L'e':
-          input_func = show_and_eval_scheme;
-          break;
-        default:
-          do_hooks(&keypress, cons(&scm, mk_character(&scm, c), scm.NIL));
-        }
-      } else {
-        input_func();
-      }
+      c = CodepointToUTF8(GetCharPressed(), &charsize)[0];
+      k = GetKeyPressed();
+      if (c || k)
+        do_hooks(&keypress, cons(&scm, mk_character(&scm, c),
+              cons(&scm, mk_integer(&scm, k), scm.NIL)));
 
       if ((IsMouseButtonDown(MOUSE_BUTTON_LEFT) ||
             IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
@@ -330,6 +328,8 @@ int main(void)
       }
 
     }
+
+    do_hooks(&frame, scm.NIL);
     EndDrawing();
 
     mi.first_click = false;

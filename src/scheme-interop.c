@@ -19,6 +19,18 @@ hookable_event_t unclick = {
   .n_hooks = 0
 };
 
+// TODO: one będą bardzo zwalniać rysowanie. zrób coś z tym krzysztof.
+hookable_event_t frame = {
+  .hooks = NULL,
+  .n_hooks = 0
+};
+
+pointer ncdr(int n, pointer x) {
+  while (n--)
+    x = cdr(x);
+
+  return x;
+}
 
 struct hlist_el {
   char *nam;
@@ -27,8 +39,9 @@ struct hlist_el {
 
 static struct hlist_el hookable_events_list[] = {
   {"keypress", &keypress},
-  {"click", &click},
-  {"unclick", &unclick},
+  {"click",    &click},
+  {"unclick",  &unclick},
+  {"frame",    &frame},
 };
 static int n_hookable_events = sizeof(hookable_events_list)/
   sizeof(*hookable_events_list);
@@ -41,11 +54,17 @@ void do_hooks(hookable_event_t *he, pointer args)
   }
 }
 
-#define expect_args(func,n) \
-  if (list_length(sc, args) != n) { \
-    TraceLog(LOG_WARNING, \
-        func " called with invalid n of args (expected " #n ")"); \
-    return sc->F; }
+// (loads s) → nil
+static pointer scm_loads(scheme *sc, pointer args)
+{
+  char *s;
+
+  expect_args("loads", 1);
+  s = string_value(car(args));
+
+  scheme_load_string(sc, s);
+  return sc->NIL;
+}
 
 // (real-draw-text text x y sz spacing r g b a) → #t
 static pointer scm_draw_text(scheme *sc, pointer args)
@@ -102,16 +121,15 @@ static pointer scm_set_source(scheme *sc, pointer args)
 
   expect_args("real-set-source!", 9);
 
-  // TODO: boze krzysztof napisz ncar(n,lst)
-  n         = rvalue(car(args));
-  x         = rvalue(cadr(args));
-  y         = rvalue(caddr(args));
-  angle     = rvalue(cadddr(args));
-  thickness = rvalue(cadddr(cdr(args)));
-  r         = rvalue(cadddr(cddr(args)));
-  g         = rvalue(cadddr(cdddr(args)));
-  b         = rvalue(cadddr(cddddr(args)));
-  a         = rvalue(cadddr(cddddr(cdr(args))));
+  n         = rvalue(car(ncdr(0, args)));
+  x         = rvalue(car(ncdr(1, args)));
+  y         = rvalue(car(ncdr(2, args)));
+  angle     = rvalue(car(ncdr(3, args)));
+  thickness = rvalue(car(ncdr(4, args)));
+  r         = rvalue(car(ncdr(5, args)));
+  g         = rvalue(car(ncdr(6, args)));
+  b         = rvalue(car(ncdr(7, args)));
+  a         = rvalue(car(ncdr(8, args)));
 
   if (n >= N_SOURCES) {
     TraceLog(LOG_WARNING, "no such source: %d", n);
@@ -202,12 +220,46 @@ static pointer scm_draw_line(scheme *sc, pointer args)
   return sc->NIL;
 }
 
+static hookable_event_t *get_he_by_name(char *name)
+{
+  int i;
+  for (i = 0; i < n_hookable_events; ++i)
+    if (strcmp(hookable_events_list[i].nam, name) == 0)
+      return hookable_events_list[i].he;
+
+  return NULL;
+}
+
+// (delete-hook sym id) → nil
+static pointer scm_delete_hook(scheme *sc, pointer args)
+{
+  char *sym;
+  int id, i;
+  hookable_event_t *he;
+
+  expect_args("delete-hook", 2);
+  sym = symname(car(args));
+  id = rvalue(cadr(args));
+
+  he = get_he_by_name(sym);
+  if (!he) {
+    TraceLog(LOG_WARNING, "delete-hook: no such hookable event: %s", sym);
+    return sc->F;
+  }
+
+  for (i = id; i < he->n_hooks; ++i)
+    he->hooks[i] = he->hooks[i + 1];
+  he->n_hooks--;
+
+  TraceLog(LOG_INFO, "deleted hook for %s", sym);
+  return sc->T;
+}
+
 // (real-add-hook 'type f) → #t | #f
 static pointer scm_add_hook(scheme *sc, pointer args)
 {
   char *name;
   pointer f;
-  int i;
   hookable_event_t *he;
 
   expect_args("add-hook", 2);
@@ -220,20 +272,18 @@ static pointer scm_add_hook(scheme *sc, pointer args)
     return sc->F;
   }
 
-  for (i = 0; i < n_hookable_events; ++i) {
-    if (strcmp(hookable_events_list[i].nam, name) == 0) {
-      he = hookable_events_list[i].he;
-      he->hooks = realloc(he->hooks, (1 + he->n_hooks) * sizeof(pointer));
-      he->hooks[he->n_hooks] = f;
-      he->n_hooks++;
-
-      TraceLog(LOG_INFO, "successfully added hook %p for %s", f, name);
-      return sc->T;
-    }
+  he = get_he_by_name(name);
+  if (!he) {
+    TraceLog(LOG_WARNING, "add-hook: no such hookable event: %s", name);
+    return sc->F;
   }
 
-  TraceLog(LOG_WARNING, "add-hook: no such hookable event: %s", name);
-  return sc->F;
+  he->hooks = realloc(he->hooks, (1 + he->n_hooks) * sizeof(pointer));
+  he->hooks[he->n_hooks] = f;
+  he->n_hooks++;
+
+  TraceLog(LOG_INFO, "successfully added hook %p for %s", f, name);
+  return mk_integer(sc, he->n_hooks - 1);
 }
 
 // (get-mouse-position) → '(x y)
@@ -294,12 +344,10 @@ static pointer scm_create_source(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-#define SCHEME_FF(f,sym) \
-	scheme_define(&scm, scm.global_env, mk_symbol(&scm, sym), \
-	  mk_foreign_func(&scm, f)); TraceLog(LOG_INFO, "defined " sym);
-
 static void load_scheme_cfunctions(void)
 {
+  SCHEME_FF(scm_loads,              "loads");
+  SCHEME_FF(scm_delete_hook,        "delete-hook");
   SCHEME_FF(scm_measure_text,       "real-measure-text");
   SCHEME_FF(scm_draw_text,          "real-draw-text");
   SCHEME_FF(scm_set_source,         "real-set-source!");
@@ -315,6 +363,7 @@ static void load_scheme_cfunctions(void)
 void initialize_scheme(void)
 {
   extern char tinyscheme_r5rs_scm[];
+  FILE *rc = fopen("rc.scm", "r+");
 
   scheme_init(&scm);
   TraceLog(LOG_INFO, "loaded tinyscheme");
@@ -328,7 +377,8 @@ void initialize_scheme(void)
   load_scheme_cfunctions();
   load_compiled_scripts();
 
-  scheme_load_string(&scm, "(load \"rc.scm\")");
+  if (rc)
+    scheme_load_file(&scm, rc);
 }
 
 pointer scheme_click_info(struct mouse_information_t *mi)

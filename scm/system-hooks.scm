@@ -1,6 +1,10 @@
 ; TODO: HACK: to powinna byc funkcja pytajaca typu (can-handle-click?)
 ; i ogolnie user-hooki zalezne od tego i system-hooki niezalezne
 (define *click-can-be-handled* #t)
+(define *keypress-can-be-handled* #t)
+
+(define *current-click-handler* #f)
+(define *current-keypress-handler* #f)
 
 ; HACK: tu o
 
@@ -32,8 +36,9 @@
           (set-source-e! repositioning-source 'pos pos))))))
 
 (define (reposition-source-end-hook first left right)
-  (set! *click-can-be-handled* #t)
-  (set! repositioning-source #f))
+  (when repositioning-source
+    (set! *click-can-be-handled* #t)
+    (set! repositioning-source #f)))
 
 (add-system-hook 'click reposition-source-hook)
 (add-system-hook 'unclick reposition-source-end-hook)

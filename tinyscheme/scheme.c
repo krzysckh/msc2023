@@ -1641,6 +1641,7 @@ static pointer readstrexp(scheme *sc) {
     if(c == EOF || p-sc->strbuff > sizeof(sc->strbuff)-1) {
       return sc->F;
     }
+    //printf("WE CHILLIN IN readstrexp NOW AT %s\n", sc->strbuff);
     switch(state) {
         case st_ok:
             switch(c) {
