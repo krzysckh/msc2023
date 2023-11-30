@@ -1,3 +1,4 @@
+[dokumentacja scheme](https://pub.krzysckh.org/msc2023.html)
 ``` shell
 $ mypaint ./notatki.ora
 $ make
@@ -9,9 +10,8 @@ $ wine ./main.exe
 
 ## uwagi
 
--   nie edytuj README.md - jest generowane automatycznie z README.org
--   testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam
-    odwalili z liczeniem wektorów lololol
+- testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam
+  odwalili z liczeniem wektorów lololol
 
 ``` shell
 $ git clone https://github.com/raysan5/raylib
@@ -22,9 +22,9 @@ $ make
 $ sudo make install
 ```
 
--   wymaga raygui
--   wymaga **GNU Make** (bsd make ma problem z *.SUFFIXES*)
--   wzory i pomysły są wyjęte z dupy, np.:
+- wymaga raygui
+- wymaga **GNU Make** (bsd make ma problem z *.SUFFIXES*)
+- wzory i pomysły są wyjęte z dupy, np.:
 
 $$ H = \text{wysokość okna} $$
 
@@ -56,58 +56,11 @@ opatrzony w wiele wiecej struktur itp itd, żeby przypominał jakkolwiek
 to, o co prosi zadanie. Ma na celu sprawdzenie jak wyglądałoby pisanie
 tego w C + raylib.
 
-## scheme
-
-**MIMO** tego że program jest napisany w C, możliwe jest skryptowanie
-wszystkiego w tinyscheme, bo bardzo łatwy jest *interop* między C a
-tinyscheme, co widać tu o.
-
-pre-kompiluje i uruchamia od razu wszystko w `scm/`
-
-dokumentacja funkcji scheme będzie/jest dostępna
-[tutaj](https://pub.krzysckh.org/msc2023.html) (jeszcze nie) lub może
-być zbudowana używając `make scheme-docs` (wymaga perla i sporej ilości
-modułów)
-
-Zimplementowane funkcje:
-
--   `(measure-text text sz . spacing)`
-
--   `(draw-text text pos sz color . spacing)`
-
--   `(get-all-sources)` zwraca wszystkie źródła. lepiej używać
-    `*sources*`, bo ma zawsze takie same wartości, a jest zmienną a nie
-    funkcją.
-
--   `(get-source n)` zwraca dane o źródle
-    `(x y sz angle thickness r g b a)`
-
--   `(set-source! n x y ang thickness r g b a)` - aktualizuje źródło n,
-    leiej używać `(set-source-e!)`
-
--   `(set-source-e! n sym v)` aktualizuje jedną rzez dla źródła *n*,
-    `sym` to `'pos | 'angle | 'thickness | 'color`. v to wartość, dla
-    `'pos` `(x . y)`, dla `'color` `(r g b a)`
-
--   `(create-mirror x1 y1 x2 y2)` tworzy zwierciadło (jak na razie bez
-    typu etc).
-
--   `(create-source alist)` tworzy `source_t`
-
--   `(add-hook h f)` dodaje hook `f` do akcji *h*
-
--   `(get-mouse-position)` zwraca `(x . y)` myszki
-
--   `(draw-line p1 p2 thickness color)` rysuje linię. p1 i p2 =
-    `(x . y)`, color = `(r g b a)`
-
--   na początek odpala `./rc.scm`
-
 ## keybindingi
 
--   *A* - dodaje sztynks
--   *e* - pokazuje okno wykonywania scheme (do poprawki lolololol)
+- *A* - dodaje sztynks
+- *e* - pokazuje okno wykonywania scheme (do poprawki lolololol)
 
 ## odniesienia
 
--   [zadanie](https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Optyka.pdf)
+- [zadanie](https://science-cup.pl/wp-content/uploads/2023/11/MSC4_2023_Optyka.pdf)

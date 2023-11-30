@@ -17,7 +17,7 @@ CFILES!=echo load-compiled-scripts.c \
 	`find src -type f -name '*.[cC]'` `echo $(SCMFILES) | sed 's/\.scm/.scm.c/g'`
 OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
 
-.PHONY: all build-windows clean
+.PHONY: all build-windows clean doc
 .SUFFIXES: .c .o .scm .scm.c .otf .c
 
 all: $(OFILES) tinyscheme/libtinyscheme.a
@@ -41,9 +41,14 @@ build-windows:
 		-lm -lwinmm -lgdi32 \
 		-static -o rl-optyka-test.exe
 clean:
-	rm -f $(TARGET) $(OFILES) *.core README.md main *.scm.c load-compiled-scripts.c *.exe scdoc.html
-README.md:
-	pandoc README.org -o README.md
-pre-publish: clean README.md
-scheme-docs:
-	perl generate-docs.pl > scdoc.html
+	rm -f $(TARGET) $(OFILES) *.core main *.scm.c load-compiled-scripts.c *.exe scdoc.html
+doc:
+	perl generate-docs.pl > doc/scheme.md
+	cat doc/prelude.md doc/scheme.md | pandoc --metadata title="msc2023" -f gfm -t html --standalone -o doc/msc2023.html
+pubcpy:
+	([ `whoami` = "krzych" ] || [ `whoami` = "kpm" ]) || exit 1
+
+	$(MAKE) clean build-windows
+	$(MAKE) doc
+	yes | pubcpy ./rl-optyka-test.exe
+	cd doc && yes | pubcpy ./msc2023.html

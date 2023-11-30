@@ -19,14 +19,11 @@
 #
 # nie podoba mi się ten markup ale no cusz
 #
-# TODO: css
 # TODO: funkcje z src/scheme-interop.c
 # TODO: funkcje z . czymś nie działają
 
 use strict;
 use warnings;
-
-use HTML::Builder ':minimal';
 
 use Data::SExpression;
 use File::Slurp qw(read_file);
@@ -62,23 +59,6 @@ struct(
   }
 );
 
-my $STYLE = <<_
-* {
-  background-color: #dedede;
-  color: #222222;
-}
-
-html {
-  font-family: sans;
-}
-
-body {
-  padding-left: 14%;
-  padding-top: 2%;
-}
-_
-;
-
 # okropieństwo
 sub parse_doc($$) {
   my ($doc, $definition) = @_;
@@ -103,6 +83,7 @@ sub parse_doc($$) {
   my @argnames = map {eval { $_->name }} @{$definition};
   my @args;
 
+
   push @args, arg->new(name => $_, doc => $argdocs{$_}) for @argnames;
 
   $ret->args([@args]);
@@ -116,7 +97,7 @@ sub parse_doc($$) {
 
   $ret->ex([@examples]);
   $doc =~ s/(\@\{.*?\})|(\@\[.*?\])//g;
-  $doc =~ s/(?:\s|^)($_)(?:\s|$|,|\.)/ <code>$1<\/code> /g for @argnames;
+  $doc =~ s/(?:\s|^)($_)(?:\s|$|,|\.)/ `$1` /g for @argnames;
 
   $ret->doc($doc);
 
@@ -126,44 +107,21 @@ sub parse_doc($$) {
 sub render {
   my (@files) = @_;
 
-  print <<_
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-$STYLE;
-</style>
-</head>
-<body>
-_
-;
   for (@files) {
     my $f = $_;
-    print h1 { class gets "scm-filename"; $f->name };
-    print "\n";
+    print "## [" . $f->name . "](https://git.krzysckh.org/kpm/science-cup-2023/src/branch/master/" . $f->name . ")\n\n";
     for (@{$f->data}) {
-      print div {
-        class gets "scm-function";
-        print h3 { $_->nam };
-        print p {
-          $_->doc if ref($_->doc) eq ""
-        };
-        ul {
-          for (@{$_->args}) {
-            print li {
-              print span { $_->name };
-              if (defined $_->doc) {
-                span { " - " . $_->doc }
-              }
-            }
-          }
-        }
-      };
-      print "\n";
+      print "### `(" . $_->nam . " " . join(" ", map({$_->name} @{$_->args})) . ")`\n";
+      print($_->doc . "\n\n") if ref($_->doc) eq "";
+      print "\n*argumenty*\n" if scalar @{$_->args};
+      for (@{$_->args}) {
+        print "- `" . $_->name . "`";
+        print(" - ". $_->doc) if defined $_->doc;
+        print "\n";
+      }
     }
   }
-
-  print "</body></html>";
+  print "\n\n";
 }
 
 my $sr = Data::SExpression->new({fold_lists => 1, fold_alists => 1,
