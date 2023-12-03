@@ -32,12 +32,14 @@
   "tworzy nowe source_t (źródło światła)
   @{a,lista asocjacyjna z elementami 'x, 'y, 'size, 'angle, 'thickness,
   'reactive, 'color.
-  wszystkie elementy mają wartości domyślne i mogą być pominięte.}
+  wszystkie elementy mają wartości domyślne i mogą być pominięte.
+  zamiast 'x i 'y, może zostać zdefiniowane samo 'pos}
 
   @[(create-source '((x . 500) (y . 500) (reactive . #t))),tworzy reagujące na
   myszkę źródło na pozycji [500,500]]"
-  (let* ((x (aq-or 'x a 100))
-         (y (aq-or 'y a 100))
+  (let* ((pos (aq-or 'pos a `(,(aq-or 'x a 100) . ,(aq-or 'y a 100))))
+         (x (car pos))
+         (y (cdr pos))
          (size (aq-or 'size a 20))
          (ang (aq-or 'angle a 90))
          (thickness (aq-or 'thickness a 1))
