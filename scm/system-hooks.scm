@@ -73,11 +73,15 @@
 (add-system-hook 'unclick end-drawing-mirror-hook)
 
 ;; DOMYŚLNE KEYBINDINGI
-(define (keypress-default-hook c)
-  (let* ((mp (get-mouse-position))
-         (mx (car mp))
-         (my (cdr mp)))
-    (cond
-      ((eqv? c #\A) (create-source `((x . ,mx) (y . ,my) (reactive . #t)))))))
+(define (create-source-at-mouse-position)
+  (create-source `((pos . ,mp) (reactive . #t))))
+
+(define (keypress-default-hook c _)
+  (when *keypress-can-be-handled*
+    (let* ((mp (get-mouse-position)))
+      (cond
+        ((eqv? c #\A) (create-source-at-mouse-position))
+        ((eqv? c #\e) (gui/input-popup "eval scheme" loads))
+        ((eqv? c #\q) (exit 0))))))
 
 (add-system-hook 'keypress keypress-default-hook)

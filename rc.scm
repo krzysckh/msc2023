@@ -12,8 +12,6 @@
 (define (kp-hook k d)
   (when *keypress-can-be-handled*
     (cond
-      ((eqv? k #\e) (gui/input-popup "eval scheme" loads))
-      ((eqv? k #\q) (exit 0))
       ((eqv? k #\s) (spawn-things)))))
 
 (add-hook 'keypress kp-hook)
