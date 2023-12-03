@@ -19,3 +19,12 @@
         (rw (list-ref rect 2))
         (rh (list-ref rect 3)))
     (and (>= px rx) (<= px (+ rx rw)) (>= py ry) (<= py (+ ry rh)))))
+
+(define (split-every lst n)
+  (letrec ((f (lambda (in ret acc)
+                (cond
+                  ((null? in) (if (null? acc) ret (append ret (list acc))))
+                  ((eqv? (length acc) n) (f in (append ret (list acc)) '()))
+                  (else
+                    (f (cdr in) ret (append acc (list (car in)))))))))
+    (f lst '() '())))

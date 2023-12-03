@@ -54,6 +54,20 @@ void do_hooks(hookable_event_t *he, pointer args)
   }
 }
 
+__attribute__((noreturn)) static pointer scm_exit(scheme *sc, pointer args)
+{
+  int status = 0;
+
+  // nie robi expect_args()
+
+  if (list_length(sc, args) > 0)
+    status = rvalue(car(args));
+
+  TraceLog(LOG_INFO, "exiting with status %d from scheme script.", status);
+
+  exit(status);
+}
+
 // (loads s) → nil
 static pointer scm_loads(scheme *sc, pointer args)
 {
@@ -98,7 +112,7 @@ static pointer scm_measure_text(scheme *sc, pointer args)
   float sz, spacing;
   Vector2 ret;
 
-  expect_args("measure-text", 2);
+  expect_args("measure-text", 3);
 
   s = string_value(car(args));
   sz = rvalue(cadr(args));
@@ -346,6 +360,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 
 static void load_scheme_cfunctions(void)
 {
+  SCHEME_FF(scm_exit,               "exit");
   SCHEME_FF(scm_loads,              "loads");
   SCHEME_FF(scm_delete_hook,        "delete-hook");
   SCHEME_FF(scm_measure_text,       "real-measure-text");

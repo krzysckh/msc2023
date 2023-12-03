@@ -274,6 +274,7 @@ int main(void)
   };
 
   InitWindow(800, 600, "giga optyka");
+  SetExitKey(-1);
   initialize_raygui();
   initialize_scheme();
 
