@@ -1,7 +1,9 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <raygui.h>
+#ifndef WIN32
 #include <err.h>
+#endif
 
 #include "tinyscheme/scheme.h"
 #include "tinyscheme/scheme-private.h"
