@@ -79,7 +79,7 @@ static void draw_source(source_t *s)
 static void draw_lens(bounceable_t *b)
 {
   (void)b;
-  TODO("draw_lens not implemented");
+  //TODO("draw_lens not implemented");
 }
 
 static void draw_mirror(bounceable_t *b)
@@ -242,25 +242,6 @@ static void initialize_raygui(void)
   GuiSetFont(default_font);
 }
 
-static void show_and_eval_scheme(void)
-{
-  int res;
-  extern scheme scm;
-
-  res = GuiTextInputBox((Rectangle){100, 100, 400, 200}, "eval",
-                        "ewaluuj wyrażanie tinyscheme", "ok;anuluj", input_buffer,
-                        MAX_INPUT_BUFFER_SIZE, NULL);
-
-  switch (res) {
-  case 1: // ok
-    scheme_load_string(&scm, input_buffer);
-    /* fallthrough */
-  case 2: //anuluj
-    input_func = NULL;
-    input_buffer[0] = 0;
-  }
-}
-
 int main(void)
 {
   extern scheme scm;
@@ -277,6 +258,8 @@ int main(void)
   SetExitKey(-1);
   initialize_raygui();
   initialize_scheme();
+
+  //add_lens((Vector2){200, 200}, 10, 10, 10, 100);
 
   while (!WindowShouldClose()) {
     mi.pos = GetMousePosition();

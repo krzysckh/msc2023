@@ -10,6 +10,9 @@
                     (I (+ s step) step e (append acc (list s))))))))
     (I s step e '())))
 
+(define (sum l)
+  (apply + l))
+
 ; pt = (x . y), rect = (x y w h)
 (define (point-in-rect? pt rect)
   (let ((px (car pt))

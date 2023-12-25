@@ -74,7 +74,7 @@
 
 ;; DOMYŚLNE KEYBINDINGI
 (define (create-source-at-mouse-position)
-  (create-source `((pos . ,mp) (reactive . #t))))
+  (create-source `((pos . ,(get-mouse-position)) (reactive . #t))))
 
 (define (keypress-default-hook c _)
   (when *keypress-can-be-handled*
