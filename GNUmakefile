@@ -50,6 +50,6 @@ pubcpy:
 	([ `whoami` = "krzych" ] || [ `whoami` = "kpm" ]) || exit 1
 
 	$(MAKE) clean build-windows
-	$(MAKE) doc
 	yes | pubcpy ./rl-optyka-test.exe
+	$(MAKE) clean doc
 	cd doc && yes | pubcpy ./msc2023.html

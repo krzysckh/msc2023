@@ -1,7 +1,5 @@
-TODO:
-- po `delete-hook` wszystkie kolejne hooki zmieniają id
+## [dokumentacja scheme](https://pub.krzysckh.org/msc2023.html)
 
-[dokumentacja scheme](https://pub.krzysckh.org/msc2023.html)
 ``` shell
 $ mypaint ./notatki.ora
 $ make
@@ -62,7 +60,7 @@ tego w C + raylib.
 ## keybindingi
 
 - *A* - dodaje sztynks
-- *e* - pokazuje okno wykonywania scheme (do poprawki lolololol)
+- *e* - pokazuje okno wykonywania scheme
 
 ## odniesienia
 
