@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+#include <unistd.h>
 
 #define DEBUG 0
 #undef DEBUG
@@ -242,10 +243,16 @@ static void initialize_raygui(void)
   GuiSetFont(default_font);
 }
 
-int main(void)
+static void silent_tracelog_callback(__attribute__((unused))int a,
+                                     __attribute__((unused))const char *b,
+                                     __attribute__((unused))va_list c)
+{
+}
+
+int main(int argc, char **argv)
 {
   extern scheme scm;
-  int i, c, k, charsize;
+  int i, c, k, charsize, opt;
   struct mouse_information_t mi = {
     .first_click = false,
     .pos = {0,0},
@@ -254,10 +261,26 @@ int main(void)
     .right = false,
   };
 
+  while ((opt = getopt(argc, argv, "e:F:")) != -1) {
+    switch (opt) {
+    case 'e':
+      initialize_scheme();
+      scheme_load_string(&scm, optarg);
+      exit(0);
+      break;
+    case 'F':
+      SetTraceLogCallback(silent_tracelog_callback);
+      initialize_scheme();
+      scheme_load_file(&scm, fopen(optarg, "r"));
+      exit(0);
+      break;
+    }
+  }
+
+  initialize_scheme();
   InitWindow(800, 600, "giga optyka");
   SetExitKey(-1);
   initialize_raygui();
-  initialize_scheme();
 
   //add_lens((Vector2){200, 200}, 10, 10, 10, 100);
 

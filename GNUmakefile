@@ -1,5 +1,6 @@
 CC=clang
 OS!=uname -s | tr -d '\n'
+TARGET=./main
 
 CSTD=-std=gnu11
 
@@ -21,7 +22,7 @@ OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
 .SUFFIXES: .c .o .scm .scm.c .otf .c
 
 all: $(OFILES) tinyscheme/libtinyscheme.a
-	$(CC) $(OFILES) ./tinyscheme/libtinyscheme.a $(LDFLAGS) -o ./main
+	$(CC) $(OFILES) ./tinyscheme/libtinyscheme.a $(LDFLAGS) -o $(TARGET)
 load-compiled-scripts.c:
 	./create-load-compiled-scripts.pl $(SCMFILES) > load-compiled-scripts.c
 tinyscheme/libtinyscheme.a:
@@ -42,8 +43,8 @@ build-windows:
 		-static -o rl-optyka-test.exe
 clean:
 	rm -f $(TARGET) $(OFILES) *.core main *.scm.c load-compiled-scripts.c *.exe scdoc.html
-doc:
-	perl generate-docs.pl > doc/scheme.md
+doc: all
+	$(TARGET) -F ./generate-docs.scm > doc/scheme.md
 	cat doc/prelude.md doc/scheme.md | pandoc --metadata title="msc2023" -f gfm -t html --standalone -o doc/msc2023.html
 pubcpy:
 	([ `whoami` = "krzych" ] || [ `whoami` = "kpm" ]) || exit 1

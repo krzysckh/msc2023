@@ -41,6 +41,29 @@ void do_hooks(hookable_event_t *he, pointer args)
   }
 }
 
+#define BUF_STEP 512
+static pointer scm_system(scheme *sc, pointer args)
+{
+  int bufsiz = 0, n;
+  char *buf = NULL, *command;
+  FILE *f;
+
+  expect_args("system", 1);
+  command = string_value(car(args));
+
+  f = popen(command, "r");
+  while (!feof(f)) {
+    buf = realloc(buf, bufsiz + BUF_STEP);
+    n = fread(buf + bufsiz, 1, BUF_STEP, f);
+    buf[bufsiz + n] = 0;
+    bufsiz += BUF_STEP;
+  }
+  pclose(f);
+
+  return mk_string(sc, buf);
+}
+#undef BUF_STEP
+
 __attribute__((noreturn)) static pointer scm_exit(scheme *sc, pointer args)
 {
   int status = 0;
@@ -235,7 +258,7 @@ static hookable_event_t *get_he_by_name(char *name)
 static pointer scm_delete_hook(scheme *sc, pointer args)
 {
   char *sym;
-  int id, i;
+  int id;//, i;
   hookable_event_t *he;
 
   expect_args("delete-hook", 2);
@@ -350,6 +373,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 
 static void load_scheme_cfunctions(void)
 {
+  SCHEME_FF(scm_system,             "system");
   SCHEME_FF(scm_exit,               "exit");
   SCHEME_FF(scm_loads,              "loads");
   SCHEME_FF(scm_delete_hook,        "delete-hook");

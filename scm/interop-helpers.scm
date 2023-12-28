@@ -2,10 +2,10 @@
 (define *sources* '())
 
 (define (aq e alist)
-  "zwraca wynik assq bez car
-
-  @{e,element szukany}
-  @{alist,lista asocjasyjna}"
+  "zwraca wynik assq bez car"
+  (args
+   '((e . "element szukany")
+     (alist . "lista asocjasyjna")))
   (cdr (assq e alist)))
 
 (define (cdr* l)
@@ -29,14 +29,17 @@
   (set! *sources* (get-all-sources)))
 
 (define (create-source a)
-  "tworzy nowe source_t (źródło światła)
-  @{a,lista asocjacyjna z elementami 'x, 'y, 'size, 'angle, 'thickness,
-  'reactive, 'color.
-  wszystkie elementy mają wartości domyślne i mogą być pominięte.
-  zamiast 'x i 'y, może zostać zdefiniowane samo 'pos}
+  "tworzy nowe source_t (źródło światła)"
 
-  @[(create-source '((x . 500) (y . 500) (reactive . #t))),tworzy reagujące na
-  myszkę źródło na pozycji [500,500]]"
+  (args
+   '((a . "lista asocjacyjna z elementami 'x, 'y, 'size, 'angle, 'thickness,
+           reactive, 'color.
+           wszystkie elementy mają wartości domyślne i mogą być pominięte.
+           zamiast 'x i 'y, może zostać zdefiniowane samo 'pos")))
+  (example
+   '((create-source '((x . 500) (y . 500) (reactive . #t)))
+     "tworzy reagujące na myszkę źródło na pozycji (500 500)"))
+
   (let* ((pos (aq-or 'pos a `(,(aq-or 'x a 100) . ,(aq-or 'y a 100))))
          (x (car pos))
          (y (cdr pos))
@@ -52,11 +55,13 @@
   (update-sources))
 
 (define (draw-line pt1 pt2 thick color)
-  "rysuje linię od pt1 do pt2 o grubości thick i kolorze color
-  @{pt1,punkt 1 (x . y)}
-  @{pt2,punkt 2 (x . y)}
-  @{thick,grubość}
-  @{color,kolor (r g b a)}"
+  "rysuje linię od pt1 do pt2 o grubości thick i kolorze color"
+  (args
+   '((pt1 . "punkt 1 (x . y)")
+     (pt2 . "punkt 2 (x . y)")
+     (thick . "grubość")
+     (color . "kolor (r g b a)")))
+
   (let ((x1 (car pt1))
         (y1 (cdr pt1))
         (x2 (car pt2))
@@ -75,10 +80,12 @@
 
 ; sym = pos | angle | thickness | color
 (define (set-source-e! n sym v)
-  "aktualizuje właściwość sym na v w źródle o id n
-  @{n,id źródła}
-  @{sym,'pos | 'angle | 'thickness | 'color w zależności od tego co chcemy zmienić}
-  @{v,nowa wartość dla sym}"
+  "aktualizuje właściwość sym na v w źródle o id n"
+  (args
+   '((n . "id źródła")
+     (sym . "'pos | 'angle | 'thickness | 'color w zależności od tego co chcemy zmienić")
+     (v . "nowa wartość dla sym")))
+
   (if (> n (length *sources*))
     #f
     (let* ((src (get-source n))
@@ -105,8 +112,8 @@
 ; (real-draw-text text x y sz spacing r g b a) → #t
 (define (draw-text text pos sz color . spacing)
   "wypisuje tekst text domyślnym fontem na pozycji pos, o wielkości sz i kolorze
-  color. można też podać spacing.
-  @{color,w postaci (r g b a)}"
+  color. można też podać spacing."
+  (args '((color . "w postaci (r g b a)")))
   (let ((x (car pos))
         (y (cdr pos))
         (r (list-ref color 0))
