@@ -2,6 +2,14 @@
   (for-each (lambda (v) (display v) (display " ")) (append (list s) l))
   (newline))
 
+(define (max2 a b) (if (> a b) a b))
+(define (min2 a b) (if (< a b) a b))
+(define (max . ns) (foldr max2 (car ns) ns))
+(define (min . ns) (foldr min2 (car ns) ns))
+(define (maxl lst) (apply max lst))
+(define (minl lst) (apply min lst))
+;; "functional programming"
+
 (define (iota s step e)
   (letrec ((I (lambda (s step e acc)
                 (cond

@@ -9,9 +9,23 @@
 
     (create-mirror 0 300 400 600)))
 
+(define current-thickness 1)
+(define max-thickness 64)
+
+(define (update-thicknesses)
+  (for-each
+   (lambda (n) (set-source-e! n 'thickness current-thickness))
+   (iota 0 1 (length *sources*))))
+
 (define (kp-hook k d)
   (when *keypress-can-be-handled*
     (cond
-      ((eqv? k #\s) (spawn-things)))))
+     ((eqv? k #\s) (spawn-things))
+     ((eqv? k #\+)
+      (set! current-thickness (min (+ current-thickness 1) max-thickness))
+      (update-thicknesses))
+     ((eqv? k #\-)
+      (set! current-thickness (max (- current-thickness 1) 1))
+      (update-thicknesses)))))
 
 (add-hook 'keypress kp-hook)
