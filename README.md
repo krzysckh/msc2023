@@ -1,3 +1,6 @@
+TODO:
+- po `delete-hook` wszystkie kolejne hooki zmieniają id
+
 [dokumentacja scheme](https://pub.krzysckh.org/msc2023.html)
 ``` shell
 $ mypaint ./notatki.ora
