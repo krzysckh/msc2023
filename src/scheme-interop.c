@@ -4,26 +4,12 @@
 #include <stdlib.h>
 
 scheme scm;
-hookable_event_t keypress = {
-  .hooks = NULL,
-  .n_hooks = 0
-};
+hookable_event_t keypress = {0};
+hookable_event_t click    = {0};
+hookable_event_t unclick  = {0};
 
-hookable_event_t click = {
-  .hooks = NULL,
-  .n_hooks = 0
-};
-
-hookable_event_t unclick = {
-  .hooks = NULL,
-  .n_hooks = 0
-};
-
+hookable_event_t frame    = {0};
 // TODO: one będą bardzo zwalniać rysowanie. zrób coś z tym krzysztof.
-hookable_event_t frame = {
-  .hooks = NULL,
-  .n_hooks = 0
-};
 
 pointer ncdr(int n, pointer x) {
   while (n--)
@@ -50,7 +36,8 @@ void do_hooks(hookable_event_t *he, pointer args)
 {
   int i;
   for (i = 0; i < he->n_hooks; ++i) {
-    scheme_call(&scm, he->hooks[i], args);
+    if (he->hooks[i])
+      scheme_call(&scm, he->hooks[i], args);
   }
 }
 
@@ -261,11 +248,14 @@ static pointer scm_delete_hook(scheme *sc, pointer args)
     return sc->F;
   }
 
-  for (i = id; i < he->n_hooks; ++i)
-    he->hooks[i] = he->hooks[i + 1];
-  he->n_hooks--;
+  if (id > he->n_hooks) {
+    TraceLog(LOG_ERROR, "cannot delete hook %d: no such hook", id);
+    return sc->F;
+  }
 
-  TraceLog(LOG_INFO, "deleted hook for %s", sym);
+  he->hooks[id] = NULL;
+
+  TraceLog(LOG_INFO, "deleted hook %d for %s", id, sym);
   return sc->T;
 }
 
