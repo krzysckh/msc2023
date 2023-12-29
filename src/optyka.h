@@ -16,6 +16,13 @@
 #define MAX(x,y) (((x)>(y))?(x):(y))
 #define MIN(x,y) (((x)<(y))?(x):(y))
 
+#define _vec0 Vector2
+#define _vec1(a) ((Vector2){a,a})
+#define _vec2(a,b)((Vector2){a,b})
+#define _vec3(a,b,c)((Vector3){a,b,c})
+#define _vec_dispatch(_1, _2, _3, nam, ...) nam
+#define vec(...) _vec_dispatch(__VA_ARGS__, _vec3, _vec2, _vec1)(__VA_ARGS__)
+
 #define ctg(x) (pow(tan((x)),-1))
 
 #define SCHEME_FF(f,sym) \
@@ -55,8 +62,12 @@ typedef enum {
 } bounceable_type_t;
 
 typedef struct {
-  Vector2 p;
-  float r1, r2, d, opacity;
+  Vector2 p1, p2;
+  float r1, r2, d, n, opacity;
+
+  /* reszta jest obliczana przez program */
+  Vector2 focal_point1, focal_point2, center;
+  float f;
 } lens_data_t;
 
 typedef struct {
@@ -93,7 +104,7 @@ float normalize_angle(float f);
 float absf(float x);
 void add_bounceable(bounceable_type_t t, void *data);
 void add_mirror(Vector2 p1, Vector2 p2);
-void add_lens(Vector2 p, float r1, float r2, float d, float opacity);
+void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, float opacity);
 void add_source(source_t s);
 
 void initialize_scheme(void);

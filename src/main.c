@@ -1,10 +1,13 @@
 #include "optyka.h"
+#include "raylib.h"
+#include "raymath.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
 #include <unistd.h>
+#include <assert.h>
 
 #define DEBUG 0
 #undef DEBUG
@@ -13,8 +16,8 @@ extern scheme scm;
 extern hookable_event_t keypress, click, unclick, frame;
 
 #define MAX_INPUT_BUFFER_SIZE 4096
-static void (*input_func)(void) = NULL;
-static char input_buffer[MAX_INPUT_BUFFER_SIZE] = {0};
+/* static void (*input_func)(void) = NULL; */
+/* static char input_buffer[MAX_INPUT_BUFFER_SIZE] = {0}; */
 
 Font default_font;
 
@@ -79,8 +82,21 @@ static void draw_source(source_t *s)
 
 static void draw_lens(bounceable_t *b)
 {
-  (void)b;
-  //TODO("draw_lens not implemented");
+  lens_data_t *ld = b->data.lens;
+  Vector2 p1 = ld->p1,
+          p2 = ld->p2;
+
+  DrawCircleV(ld->focal_point1, 2, PINK);
+  DrawCircleV(ld->focal_point2, 2, PINK);
+
+  DrawCircleV(ld->center, 2, LIME);
+
+  DrawLineEx(p1, p2, 2, PURPLE);
+
+  DrawLineEx(p1, ld->focal_point1, 1, PURPLE);
+  DrawLineEx(p1, ld->focal_point2, 1, PURPLE);
+  DrawLineEx(p2, ld->focal_point1, 1, PURPLE);
+  DrawLineEx(p2, ld->focal_point2, 1, PURPLE);
 }
 
 static void draw_mirror(bounceable_t *b)
@@ -123,14 +139,15 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
         if (CheckCollisionPointLine(source,
               bounceables[i].data.mirror->p1,
               bounceables[i].data.mirror->p2,
-              CAST_LIGHT_STEP_SIZE)) {
-          *hit_bounceable = bounceables[i];
-          ret->x = source.x, ret->y = source.y;
-          return true;
-        }
+              CAST_LIGHT_STEP_SIZE))
+          goto hit;
         break;
       case B_LENS:
-        TODO("B_LENS not implemented.");
+        if (CheckCollisionPointLine(source,
+              bounceables[i].data.lens->p1,
+              bounceables[i].data.lens->p2,
+              CAST_LIGHT_STEP_SIZE))
+          goto hit;
         break;
       default:
         panic("unreachable");
@@ -142,24 +159,40 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
 
   ret->x = source.x, ret->y = source.y, hit_bounceable = NULL;
   return false;
+
+ hit:
+  *hit_bounceable = bounceables[i];
+  ret->x = source.x, ret->y = source.y;
+  return true;
 }
 
 Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next)
 {
   float cur_angle, hit_angle, rel_angle;
-
   switch (b->t) {
   case B_MIRROR:
-    hit_angle =
-      normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2)
-        * 180 / PI);
-    rel_angle = normalize_angle(
-        hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
+    hit_angle = normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2)
+                                * 180 / PI);
+    rel_angle = normalize_angle(hit_angle -
+                                normalize_angle(Vector2Angle(cur, next) * 180 / PI));
     cur_angle = normalize_angle(hit_angle + rel_angle);
-
     return create_target(next, cur_angle);
-  case B_LENS:
-    TODO("lens not implemented");
+    break;
+  case B_LENS: {
+    lens_data_t *ld = b->data.lens;
+    hit_angle = normalize_angle(Vector2Angle(b->data.lens->p1, b->data.lens->p2)
+                                * 180 / PI);
+    rel_angle = normalize_angle(hit_angle -
+                                normalize_angle(Vector2Angle(cur, next) * 180 / PI));
+    assert(ld->p1.x <= ld->p2.x);
+    assert(ld->p1.y <= ld->p2.y);
+    if (rel_angle < 180) {
+      return create_target(ld->focal_point2,
+               normalize_angle(Vector2Angle(next, ld->focal_point2) * 180 / PI));
+    } else
+      return create_target(ld->focal_point1,
+               normalize_angle(Vector2Angle(next, ld->focal_point1) * 180 / PI));
+  } break;
   }
 }
 
@@ -211,10 +244,17 @@ void add_mirror(Vector2 p1, Vector2 p2)
   add_bounceable(B_MIRROR, md);
 }
 
-void add_lens(Vector2 p, float r1, float r2, float d, float opacity)
+void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, float opacity)
 {
   lens_data_t *ld = malloc(sizeof(lens_data_t));
-  ld->d = d, ld->opacity = opacity, ld->r1 = r1, ld->r2 = r2, ld->p = p;
+  ld->d = d, ld->opacity = opacity, ld->r1 = r1, ld->r2 = r2, ld->n = n;
+  ld->p1 = p1, ld->p2 = p2;
+
+  ld->f = 1.f / ((1.f / ld->r1) + (1.f / ld->r2));
+  ld->center = vec(ld->p1.x + (ld->p2.x - ld->p1.x)/2,
+                   ld->p1.y + (ld->p2.y - ld->p1.y)/2);
+  ld->focal_point1 = vec(ld->center.x - ld->f, ld->center.y);
+  ld->focal_point2 = vec(ld->center.x + ld->f, ld->center.y); // TODO: nieprawda!!
 
   add_bounceable(B_LENS, ld);
 }
@@ -271,7 +311,9 @@ int main(int argc, char **argv)
     case 'F':
       SetTraceLogCallback(silent_tracelog_callback);
       initialize_scheme();
-      scheme_load_file(&scm, fopen(optarg, "r"));
+      FILE *f = fopen(optarg, "r");
+      assert(f != NULL);
+      scheme_load_file(&scm, f);
       exit(0);
       break;
     }
@@ -282,7 +324,7 @@ int main(int argc, char **argv)
   SetExitKey(-1);
   initialize_raygui();
 
-  //add_lens((Vector2){200, 200}, 10, 10, 10, 100);
+  add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f);
 
   while (!WindowShouldClose()) {
     mi.pos = GetMousePosition();
