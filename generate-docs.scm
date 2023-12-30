@@ -83,7 +83,8 @@
   (define sexps (call-with-input-file name (lambda (f) (read-sexps f '()))))
   (define functions
     (filter
-     (lambda (v) (and (eqv? (car v) 'define)
+     (lambda (v) (and (or (eqv? (car v) 'define)
+                     (eqv? (car v) 'document-function))
                  (or (list? (cadr v))
                      (pair? (cadr v)))))
      sexps))
