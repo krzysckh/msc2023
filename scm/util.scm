@@ -1,5 +1,14 @@
 (macro (example . v) '())
 (macro (args . v) '())
+(macro nil '())
+(macro t #t)
+(macro f #f)
+
+;; "programowanie" ""funkcyjne"" :33333
+(macro (-- v) `(set! ,(cadr v) (- ,(cadr v) 1)))
+(macro (++ v) `(set! ,(cadr v) (+ ,(cadr v) 1)))
+(macro add1 ++)
+(macro sub1 --)
 
 (define (print s . l)
   "wypisuje argumenty do konsoli"

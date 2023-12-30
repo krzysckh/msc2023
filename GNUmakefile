@@ -53,3 +53,5 @@ pubcpy:
 	cd doc && yes | pubcpy ./msc2023.html
 	$(MAKE) clean build-windows
 	yes | pubcpy ./rl-optyka-test.exe
+cloc: clean
+	cloc `ls | grep -v tinyscheme`
