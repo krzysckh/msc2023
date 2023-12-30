@@ -13,11 +13,18 @@
 (define gui/window-top-bar-size 16)
 
 (define (gui/window-box rect title)
+  "rysuje bounding-box okienka wraz z tytułem, zwraca miejsce, które pozostało na elementy"
+  (args
+   '((rect . "prostokąt `(x y w h)`")
+     (title . "tytuł")))
+
   (gui/rect rect black) ; bounding box
   (gui/rect `(,(car rect) ,(cadr rect) ,(caddr rect) ,gui/window-top-bar-size)
             black)
   (draw-text title `(,(car rect) . ,(+ 1 (cadr rect)))
-             (- gui/window-top-bar-size 2) black))
+             (- gui/window-top-bar-size 2) black)
+  (list (car rect) (+ (cadr rect) gui/window-top-bar-size)
+        (caddr rect) (- (cadddr rect) gui/window-top-bar-size)))
 
 (define (gui/input-box rect text)
   (error "not implemented"))
@@ -34,13 +41,11 @@
                     (f (string-append s "a")))))))
     (f "a")))
 
-(define (gui/multiline-text rect text)
+(define (gui/multiline-text rect txt)
   (let* ((w (list-ref rect 2))
          (text-height (cdr (measure-text "a" 18)))
          (max-len (gui/get-max-text-length-for-width w 18))
-         (text (map list->string (split-every
-                                   (string->list gui/input-popup-state)
-                                   max-len))))
+         (text (map list->string (split-every (string->list txt) max-len))))
     (for-each
       (lambda (n)
         (draw-text (list-ref text n)
@@ -100,3 +105,20 @@
   (delete-hook 'keypress gui/input-popup-key-handler-id)
   (gui/input-popup-callback gui/input-popup-state))
 
+(define (gui/message title text timeout . rect)
+  "wyświetla wiadomość"
+  (args
+   '((title . "tytuł przekazany do gui/window-box")
+     (text . "tekst wiadomości")
+     (timeout . "czas po którym wiadomość znika")
+     (rect . "rect dla wiadomości (nieobowiązkowy)")))
+
+  (let* ((r (if (null? rect) '(10 10 300 100) (car rect)))
+         (id (add-hook 'frame
+                       (→ (let ((R (gui/window-box r title)))
+                            (gui/multiline-text R text))))))
+    (wait timeout (→ (delete-hook 'frame id)))))
+
+(define (gui/msg text)
+  "wyświetla gui/message"
+  (gui/message "" text 5))

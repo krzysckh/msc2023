@@ -75,8 +75,10 @@
 ;; używa *wait-alist* z scm/util.scm
 (define (wait-handler time)
   "handler dla funkcji `(wait)`"
-  (when (assv time *wait-alist*)
-    ((cdr (assv time *wait-alist*)))))
+  (for-each
+    (→1 ((cdr x)))
+    (filter (→1 (<= (car x) time)) *wait-alist*))
+  (set! *wait-alist* (filter (→1 (not (<= (car x) time))) *wait-alist*)))
 
 (add-system-hook 'clock wait-handler)
 
