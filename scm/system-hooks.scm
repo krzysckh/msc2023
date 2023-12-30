@@ -24,7 +24,8 @@
                    (x (- (caar s) *source-size*))
                    (y (- (cdr (car s)) *source-size*)))
               (when (point-in-rect?
-                      mp (list x y *source-size* *source-size*))
+                     mp (list (+ x (/ *source-size* 2))
+                              (+ y (/ *source-size* 2)) *source-size* *source-size*))
                 (set! *click-can-be-handled* #f)
                 (set! repositioning-dx (- (car mp) x *source-size*))
                 (set! repositioning-dy (- (cdr mp) y *source-size*))

@@ -30,10 +30,15 @@
 (add-hook 'keypress kp-hook)
 
 ;; teścik dla gui/input-popup + wait + wszystko po drodze
-(gui/input-popup
- "podaj imie"
- (lambda (imie)
-   (let ((rysuj-id (add-hook
-                    'frame
-                    (→ (draw-text imie '(100 . 100) 50 pink)))))
-     (wait 2 (→ (delete-hook 'frame rysuj-id))))))
+;; (gui/input-popup
+;;  "podaj imie"
+;;  (lambda (imie)
+;;    (let ((rysuj-id (add-hook
+;;                     'frame
+;;                     (→ (draw-text imie '(100 . 100) 50 pink)))))
+;;      (wait 2 (→ (delete-hook 'frame rysuj-id))))))
+
+;; (wait 1 (→ (gui/message "hello1" "hello, world!" 1)
+;;            (wait 1 (→ (gui/message "hello2" "hello, balsak!" 1)))
+;;            (wait 2 (→ (gui/message "hello3" "hello, balsaczysko!" 1)))
+;;            (wait 3 (→ (gui/message "hello4" "hello, balsaczek!" 1)))))

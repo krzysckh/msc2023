@@ -1,3 +1,8 @@
+# TODO
+- krzysztof, po przycisnieciu prawego przycisku myszy nie mozna rysowac zwierciadel
+- krzysztof, nie da sie zmieniac n-beams i nie jest bezpieczne uaua
+
+
 ## [dokumentacja scheme](https://pub.krzysckh.org/msc2023.html)
 
 ``` shell

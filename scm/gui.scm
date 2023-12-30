@@ -55,55 +55,41 @@
 
 ;; TODO: popup powinien zostać rozłożony na pomniejsze funkcje
 ;; gui/input-popup
-(define gui/input-popup-state "")
-(define gui/input-popup-key-handler-id nil)
-(define gui/input-popup-frame-handler-id nil)
-(define gui/input-popup-callback nil)
-(define gui/input-popup-title nil)
-
-(define (gui/input-popup-key-handler c k)
-  (if (and (< k 128) (> k 31))
-    (set! gui/input-popup-state (string-append gui/input-popup-state (string c)))
-    (cond
-      ((eqv? k 259)
-       (set! gui/input-popup-state
-         (substring
-           gui/input-popup-state 0
-           (- (string-length gui/input-popup-state) 1))))
-      ((eqv? k 257)
-       (gui/end-input-popup)))))
-
-(define (gui/input-popup-frame-handler)
-  (gui/window-box '(100 100 600 400) gui/input-popup-title)
-  (gui/multiline-text '(200 200 400 200) gui/input-popup-state))
-
+(define gui/input-popup:ident 'GUI-input-popup)
 (define (gui/input-popup title callback)
-  (define ident 'GUI-input-popup)
+  (when *click-can-be-handled*
+    (define state "")
+    (set! *click-can-be-handled* #f)
+    (set! *keypress-can-be-handled* #f)
+    (set! *current-keypress-handler* gui/input-popup:ident)
+    (set! *current-click-handler*    gui/input-popup:ident)
 
-  (if *click-can-be-handled*
-    (begin
-      (set! gui/input-popup-title title)
-      (set! gui/input-popup-callback callback)
-      (set! *click-can-be-handled* #f)
-      (set! *keypress-can-be-handled* #f)
-      (set! *current-keypress-handler* ident)
-      (set! *current-click-handler*    ident)
-
-      (set! gui/input-popup-state "")
-      (set! gui/input-popup-frame-handler-id
-        (add-hook 'frame gui/input-popup-frame-handler))
-      (set! gui/input-popup-key-handler-id
-        (add-hook 'keypress gui/input-popup-key-handler)))
-    #f))
-
-(define (gui/end-input-popup)
-  (set! *click-can-be-handled* #t)
-  (set! *keypress-can-be-handled* #t)
-  (set! *current-keypress-handler* #f)
-  (set! *current-click-handler* #f)
-  (delete-hook 'frame gui/input-popup-frame-handler-id)
-  (delete-hook 'keypress gui/input-popup-key-handler-id)
-  (gui/input-popup-callback gui/input-popup-state))
+    (let* ((frame-handler-id
+            (add-hook
+             'frame
+             (→ (gui/window-box '(100 100 600 400) title)
+                (gui/multiline-text '(200 200 400 200) state))))
+           (key-handler-id
+            (add-hook
+             'keypress
+             (lambda (c k)
+               (if (and (< k 128) (> k 31))
+                   (set! state
+                         (string-append state (string c)))
+                   (cond
+                    ((eqv? k 259)
+                     (set! state
+                           (substring
+                            state 0
+                            (- (string-length state) 1))))
+                    ((eqv? k 257) ;; RET (end popup)
+                     (set! *click-can-be-handled* #t)
+                     (set! *keypress-can-be-handled* #t)
+                     (set! *current-keypress-handler* #f)
+                     (set! *current-click-handler* #f)
+                     (delete-hook 'frame frame-handler-id)
+                     (delete-hook 'keypress key-handler-id)
+                     (callback state)))))))))))
 
 (define (gui/message title text timeout . rect)
   "wyświetla wiadomość"

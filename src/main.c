@@ -65,8 +65,8 @@ static void draw_source(source_t *s)
 {
   Vector2 cur_mouse;
   Rectangle rect = {
-    .x = s->pt.x - (s->size / 2.f),
-    .y = s->pt.y - (s->size / 2.f),
+    .x = s->pt.x,
+    .y = s->pt.y,
     .width = s->size,
     .height = s->size
   };
@@ -79,6 +79,7 @@ static void draw_source(source_t *s)
   s->target = create_target((Vector2){rect.x, rect.y}, s->angle);
 
   DrawRectanglePro(rect, (Vector2){s->size / 2.f, s->size / 2.f}, s->angle, RED);
+  DrawCircleV(s->pt, 3, VIOLET);
 }
 
 static void draw_lens(bounceable_t *b)
@@ -199,20 +200,22 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next)
 
 // https://www.physicsclassroom.com/class/refln/Lesson-1/The-Law-of-Reflection
 #define max_draw_lines 100
-#define draw_light(s) _draw_light(s, max_draw_lines)
-static void _draw_light(source_t *s, int max_depth)
+#define draw_single_light(source, start, s_targ) \
+  _draw_single_light(source, start, s_targ, max_draw_lines)
+static void _draw_single_light(source_t *source, Vector2 start, Vector2 s_target,
+                        int max_depth)
 {
   int i;
   Vector2 next, cur = {
-    .x = s->pt.x - 10,
-    .y = s->pt.y - 10
-  }, cur_target = s->target;
+    .x = start.x,
+    .y = start.y
+  }, cur_target = s_target;
   bounceable_t hit_bounceable = {0};
   bool bounced = true;
 
   for (i = 0; i < max_depth && bounced; ++i) {
     bounced = cast_light(cur_target, cur, &next, &hit_bounceable);
-    DrawLineEx(cur, next, s->thickness, s->color);
+    DrawLineEx(cur, next, source->thickness, source->color);
 
     if (bounced) {
       cur_target = create_target_by_hit(&hit_bounceable, cur, next);
@@ -221,6 +224,22 @@ static void _draw_light(source_t *s, int max_depth)
     }
   }
 }
+
+static void draw_light(source_t *src)
+{
+  int i, dist = floor(src->size / (1.f+(float)src->n_beam));
+  for (i = 1; i <= src->n_beam; ++i) {
+    /* int sz = ((float)src->size/2)/sqrt(2); */
+    int sz = (((float)src->size/2)-(i*dist))/sqrt(2);
+    Vector2 rot = Vector2Rotate(vec(sz), (-45 - 90 + src->angle) * PI/180);
+    Vector2 pt = vec(src->pt.x + rot.x, src->pt.y + rot.y);
+    // witam nazywam sie krzysztof, a te wzory wyciagnalem prosto z dupy
+
+    draw_single_light(src, pt, vec(src->target.x - (src->pt.x - pt.x),
+                                   src->target.y - (src->pt.y - pt.y)));
+  }
+}
+
 
 void add_bounceable(bounceable_type_t t, void *data)
 {
@@ -270,7 +289,11 @@ void add_source(source_t s)
     .angle = normalize_angle(s.angle),
     .size = s.size,
     .thickness = s.thickness,
-    .mouse_reactive = s.mouse_reactive
+    .mouse_reactive = s.mouse_reactive,
+
+    // TODO: n_beam
+    // TODO: assert(!(n_beam >= size))
+    .n_beam = 19
   };
 
   TraceLog(LOG_INFO, "adding source [%f %f] ang. %f", s.pt.x, s.pt.y, s.angle);

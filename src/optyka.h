@@ -93,6 +93,8 @@ typedef struct {
   Color color;
   float thickness;
   float angle; // 0-359
+
+  int n_beam;
 } source_t;
 
 typedef struct {
