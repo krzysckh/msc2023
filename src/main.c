@@ -8,12 +8,13 @@
 #include <limits.h>
 #include <unistd.h>
 #include <assert.h>
+#include <time.h>
 
 #define DEBUG 0
 #undef DEBUG
 
 extern scheme scm;
-extern hookable_event_t keypress, click, unclick, frame;
+extern hookable_event_t keypress, click, unclick, frame, clocke;
 
 #define MAX_INPUT_BUFFER_SIZE 4096
 /* static void (*input_func)(void) = NULL; */
@@ -293,6 +294,7 @@ int main(int argc, char **argv)
 {
   extern scheme scm;
   int i, c, k, charsize, opt;
+  time_t time_prev, time_cur;
   struct mouse_information_t mi = {
     .first_click = false,
     .pos = {0,0},
@@ -326,6 +328,7 @@ int main(int argc, char **argv)
 
   add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f);
 
+  time_prev = time_cur = time(NULL);
   while (!WindowShouldClose()) {
     mi.pos = GetMousePosition();
 
@@ -379,6 +382,11 @@ int main(int argc, char **argv)
     }
 
     do_hooks(&frame, scm.NIL);
+    if ((time_cur = time(NULL)) != time_prev) {
+      time_prev = time_cur;
+      do_hooks(&clocke, cons(&scm, mk_integer(&scm, time_cur),
+                             scm.NIL));
+    }
     EndDrawing();
 
     mi.first_click = false;

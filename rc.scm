@@ -32,24 +32,17 @@
 
 (define *imie* nil)
 (define rysuj-id nil)
-(define rysuj-nframes 1000)
 
-;; funkcja, która rysuje podane *imie* przez rysuj-nframes klatek
+(define (usun)
+  (delete-hook 'frame rysuj-id))
+
 (define (rysuj-imie)
-  ;; co 100 klatek wypisuje ile klatek do końca pokazywania
-  (when (eqv? (modulo rysuj-nframes 100) 0)
-    (pprint rysuj-nframes "..."))
-  ;; usuń hook po rysuj-nframes klatkach
-  (when (eqv? rysuj-nframes 0)
-    (delete-hook 'frame rysuj-id))
-
-  (draw-text *imie* '(100 . 100) 50 pink)
-
-  (-- rysuj-nframes))
+  (draw-text *imie* '(100 . 100) 50 pink))
 
 (define (podaj-imie-cb imie)
   (print "witaj, " imie)
   (set! *imie* imie)
-  (set! rysuj-id (add-hook 'frame rysuj-imie)))
+  (set! rysuj-id (add-hook 'frame rysuj-imie))
+  (wait 2 usun))
 
 (gui/input-popup "podaj imie" podaj-imie-cb)

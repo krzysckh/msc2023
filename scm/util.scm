@@ -154,3 +154,8 @@
                   (else
                     (f (cdr in) ret (append acc (list (car in)))))))))
     (f lst '() '())))
+
+(define *wait-alist* '())
+(define (wait secs f)
+  "wykonuje `f` po upłynięciu `secs` sekund"
+  (set! *wait-alist* (append *wait-alist* `((,(+ (time) secs) . ,f)))))

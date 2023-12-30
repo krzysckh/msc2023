@@ -72,10 +72,18 @@
 (add-system-hook 'click start-drawing-mirror-hook)
 (add-system-hook 'unclick end-drawing-mirror-hook)
 
-;; DOMYŚLNE KEYBINDINGI
+;; używa *wait-alist* z scm/util.scm
+(define (wait-handler time)
+  "handler dla funkcji `(wait)`"
+  (when (assv time *wait-alist*)
+    ((cdr (assv time *wait-alist*)))))
+
+(add-system-hook 'clock wait-handler)
+
 (define (create-source-at-mouse-position)
   (create-source `((pos . ,(get-mouse-position)) (reactive . #t))))
 
+;; DOMYŚLNE KEYBINDINGI
 (define (keypress-default-hook c _)
   (when *keypress-can-be-handled*
     (let* ((mp (get-mouse-position)))

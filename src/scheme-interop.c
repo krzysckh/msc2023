@@ -1,12 +1,17 @@
 #include "optyka.h"
+#include "tinyscheme/scheme.h"
 
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
+
 
 scheme scm;
 hookable_event_t keypress = {0};
 hookable_event_t click    = {0};
 hookable_event_t unclick  = {0};
+hookable_event_t clocke   = {0}; // co sekundę
 
 hookable_event_t frame    = {0};
 // TODO: one będą bardzo zwalniać rysowanie. zrób coś z tym krzysztof.
@@ -28,6 +33,7 @@ static struct hlist_el hookable_events_list[] = {
   {"click",    &click},
   {"unclick",  &unclick},
   {"frame",    &frame},
+  {"clock",    &clocke},
 };
 static int n_hookable_events = sizeof(hookable_events_list)/
   sizeof(*hookable_events_list);
@@ -39,6 +45,20 @@ void do_hooks(hookable_event_t *he, pointer args)
     if (he->hooks[i])
       scheme_call(&scm, he->hooks[i], args);
   }
+}
+
+static pointer scm_time(scheme *sc, pointer args)
+{
+  expect_args("time", 0);
+
+  return mk_integer(sc, time(NULL));
+}
+
+static pointer scm_time_since_init(scheme *sc, pointer args)
+{
+  expect_args("time-since-init", 0);
+
+  return mk_real(sc, GetTime());
 }
 
 #define BUF_STEP 512
@@ -373,6 +393,8 @@ static pointer scm_create_source(scheme *sc, pointer args)
 
 static void load_scheme_cfunctions(void)
 {
+  SCHEME_FF(scm_time_since_init,    "time-since-init");
+  SCHEME_FF(scm_time,               "time");
   SCHEME_FF(scm_system,             "system");
   SCHEME_FF(scm_exit,               "exit");
   SCHEME_FF(scm_loads,              "loads");

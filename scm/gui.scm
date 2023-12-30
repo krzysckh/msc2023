@@ -51,9 +51,10 @@
 ;; TODO: popup powinien zostać rozłożony na pomniejsze funkcje
 ;; gui/input-popup
 (define gui/input-popup-state "")
-(define gui/input-popup-key-handler-id #f)
-(define gui/input-popup-frame-handler-id #f)
-(define gui/input-popup-callback #f)
+(define gui/input-popup-key-handler-id nil)
+(define gui/input-popup-frame-handler-id nil)
+(define gui/input-popup-callback nil)
+(define gui/input-popup-title nil)
 
 (define (gui/input-popup-key-handler c k)
   (if (and (< k 128) (> k 31))
@@ -68,14 +69,15 @@
        (gui/end-input-popup)))))
 
 (define (gui/input-popup-frame-handler)
-  (gui/window-box '(100 100 600 400) "eval")
+  (gui/window-box '(100 100 600 400) gui/input-popup-title)
   (gui/multiline-text '(200 200 400 200) gui/input-popup-state))
 
-(define (gui/input-popup text callback)
+(define (gui/input-popup title callback)
   (define ident 'GUI-input-popup)
 
   (if *click-can-be-handled*
     (begin
+      (set! gui/input-popup-title title)
       (set! gui/input-popup-callback callback)
       (set! *click-can-be-handled* #f)
       (set! *keypress-can-be-handled* #f)
