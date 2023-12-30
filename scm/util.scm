@@ -4,6 +4,12 @@
 (macro t #t)
 (macro f #f)
 
+; malo czytelne to to, ale za to jakie fajne
+(macro (→ v) `(lambda () ,@(cdr v)))
+(macro (→1 v) `(lambda (x) ,@(cdr v)))
+(macro (→2 v) `(lambda (x y) ,@(cdr v)))
+(macro (→3 v) `(lambda (x y z) ,@(cdr v)))
+
 ;; "programowanie" ""funkcyjne"" :33333
 (macro (-- v) `(set! ,(cadr v) (- ,(cadr v) 1)))
 (macro (++ v) `(set! ,(cadr v) (+ ,(cadr v) 1)))
