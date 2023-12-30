@@ -11,5 +11,3 @@ z przemieszczaniem obiektów na ekranie, etc.
 Rdzeń myślący i obliczający rzeczy zostanie jednak w C.
 
 # dokumentacja pre-definiowanych funkcji dla scheme:
-
-**uwaga!** funkcje zdefiniowane przez standard R5RS nie są tu wypisane.

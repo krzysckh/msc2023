@@ -15,7 +15,8 @@
    (lambda (v) (string=? ".scm" (substring v (- (string-length v) 4) (string-length v))))
    (split-string (sys '(ls scm)) "\n")))
 
-(define real-filenames (map (lambda (s) (string-append "scm/" s)) scm-files))
+(define real-filenames
+  (append (map (lambda (s) (string-append "scm/" s)) scm-files) '("tinyscheme/r5rs.scm")))
 
 (define (read-sexps f acc)
   (let ((sexp (read f)))
@@ -77,30 +78,32 @@
    "## [" filename
    "](https://git.krzysckh.org/kpm/science-cup-2023/src/branch/master/"
    filename ")\n")
-  (map render-function d))
+  (print "<details> <summary> definiowane funkcje </summary>\n\n")
+  (map render-function d)
+  (print "</details>\n"))
 
 (define (render-file name)
-  (define sexps (call-with-input-file name (lambda (f) (read-sexps f '()))))
-  (define functions
-    (filter
-     (lambda (v) (and (or (eqv? (car v) 'define)
-                     (eqv? (car v) 'document-function))
-                 (or (list? (cadr v))
-                     (pair? (cadr v)))))
-     sexps))
-  (define docs
-    (map
-     (lambda (func)
-       (let ((docstring (if (string? (caddr func)) (caddr func) ""))
-             (args-list (cadr func))
-             (args-docs (find-args-docs func))
-             (examples (find-examples func)))
-         `((f ,(car args-list))
-           (docstring ,docstring)
-           (args ,(cdr args-list))
-           (examples ,(if (null? examples) '() (cdar examples)))
-           (args-docs ,(if (null? args-docs) '() (cadar args-docs))))))
-     functions))
-  (render docs name))
+  (let* ((sexps (call-with-input-file name (lambda (f) (read-sexps f '()))))
+         (functions
+          (filter
+           (lambda (v) (and (or (eqv? (car v) 'define)
+                           (eqv? (car v) 'document-function))
+                       (or (list? (cadr v))
+                           (pair? (cadr v)))))
+           sexps))
+         (docs
+          (map
+           (lambda (func)
+             (let ((docstring (if (string? (caddr func)) (caddr func) ""))
+                   (args-list (cadr func))
+                   (args-docs (find-args-docs func))
+                   (examples (find-examples func)))
+               `((f ,(car args-list))
+                 (docstring ,docstring)
+                 (args ,(cdr args-list))
+                 (examples ,(if (null? examples) '() (cdar examples)))
+                 (args-docs ,(if (null? args-docs) '() (cadar args-docs))))))
+           functions)))
+    (render docs name)))
 
 (map render-file real-filenames)

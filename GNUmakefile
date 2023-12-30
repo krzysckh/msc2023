@@ -45,7 +45,10 @@ clean:
 	rm -f $(TARGET) $(OFILES) *.core main *.scm.c load-compiled-scripts.c *.exe scdoc.html
 doc: all
 	$(TARGET) -F ./generate-docs.scm > doc/scheme.md
-	cat doc/prelude.md doc/scheme.md | pandoc --metadata title="msc2023" -f gfm -t html --standalone -o doc/msc2023.html
+	cat doc/prelude.md doc/scheme.md \
+		| pandoc --toc --toc-depth=2 \
+                --metadata title="msc2023" -f gfm -t html \
+		--standalone -o doc/msc2023.html
 pubcpy:
 	([ `whoami` = "krzych" ] || [ `whoami` = "kpm" ]) || exit 1
 
