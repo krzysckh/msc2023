@@ -60,11 +60,15 @@
             "")))
      (flatten args))
     (when (> (length examples) 0)
-      (print "*przykłady*\n"))
+      (print "\n\n*przykłady*\n"))
     (for-each
      (lambda (ex)
-       (pprint "`" (car ex) "`" " → " "*" (cadr ex) "*")
-       )
+       (pprint "`"
+               (map (lambda (v)
+                      (if (string? v)
+                          (string-append "\"" v "\"")
+                          v))
+                    (car ex)) "`" " → " "*" (cadr ex) "*"))
      examples)
     (print "")))
 

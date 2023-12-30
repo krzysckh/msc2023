@@ -42,6 +42,7 @@
 ;; (od samego siebie)
 (define (bool->string v) (if v "#t" "#f"))
 (define (->string x)
+  "zamienia cokolwiek na string"
   (cond
    ((list? x) (foldr string-append
                      ""
@@ -57,6 +58,7 @@
     "???")))
 
 (define (->char x)
+  "zamienia cokolwiek na znak"
   (cond
    ((number? x) (->char (number->string x)))
    ((string? x) (car (string->list x)))
@@ -65,6 +67,10 @@
     (error "->char: unexpected type"))))
 
 (define (string-split str c)
+  "tnie *str* na każdym napodkanym *c*"
+  (example
+   '((string-split "abc|def|ghi" "|") ("abc" "def" "ghi")))
+
   (let ((end (string-length str)) (ch (->char c)))
     (let lp ((from 0) (to 0) (res '()))
       (cond
@@ -77,14 +83,21 @@
 (define split-string string-split)
 
 ; https://code.whatever.social/questions/9458982/how-is-filter-implemented#9459181
-(define (filter pred lst)
+(define (filter f lst)
+  "wywołuje f dla każdego elementu z lst i zwraca listę elementów w których f zwraca #t (lub inną nie-#f wartość)"
+  (example
+   '((filter (lambda (v) (eq? 1 v)) '(1 2 3 1 2 5)) (1 1)))
   (cond ((null? lst) '())
-        ((pred (car lst)) (cons (car lst) (filter pred (cdr lst))))
+        ((f (car lst)) (cons (car lst) (filter f (cdr lst))))
         (else
-         (filter pred (cdr lst)))))
+         (filter f (cdr lst)))))
 
 ; https://code.whatever.social/questions/8387583/writing-flatten-method-in-scheme#58914237
 (define (flatten lst)
+  "zamienia zagnieżdżone listy w lst na jedną listę"
+  (example
+   '((flatten '(1 (2) ((3)) ((((4)))))) (1 2 3 4)))
+
   (let loop ((lst lst) (acc '()))
     (cond
      ((null? lst) acc)
@@ -97,6 +110,7 @@
   (system (apply string-append (map (lambda (v) (string-append (->string v) " ")) l))))
 
 (define (iota s step e)
+  "generuje ciąg liczb od *d* do *e* zwiększający się o *step*"
   (letrec ((I (lambda (s step e acc)
                 (cond
                   ((>= s e) acc)
@@ -105,10 +119,15 @@
     (I s step e '())))
 
 (define (sum l)
+  "sumuje wartości listy *l*"
   (apply + l))
 
 ; pt = (x . y), rect = (x y w h)
 (define (point-in-rect? pt rect)
+  "sprawdza czy punkt jest w prostokącie"
+  (args
+   '((pt . "punkt w postaci (x . y)")
+     (rect . "prostokąt w postaci (x y w h)")))
   (let ((px (car pt))
         (py (cdr pt))
         (rx (list-ref rect 0))
@@ -118,6 +137,7 @@
     (and (>= px rx) (<= px (+ rx rw)) (>= py ry) (<= py (+ ry rh)))))
 
 (define (split-every lst n)
+  "dzieli listę *lst* co *n* elementów"
   (letrec ((f (lambda (in ret acc)
                 (cond
                   ((null? in) (if (null? acc) ret (append ret (list acc))))
