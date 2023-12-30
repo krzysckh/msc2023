@@ -125,8 +125,10 @@
 
 (define add-system-hook real-add-hook)
 
+(define all-hooks '()) ; żeby gc nie usuwało mi lambd
 (define (add-user-hook s f)
   "w przyszłości będzie dodawała hooki które mogą być blokowane przez systemowe"
-  (real-add-hook s f))
+  (set! all-hooks (append all-hooks (list f)))
+  (real-add-hook s (last all-hooks)))
 
 (define add-hook add-user-hook)

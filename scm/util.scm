@@ -165,3 +165,13 @@
 (define (wait secs f)
   "wykonuje `f` po upłynięciu `secs` sekund"
   (set! *wait-alist* (append *wait-alist* `((,(+ (time) secs) . ,f)))))
+
+(define (last lst)
+  "zwraca ostatni element listy"
+  (example
+   '((last '(a b c d)) d))
+  (cond
+   ((null? lst) nil)
+   ((null? (cdr lst)) (car lst))
+   (else
+    (last (cdr lst)))))

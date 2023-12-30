@@ -29,15 +29,11 @@
 
 (add-hook 'keypress kp-hook)
 
-(define *imie* nil)
-
-(define (rysuj-imie)
-  (draw-text *imie* '(100 . 100) 50 pink))
-
+;; teścik dla gui/input-popup + wait + wszystko po drodze
 (gui/input-popup
  "podaj imie"
  (lambda (imie)
-   (print "witaj, " imie)
-   (set! *imie* imie)
-   (let ((rysuj-id (add-hook 'frame rysuj-imie)))
+   (let ((rysuj-id (add-hook
+                    'frame
+                    (→ (draw-text imie '(100 . 100) 50 pink)))))
      (wait 2 (→ (delete-hook 'frame rysuj-id))))))
