@@ -43,3 +43,7 @@
 (document-function
  (get-mouse-position)
  "zwraca pozycje myszki na oknie w postaci `(x . y)`")
+
+(document-function
+ (get-screen-size)
+ "zwraca wielkość okna `(w . h)`")

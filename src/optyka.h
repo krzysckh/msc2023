@@ -110,6 +110,7 @@ void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, floa
 void add_source(source_t s);
 
 void initialize_scheme(void);
+void load_rc(void);
 pointer scheme_click_info(struct mouse_information_t *mi);
 void do_hooks(hookable_event_t *he, pointer args);
 pointer ncdr(int n, pointer x);

@@ -283,6 +283,10 @@ void add_source(source_t s)
 {
   sources = realloc(sources, sizeof(source_t) * (1 + N_SOURCES));
 
+  if (s.n_beam >= s.size) {
+    TraceLog(LOG_WARNING, "n_beam cannot be higher or equal size");
+    s.n_beam = s.size-1;
+  }
   sources[N_SOURCES] = (source_t){
     .color = (Color){s.color.r, s.color.g, s.color.b, s.color.a},
     .pt = (Vector2){ s.pt.x, s.pt.y },
@@ -291,9 +295,7 @@ void add_source(source_t s)
     .thickness = s.thickness,
     .mouse_reactive = s.mouse_reactive,
 
-    // TODO: n_beam
-    // TODO: assert(!(n_beam >= size))
-    .n_beam = 19
+    .n_beam = s.n_beam
   };
 
   TraceLog(LOG_INFO, "adding source [%f %f] ang. %f", s.pt.x, s.pt.y, s.angle);
@@ -344,10 +346,11 @@ int main(int argc, char **argv)
     }
   }
 
-  initialize_scheme();
   InitWindow(800, 600, "giga optyka");
+  initialize_scheme();
   SetExitKey(-1);
   initialize_raygui();
+  load_rc();
 
   add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f);
 
@@ -384,10 +387,10 @@ int main(int argc, char **argv)
       if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
           !IsMouseButtonDown(MOUSE_BUTTON_RIGHT)
           && mi.pressed_moving) {
+        do_hooks(&unclick, scheme_click_info(&mi));
+
         mi.pressed_moving = mi.first_click = mi.left = mi.right = false;
         mi._dx = mi._dy = 0, mi._currently_moving = NULL;
-
-        do_hooks(&unclick, scheme_click_info(&mi));
       }
 
       draw_all_bounceables();

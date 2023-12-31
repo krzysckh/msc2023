@@ -175,3 +175,7 @@
    ((null? (cdr lst)) (car lst))
    (else
     (last (cdr lst)))))
+
+(define (avg l)
+  "zwraca średnią z listy"
+  (/ (sum l) (length l)))

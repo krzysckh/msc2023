@@ -108,3 +108,50 @@
 (define (gui/msg text)
   "wyświetla gui/message"
   (gui/message "" text 5))
+
+;; option-menu
+(define *gui/option-menu-text-size* 16)
+(define gui/option-menu:ident 'GUI-option-menu)
+(define (gui/option-menu pos opts)
+  (args
+   '((pos . "pozycja lewego-górnego punktu opcji w formie `(x . y)`")
+     (opts . "opcje w formie ((tekst . funkcja) (tekst . funkcja) ...)")))
+
+  (when *click-can-be-handled*
+    (set! *click-can-be-handled* #f)
+    (set! *current-click-handler* gui/option-menu:ident)
+    (let* ((measures (map (→1 (measure-text x *gui/option-menu-text-size*)) (map car opts)))
+           (w (maxl (map car measures)))
+           (h (+ (sum (map cdr measures)) (* 4 (length opts))))
+           (x (if (> (+ w (car pos)) *SCREEN-WIDTH*) (- *SCREEN-WIDTH* w) (car pos)))
+           (y (if (> (+ h (cdr pos)) *SCREEN-HEIGHT*) (- *SCREEN-HEIGHT* h) (cdr pos)))
+           (single-h (avg (map cdr measures)))
+           (real-rect (list x y w h))
+           (rects (map (lambda (n) (list x (+ y (* n single-h)) w single-h))
+                       (iota 0 1 (length opts))))
+           (frame-id
+            (add-hook
+             'frame
+             (→ (for-each
+                 (lambda (n)
+                   (gui/rect (list-ref rects n) black)
+                   (draw-text
+                    (car (list-ref opts n))
+                    (cons x (+ y (* n single-h)))
+                    *gui/option-menu-text-size* red))
+                 (iota 0 1 (length opts))))))
+           (click-id
+            (add-hook
+             'unclick
+             (lambda (first l r)
+               (when l
+                 (let ((mp (get-mouse-position)))
+                   (when (point-in-rect? mp real-rect)
+                     (set! *click-can-be-handled* #t)
+                     (set! *current-click-handler* nil)
+                     (delete-hook 'unclick click-id)
+                     (delete-hook 'frame frame-id)
+                     (for-each
+                      (→1 (when (point-in-rect? mp (list-ref rects x))
+                            ((cdr (list-ref opts x)))))
+                      (iota 0 1 (length opts)))))))))))))

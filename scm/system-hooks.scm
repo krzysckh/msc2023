@@ -27,6 +27,7 @@
                      mp (list (+ x (/ *source-size* 2))
                               (+ y (/ *source-size* 2)) *source-size* *source-size*))
                 (set! *click-can-be-handled* #f)
+                (set! *current-click-handler* 'REPOSITION-SOURCE-HOOK)
                 (set! repositioning-dx (- (car mp) x *source-size*))
                 (set! repositioning-dy (- (cdr mp) y *source-size*))
                 (set! repositioning-source n))))
@@ -50,8 +51,9 @@
 (define drawing-new-mirror #f)
 
 (define (start-drawing-mirror-hook first left right)
-  (when (or *click-can-be-handled* drawing-new-mirror)
+  (when (and (or *click-can-be-handled* drawing-new-mirror) (not right))
     (set! *click-can-be-handled* #f)
+    (set! *current-click-handler* 'START-DRAWING-MIRROR-HOOK)
     (when (and first left)
       (set! drawing-new-mirror #t)
       (set! mirror-last-x (car (get-mouse-position)))

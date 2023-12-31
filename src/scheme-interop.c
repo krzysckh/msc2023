@@ -1,4 +1,5 @@
 #include "optyka.h"
+#include "raylib.h"
 #include "tinyscheme/scheme.h"
 
 #include <string.h>
@@ -45,6 +46,14 @@ void do_hooks(hookable_event_t *he, pointer args)
     if (he->hooks[i])
       scheme_call(&scm, he->hooks[i], args);
   }
+}
+
+// (get-screen-size) → (w . h)
+static pointer scm_get_screen_size(scheme *sc, pointer args)
+{
+  expect_args("get-screen-size", 0);
+
+  return cons(sc, mk_integer(sc, GetScreenWidth()), mk_integer(sc, GetScreenHeight()));
 }
 
 static pointer scm_time(scheme *sc, pointer args)
@@ -153,27 +162,29 @@ static pointer scm_measure_text(scheme *sc, pointer args)
   return cons(sc, mk_integer(sc, ret.x), mk_integer(sc, ret.y));
 }
 
-// (real-set-source! n x y angle thickness r g b a)
+// (real-set-source! n x y angle thickness mouse-reactive n-beams r g b a)
 static pointer scm_set_source(scheme *sc, pointer args)
 {
   extern int N_SOURCES;
   extern source_t *sources;
   source_t *s;
 
-  int n;
+  int n, mouse_reactive, n_beams;
   float x, y, angle, thickness, r, g, b, a;
 
-  expect_args("real-set-source!", 9);
+  expect_args("real-set-source!", 11);
 
-  n         = rvalue(car(ncdr(0, args)));
-  x         = rvalue(car(ncdr(1, args)));
-  y         = rvalue(car(ncdr(2, args)));
-  angle     = rvalue(car(ncdr(3, args)));
-  thickness = rvalue(car(ncdr(4, args)));
-  r         = rvalue(car(ncdr(5, args)));
-  g         = rvalue(car(ncdr(6, args)));
-  b         = rvalue(car(ncdr(7, args)));
-  a         = rvalue(car(ncdr(8, args)));
+  n              = rvalue(car(ncdr(0, args)));
+  x              = rvalue(car(ncdr(1, args)));
+  y              = rvalue(car(ncdr(2, args)));
+  angle          = rvalue(car(ncdr(3, args)));
+  thickness      = rvalue(car(ncdr(4, args)));
+  mouse_reactive = rvalue(car(ncdr(5, args)));
+  n_beams        = rvalue(car(ncdr(6, args)));
+  r              = rvalue(car(ncdr(7, args)));
+  g              = rvalue(car(ncdr(8, args)));
+  b              = rvalue(car(ncdr(9, args)));
+  a              = rvalue(car(ncdr(10, args)));
 
   if (n >= N_SOURCES) {
     TraceLog(LOG_WARNING, "no such source: %d", n);
@@ -181,13 +192,20 @@ static pointer scm_set_source(scheme *sc, pointer args)
   }
 
   s = &sources[n];
+  if (n_beams >= s->size) {
+    // i will not tracelog about that :3333
+    n_beams = s->size - 1;
+  }
+
   s->pt.x = x, s->pt.y = y, s->angle = angle,
   s->thickness = thickness, s->color = (Color){r,g,b,a};
+  s->mouse_reactive = mouse_reactive;
+  s->n_beam = n_beams;
 
   return sc->T;
 }
 
-// (real-get-source n) → (x y sz angle thickness r g b a)
+// (real-get-source n) → ((x . y) angle thickness mouse-reactive n-beams r g b a)
 static pointer scm_get_source(scheme *sc, pointer args)
 {
   extern int N_SOURCES;
@@ -205,14 +223,18 @@ static pointer scm_get_source(scheme *sc, pointer args)
   }
   s = &sources[(int)n];
 
-  return cons(sc,
-    cons(sc, mk_integer(sc, s->pt.x), mk_integer(sc, s->pt.y)),
-      cons(sc, mk_integer(sc, s->angle),
-        cons(sc, mk_integer(sc, s->thickness),
-          cons(sc, cons(sc, mk_integer(sc, s->color.r),
-              cons(sc, mk_integer(sc, s->color.g),
-                cons(sc, mk_integer(sc, s->color.b),
-                  cons(sc, mk_integer(sc, s->color.a), sc->NIL)))), sc->NIL))));
+  // no comment
+  return
+    cons(sc,
+         cons(sc, mk_integer(sc, s->pt.x), mk_integer(sc, s->pt.y)),
+         cons(sc, mk_integer(sc, s->angle),
+              cons(sc, mk_integer(sc, s->thickness),
+                   cons(sc, s->mouse_reactive ? sc->T : sc->F,
+                        cons(sc, mk_integer(sc, s->n_beam),
+                             cons(sc, cons(sc, mk_integer(sc, s->color.r),
+                                           cons(sc, mk_integer(sc, s->color.g),
+                                                cons(sc, mk_integer(sc, s->color.b),
+                                                     cons(sc, mk_integer(sc, s->color.a), sc->NIL)))), sc->NIL))))));
 }
 
 // (get-all-sources) → '((id x y sz...) ...)
@@ -359,14 +381,15 @@ static pointer scm_create_mirror(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-// (real-create-source x y sz angle thickness reactive r g b a) → nil
+// (real-create-source x y sz angle thickness reactive n_beams r g b a) → nil
 // reactive? to #t | #f
 static pointer scm_create_source(scheme *sc, pointer args)
 {
   float x, y, sz, thickness, angle, r, g, b, a;
   bool rel;
+  int n_beams;
 
-  expect_args("real-create-source", 10);
+  expect_args("real-create-source", 11);
 
   x = rvalue(car(args));
   y = rvalue(cadr(args));
@@ -374,10 +397,11 @@ static pointer scm_create_source(scheme *sc, pointer args)
   angle = rvalue(cadddr(args));
   thickness = rvalue(cadddr(cdr(args)));
   rel = cadddr(cddr(args)) == sc->T;
-  r = rvalue(cadddr(cdddr(args)));
-  g = rvalue(cadddr(cddddr(args)));
-  b = rvalue(cadddr(cddddr(cdr(args))));
-  a = rvalue(cadddr(cddddr(cddr(args)))); // lol
+  n_beams = rvalue(cadddr(cdddr(args)));
+  r = rvalue(cadddr(cddddr(args)));
+  g = rvalue(cadddr(cddddr(cdr(args))));
+  b = rvalue(cadddr(cddddr(cddr(args))));
+  a = rvalue(cadddr(cddddr(cdddr(args)))); // lol
 
   add_source((source_t){
     .mouse_reactive = rel,
@@ -385,7 +409,8 @@ static pointer scm_create_source(scheme *sc, pointer args)
     .pt = (Vector2){x, y},
     .thickness = thickness,
     .angle = angle,
-    .color = (Color){r,g,b,a}
+    .color = (Color){r,g,b,a},
+    .n_beam = n_beams
   });
 
   return sc->NIL;
@@ -393,6 +418,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 
 static void load_scheme_cfunctions(void)
 {
+  SCHEME_FF(scm_get_screen_size,    "get-screen-size");
   SCHEME_FF(scm_time_since_init,    "time-since-init");
   SCHEME_FF(scm_time,               "time");
   SCHEME_FF(scm_system,             "system");
@@ -414,7 +440,6 @@ static void load_scheme_cfunctions(void)
 void initialize_scheme(void)
 {
   extern char tinyscheme_r5rs_scm[];
-  FILE *rc = fopen("rc.scm", "r+");
 
   scheme_init(&scm);
   TraceLog(LOG_INFO, "loaded tinyscheme");
@@ -428,6 +453,11 @@ void initialize_scheme(void)
   load_scheme_cfunctions();
   load_compiled_scripts();
 
+}
+
+void load_rc(void)
+{
+  FILE *rc = fopen("rc.scm", "r+");
   if (rc)
     scheme_load_file(&scm, rc);
 }

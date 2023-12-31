@@ -1,5 +1,9 @@
-; ten plik ma _ przed nazwą, bo musi być ładowany pierwszy XDD
 (define *sources* '())
+
+; TODO: 'resize hook
+(define *SCREEN-SIZE* (get-screen-size))
+(define *SCREEN-WIDTH* (car *SCREEN-SIZE*))
+(define *SCREEN-HEIGHT* (cdr *SCREEN-SIZE*))
 
 (define (aq e alist)
   "zwraca wynik assq bez car"
@@ -33,7 +37,7 @@
 
   (args
    '((a . "lista asocjacyjna z elementami 'x, 'y, 'size, 'angle, 'thickness,
-           reactive, 'color.
+           'reactive, 'color, 'n-beam.
            wszystkie elementy mają wartości domyślne i mogą być pominięte.
            zamiast 'x i 'y, może zostać zdefiniowane samo 'pos")))
   (example
@@ -47,11 +51,12 @@
          (ang (aq-or 'angle a 90))
          (thickness (aq-or 'thickness a 1))
          (reactive (aq-or 'reactive a #t))
+         (n-beams (aq-or 'n-beams a 1))
          (r (list-ref (aq-or 'color a default-color) 0))
          (g (list-ref (aq-or 'color a default-color) 1))
          (b (list-ref (aq-or 'color a default-color) 2))
          (a (list-ref (aq-or 'color a default-color) 3)))
-    (real-create-source x y size ang thickness reactive r g b a))
+    (real-create-source x y size ang thickness reactive n-beams r g b a))
   (update-sources))
 
 (define (draw-line pt1 pt2 thick color)
@@ -72,18 +77,18 @@
         (a (list-ref color 3)))
     (real-draw-line x1 y1 x2 y2 thick r g b a)))
 
-(define (set-source! n x y ang thickness r g b a)
+(define (set-source! n x y ang thickness mouse-reactive n-beams r g b a)
   "aktualizuje źródło o id n ustawiając wszystkie jego wartości.
   lepiej używać set-source-e!"
-  (real-set-source! n x y ang thickness r g b a)
+  (real-set-source! n x y ang thickness mouse-reactive n-beams r g b a)
   (update-sources))
 
-; sym = pos | angle | thickness | color
+; sym = pos | angle | thickness | color | mouse-reactive | n-beams
 (define (set-source-e! n sym v)
   "aktualizuje właściwość sym na v w źródle o id n"
   (args
    '((n . "id źródła")
-     (sym . "'pos | 'angle | 'thickness | 'color w zależności od tego co chcemy zmienić")
+     (sym . "'pos | 'angle | 'thickness | 'color | 'mouse-reactive | 'n-beams w zależności od tego co chcemy zmienić")
      (v . "nowa wartość dla sym")))
 
   (if (> n (length *sources*))
@@ -93,12 +98,14 @@
            (y (if (eq? 'pos sym) (cdr v) (cdr (list-ref src 0))))
            (ang (if (eq? 'angle sym) v (list-ref src 1)))
            (thickness (if (eq? 'thickness sym) v (list-ref src 2)))
-           (color (if (eq? 'color sym) v '(255 0 255 255)))
+           (mouse-reactive (if (eq? 'mouse-reactive sym) v (list-ref src 3)))
+           (n-beams (if (eq? 'n-beams sym) v (list-ref src 4)))
+           (color (if (eq? 'color sym) v (list-ref src 5)))
            (r (list-ref color 0))
            (g (list-ref color 1))
            (b (list-ref color 2))
            (a (list-ref color 3)))
-      (set-source! n x y ang thickness r g b a)))
+      (set-source! n x y ang thickness mouse-reactive n-beams r g b a)))
   (update-sources))
 
 (define *default-spacing* 4)

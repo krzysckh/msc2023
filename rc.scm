@@ -38,7 +38,12 @@
 ;;                     (→ (draw-text imie '(100 . 100) 50 pink)))))
 ;;      (wait 2 (→ (delete-hook 'frame rysuj-id))))))
 
-;; (wait 1 (→ (gui/message "hello1" "hello, world!" 1)
-;;            (wait 1 (→ (gui/message "hello2" "hello, balsak!" 1)))
-;;            (wait 2 (→ (gui/message "hello3" "hello, balsaczysko!" 1)))
-;;            (wait 3 (→ (gui/message "hello4" "hello, balsaczek!" 1)))))
+(define mouse-menu
+  `(("nowe zrodlo" . ,(→ (create-source-at-mouse-position)))
+    ("wyrazenie scheme" . ,(→ (gui/input-popup "eval scheme" loads)))))
+
+(add-hook
+ 'click
+ (lambda (first l r)
+   (when (and *click-can-be-handled* r)
+     (gui/option-menu (get-mouse-position) mouse-menu))))
