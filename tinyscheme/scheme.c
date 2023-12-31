@@ -342,10 +342,10 @@ static char *store_string(scheme *sc, int len, const char *str, char fill);
 static pointer mk_vector(scheme *sc, int len);
 static pointer mk_atom(scheme *sc, char *q);
 static pointer mk_sharp_const(scheme *sc, char *name);
-static pointer mk_port(scheme *sc, port *p);
-static pointer port_from_filename(scheme *sc, const char *fn, int prop);
-static pointer port_from_file(scheme *sc, FILE *, int prop);
-static pointer port_from_string(scheme *sc, char *start, char *past_the_end, int prop);
+pointer mk_port(scheme *sc, port *p);
+pointer port_from_filename(scheme *sc, const char *fn, int prop);
+pointer port_from_file(scheme *sc, FILE *, int prop);
+pointer port_from_string(scheme *sc, char *start, char *past_the_end, int prop);
 static port *port_rep_from_filename(scheme *sc, const char *fn, int prop);
 static port *port_rep_from_file(scheme *sc, FILE *, int prop);
 static port *port_rep_from_string(scheme *sc, char *start, char *past_the_end, int prop);
@@ -918,7 +918,7 @@ static pointer oblist_all_symbols(scheme *sc)
 
 #endif
 
-static pointer mk_port(scheme *sc, port *p) {
+pointer mk_port(scheme *sc, port *p) {
   pointer x = get_cell(sc, sc->NIL, sc->NIL);
 
   typeflag(x) = T_PORT|T_ATOM;
@@ -1399,7 +1399,7 @@ static port *port_rep_from_filename(scheme *sc, const char *fn, int prop) {
   return pt;
 }
 
-static pointer port_from_filename(scheme *sc, const char *fn, int prop) {
+pointer port_from_filename(scheme *sc, const char *fn, int prop) {
   port *pt;
   pt=port_rep_from_filename(sc,fn,prop);
   if(pt==0) {
@@ -1408,7 +1408,7 @@ static pointer port_from_filename(scheme *sc, const char *fn, int prop) {
   return mk_port(sc,pt);
 }
 
-static port *port_rep_from_file(scheme *sc, FILE *f, int prop)
+port *port_rep_from_file(scheme *sc, FILE *f, int prop)
 {
     port *pt;
 
@@ -1422,7 +1422,7 @@ static port *port_rep_from_file(scheme *sc, FILE *f, int prop)
     return pt;
 }
 
-static pointer port_from_file(scheme *sc, FILE *f, int prop) {
+pointer port_from_file(scheme *sc, FILE *f, int prop) {
   port *pt;
   pt=port_rep_from_file(sc,f,prop);
   if(pt==0) {
@@ -1444,7 +1444,7 @@ static port *port_rep_from_string(scheme *sc, char *start, char *past_the_end, i
   return pt;
 }
 
-static pointer port_from_string(scheme *sc, char *start, char *past_the_end, int prop) {
+pointer port_from_string(scheme *sc, char *start, char *past_the_end, int prop) {
   port *pt;
   pt=port_rep_from_string(sc,start,past_the_end,prop);
   if(pt==0) {
@@ -4954,6 +4954,7 @@ pointer scheme_eval(scheme *sc, pointer obj)
 
 /* ========== Main ========== */
 
+#undef STANDALONE
 #if STANDALONE
 
 #if defined(__APPLE__) && !defined (OSX)

@@ -10,6 +10,9 @@
 ;; TODO: escape-owanie znaków w tekstach
 ;; TODO: może być tylko jeden przykład na funkcje lol lol lol
 
+;; https://github.com/lispunion/code-formatter
+(define scheme-format-path "scheme-format")
+
 (define scm-files
   (filter
    (lambda (v) (string=? ".scm" (substring v (- (string-length v) 4) (string-length v))))
@@ -47,7 +50,8 @@
         (args (cadr (assq 'args f)))
         (doc (cadr (assq 'docstring f)))
         (examples (cadr (assq 'examples f)))
-        (args-docs (cadr (assq 'args-docs f))))
+        (args-docs (cadr (assq 'args-docs f)))
+        (impl (cadr (assq 'impl f))))
     (pprint "### " (append (list name) args))
     (pprint doc "\n")
     (when (> (length (flatten args)) 0)
@@ -71,7 +75,14 @@
                           v))
                     (car ex)) "`" " → " "*" (cadr ex) "*"))
      examples)
-    (print "")))
+    (print "")
+    (print "<details> <summary> implementacja </summary>\n\n")
+    (with-output-to-file "/tmp/gen"
+      (→ (write impl)))
+    (print "```scheme")
+    (print (sys (list scheme-format-path "/tmp/gen")))
+    (print "```")
+    (print "</details>\n")))
 
 (define (render d filename)
   (pprint
@@ -99,6 +110,7 @@
                    (args-docs (find-args-docs func))
                    (examples (find-examples func)))
                `((f ,(car args-list))
+                 (impl ,func)
                  (docstring ,docstring)
                  (args ,(cdr args-list))
                  (examples ,(if (null? examples) '() (cdar examples)))

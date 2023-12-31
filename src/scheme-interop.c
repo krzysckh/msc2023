@@ -1,5 +1,6 @@
 #include "optyka.h"
 #include "raylib.h"
+#include "tinyscheme/scheme-private.h"
 #include "tinyscheme/scheme.h"
 
 #include <string.h>
@@ -7,6 +8,8 @@
 #include <unistd.h>
 #include <time.h>
 
+pointer mk_port(scheme *sc, port *p);
+pointer port_from_file(scheme *sc, FILE *f, int prop);
 
 scheme scm;
 hookable_event_t keypress = {0};
@@ -47,6 +50,23 @@ void do_hooks(hookable_event_t *he, pointer args)
       scheme_call(&scm, he->hooks[i], args);
   }
 }
+
+#if 0
+// (popen "command" "mode") → port
+static pointer scm_popen(scheme *sc, pointer args)
+{
+  char *s, *mode;
+  FILE *fp;
+
+  expect_args("popen", 2);
+  s = string_value(car(args));
+  mode = string_value(cadr(args));
+
+  fp = popen(s, mode);
+
+  return port_from_file(sc, fp, 0);
+}
+#endif
 
 // (get-screen-size) → (w . h)
 static pointer scm_get_screen_size(scheme *sc, pointer args)
@@ -418,6 +438,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 
 static void load_scheme_cfunctions(void)
 {
+  //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
   SCHEME_FF(scm_get_screen_size,    "get-screen-size");
   SCHEME_FF(scm_time_since_init,    "time-since-init");
   SCHEME_FF(scm_time,               "time");
