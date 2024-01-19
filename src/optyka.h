@@ -23,6 +23,9 @@
 #define _vec_dispatch(_1, _2, _3, nam, ...) nam
 #define vec(...) _vec_dispatch(__VA_ARGS__, _vec3, _vec2, _vec1)(__VA_ARGS__)
 
+// lol
+#define Cons(a,b) cons(sc, (a), (b))
+
 #define ctg(x) (pow(tan((x)),-1))
 
 #define SCHEME_FF(f,sym) \
@@ -44,6 +47,11 @@
 #endif
 
 #define TODO(s) panic("TODO: %s", s)
+
+struct window_conf_t {
+  Color bgcolor;
+  Color mirror_color;
+};
 
 struct mouse_information_t {
   bool first_click;

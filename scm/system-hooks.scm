@@ -50,6 +50,10 @@
 (define mirror-last-y 0)
 (define drawing-new-mirror #f)
 
+;; bardzo fajna nazwa, nie ma za co
+;; ~ kpm
+(define system/mirror-hook-new-mirror-color '(#xd6 #x99 #xb6 #xff))
+
 (define (start-drawing-mirror-hook first left right)
   (when (and (or *click-can-be-handled* drawing-new-mirror) (not right))
     (set! *click-can-be-handled* #f)
@@ -62,7 +66,7 @@
       (draw-line `(,mirror-last-x . ,mirror-last-y)
                  `(,(car (get-mouse-position)) . ,(cdr (get-mouse-position)))
                  2
-                 '(0 0 255 255)))))
+                 system/mirror-hook-new-mirror-color))))
 
 (define (end-drawing-mirror-hook first left right)
   (when drawing-new-mirror
@@ -98,3 +102,14 @@
         ((eqv? c #\q) (exit 0))))))
 
 (add-system-hook 'keypress keypress-default-hook)
+
+;; mouse-menu
+(define mouse-menu
+  `(("nowe zrodlo" . ,(→ (create-source-at-mouse-position)))
+    ("wyrazenie scheme" . ,(→ (gui/input-popup "eval scheme" loads)))))
+
+(add-hook
+ 'click
+ (lambda (first l r)
+   (when (and *click-can-be-handled* r)
+     (gui/option-menu (get-mouse-position) mouse-menu))))

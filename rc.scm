@@ -37,13 +37,3 @@
 ;;                     'frame
 ;;                     (→ (draw-text imie '(100 . 100) 50 pink)))))
 ;;      (wait 2 (→ (delete-hook 'frame rysuj-id))))))
-
-(define mouse-menu
-  `(("nowe zrodlo" . ,(→ (create-source-at-mouse-position)))
-    ("wyrazenie scheme" . ,(→ (gui/input-popup "eval scheme" loads)))))
-
-(add-hook
- 'click
- (lambda (first l r)
-   (when (and *click-can-be-handled* r)
-     (gui/option-menu (get-mouse-position) mouse-menu))))

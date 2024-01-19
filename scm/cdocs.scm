@@ -1,5 +1,4 @@
 ;; tu jest dokumentacja funkcji zdefiniowanych w src/scheme-interop.c
-(macro (document-function v) '())
 
 (document-function
  (time-since-init)
@@ -47,3 +46,14 @@
 (document-function
  (get-screen-size)
  "zwraca wielkość okna `(w . h)`")
+
+(document-function
+ (get-winconf)
+ "zwraca obecny winconf w postaci jak argumenty do `set-winconf`")
+
+(document-function
+ (set-winconf bgcolor mirror-color)
+ "ustawia winconf"
+ (args
+  '((bgcolor . "kolor tła w formacie `(r g b a)` *(można pominąć `a`)*")
+    (mirror-color . "kolor zwierciadła w formacie j.w."))))

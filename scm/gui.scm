@@ -1,3 +1,6 @@
+(define gui/font-color '(#xd3 #xc6 #xaa #xff))
+(define gui/frame-color '(#xdb #xbc #x7f #xff))
+
 ; TODO: sprawdź czy przypadkiem używanie wbudowanej funkcji w raylib nie będzie
 ; szybsze
 (define (gui/rect rect c)
@@ -18,11 +21,11 @@
    '((rect . "prostokąt `(x y w h)`")
      (title . "tytuł")))
 
-  (gui/rect rect black) ; bounding box
+  (gui/rect rect gui/frame-color) ; bounding box
   (gui/rect `(,(car rect) ,(cadr rect) ,(caddr rect) ,gui/window-top-bar-size)
-            black)
+            gui/frame-color)
   (draw-text title `(,(car rect) . ,(+ 1 (cadr rect)))
-             (- gui/window-top-bar-size 2) black)
+             (- gui/window-top-bar-size 2) gui/font-color)
   (list (car rect) (+ (cadr rect) gui/window-top-bar-size)
         (caddr rect) (- (cadddr rect) gui/window-top-bar-size)))
 
@@ -31,7 +34,7 @@
 
 (define (gui/label rect text)
   (draw-text title `(,(car rect) . ,(+ 1 (cadr rect)))
-             (- gui/window-top-bar-size 2) black))
+             (- gui/window-top-bar-size 2) gui/font-color))
 
 (define (gui/get-max-text-length-for-width w sz)
   (letrec ((f (lambda (s)
@@ -50,7 +53,7 @@
       (lambda (n)
         (draw-text (list-ref text n)
                    `(,(list-ref rect 0) . ,(+ (list-ref rect 1)
-                                              (* n text-height) 2)) 18 black))
+                                              (* n text-height) 2)) 18 gui/font-color))
       (iota 0 1 (length text)))))
 
 ;; TODO: popup powinien zostać rozłożony na pomniejsze funkcje
@@ -134,11 +137,11 @@
              'frame
              (→ (for-each
                  (lambda (n)
-                   (gui/rect (list-ref rects n) black)
+                   (gui/rect (list-ref rects n) gui/frame-color)
                    (draw-text
                     (car (list-ref opts n))
                     (cons x (+ y (* n single-h)))
-                    *gui/option-menu-text-size* red))
+                    *gui/option-menu-text-size* gui/font-color))
                  (iota 0 1 (length opts))))))
            (click-id
             (add-hook

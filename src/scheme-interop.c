@@ -8,6 +8,10 @@
 #include <unistd.h>
 #include <time.h>
 
+/* funkcje zdefiniowane tutaj udokumentowane są w scm/cdocs.scm */
+
+extern struct window_conf_t winconf;
+
 pointer mk_port(scheme *sc, port *p);
 pointer port_from_file(scheme *sc, FILE *f, int prop);
 
@@ -18,8 +22,13 @@ hookable_event_t unclick  = {0};
 hookable_event_t clocke   = {0}; // co sekundę
 
 hookable_event_t frame    = {0};
-// TODO: one będą bardzo zwalniać rysowanie. zrób coś z tym krzysztof.
+/* uwaga uwaga: należy pamiętać o tym, żeby usuwać niepotrzebne hooki
+   dla 'frame, bo bardzo zpowalniają rysowanie wszystkiego XDDD
+   ~ kpm
+*/
 
+// cdddddr(cddddr(cddddr(cadr(ptr))))
+// ~ kpm
 pointer ncdr(int n, pointer x) {
   while (n--)
     x = cdr(x);
@@ -51,6 +60,60 @@ void do_hooks(hookable_event_t *he, pointer args)
   }
 }
 
+// TODO: zaktualizować żeby reszta funkcji zwracjąca kolory zwracała je jako listę
+// (jeśli takie istnieją bo nie pamiętam lol kldjsfl)
+// ~ kpm
+static pointer color2list(scheme *sc, Color c)
+{
+  pointer r = mk_integer(sc, c.r),
+          g = mk_integer(sc, c.g),
+          b = mk_integer(sc, c.b);
+
+  return Cons(r, Cons(g, Cons(b, sc->NIL)));
+}
+
+static Color list2color(scheme *sc, pointer p)
+{
+  if (list_length(sc, p) != 3 && list_length(sc, p) != 4)
+    return (Color) { 0xff, 0x00, 0xff, 0xff };
+  // ty debilu nie podales koloru duze elo
+  // ~ kpm
+
+  return (Color) {
+    .r = rvalue(car(p)),
+    .g = rvalue(cadr(p)),
+    .b = rvalue(caddr(p)),
+    .a = cadddr(p) == sc->NIL ? 255 : rvalue(cadddr(p))
+  };
+}
+
+// troche getto rozwiązanie, wytłumaczone w main.c
+// ~ kpm
+static pointer scm_get_winconf(scheme *sc, pointer args)
+{
+  expect_args("get-winconf", 0);
+
+  return Cons(color2list(sc, winconf.bgcolor),
+              Cons(color2list(sc, winconf.mirror_color), sc->NIL));
+}
+
+// (set-winconf bgcolor mirror-color) + wiecej w przyszlosci
+static pointer scm_set_winconf(scheme *sc, pointer args)
+{
+  Color bg, mirrorc;
+
+  expect_args("set-winconf", 2);
+  bg = list2color(sc, car(args));
+  mirrorc = list2color(sc, cadr(args));
+
+  winconf.bgcolor = bg;
+  winconf.mirror_color = mirrorc;
+
+  return sc->NIL;
+}
+
+// nie dziala, nie mam sily
+// ~ kpm
 #if 0
 // (popen "command" "mode") → port
 static pointer scm_popen(scheme *sc, pointer args)
@@ -439,6 +502,8 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_set_winconf,        "set-winconf");
+  SCHEME_FF(scm_get_winconf,        "get-winconf");
   SCHEME_FF(scm_get_screen_size,    "get-screen-size");
   SCHEME_FF(scm_time_since_init,    "time-since-init");
   SCHEME_FF(scm_time,               "time");

@@ -22,6 +22,13 @@ extern hookable_event_t keypress, click, unclick, frame, clocke;
 
 Font default_font;
 
+/* to jest nieco niespójne ze scheme podejście, ale co klatkę wykonywane jest
+   ClearBackground(), i robienie tego w scheme było by po prostu zbyt powolne */
+struct window_conf_t winconf = {
+  .bgcolor = (Color) { 0x2b, 0x33, 0x39, 0xff },
+  .mirror_color = (Color) { 0x7f, 0xbb, 0xb3, 0xff },
+};
+
 #define MIRROR_THICKNESS 1
 int N_BOUNCEABLES = 0,
     N_SOURCES = 0;
@@ -105,7 +112,7 @@ static void draw_mirror(bounceable_t *b)
 {
   Vector2 p1 = b->data.mirror->p1,
           p2 = b->data.mirror->p2;
-  DrawLineEx(p1, p2, MIRROR_THICKNESS, BLACK);
+  DrawLineEx(p1, p2, MIRROR_THICKNESS, winconf.mirror_color);
 }
 
 static void draw_all_bounceables(void)
@@ -360,7 +367,7 @@ int main(int argc, char **argv)
 
     BeginDrawing();
     {
-      ClearBackground(WHITE);
+      ClearBackground(winconf.bgcolor);
 
       c = CodepointToUTF8(GetCharPressed(), &charsize)[0];
       k = GetKeyPressed();
