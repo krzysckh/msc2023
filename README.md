@@ -1,34 +1,36 @@
-# TODO
-- krzysztof, po przycisnieciu prawego przycisku myszy nie mozna rysowac zwierciadel
-- krzysztof, nie da sie zmieniac n-beams i nie jest bezpieczne uaua
+# quickstart
 
-
-## [dokumentacja scheme](https://pub.krzysckh.org/msc2023.html)
+## unix
 
 ``` shell
-$ mypaint ./notatki.ora
-$ make
-$ ./main
-
-$ make build-windows
-$ wine ./main.exe
-```
-
-## uwagi
-
-- testowane na raylib 4.5. wyższe werje mogą nie działać bo coś tam
-  odwalili z liczeniem wektorów lololol
-
-``` shell
+$ cd /tmp
 $ git clone https://github.com/raysan5/raylib
 $ cd raylib
 $ git checkout 4.5.0
 $ cd src/
 $ make
 $ sudo make install
+
+$ cd /miejsce/na/folder-z-kodem
+$ git clone https://git.krzysckh.org/kpm/science-cup-2023
+$ cd science-cup-2023
+$ make
+$ ./main
 ```
 
-- wymaga raygui
+## windows
+
+lol
+
+[https://pub.krzysckh.org/rl-optyka-test.exe](rl-optyka-test.exe)
+[https://pub.krzysckh.org/rc.scm](rc.scm)
+
+# dokumentacja
+
+- [zdefiniowane dla tinyscheme](https://pub.krzysckh.org/msc2023.html)
+- TBD
+
+## uwagi
 - wymaga **GNU Make** (bsd make ma problem z *.SUFFIXES*)
 - wzory i pomysły są wyjęte z dupy, np.:
 
@@ -50,22 +52,6 @@ $$
 
 w notatkach oczywiscie cos tam jest skad one sie biora, ale sa zupelnie
 nie po kolei i nawet sam sie juz po nich nie doczytam lolololol
-
-Piszę tą próbę w C, bo nie znalazłem żadnej dobrej biblioteki do pisania
-\"gier\" dla racketa. Oczywiście jest wrapper dla raylib, ale dużo
-szybciej dla mnie jest napisać to najpierw w C + raylib a potem dopiero
-(jeśli w ogóle) próbować przeportować to do racketowego wrappera dla
-raylib.
-
-Jest to bardzo nieokiełznany **proof-of-concept**, który musi zostać
-opatrzony w wiele wiecej struktur itp itd, żeby przypominał jakkolwiek
-to, o co prosi zadanie. Ma na celu sprawdzenie jak wyglądałoby pisanie
-tego w C + raylib.
-
-## keybindingi
-
-- *A* - dodaje sztynks
-- *e* - pokazuje okno wykonywania scheme
 
 ## odniesienia
 
