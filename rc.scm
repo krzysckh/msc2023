@@ -37,11 +37,3 @@
 ;;                     'frame
 ;;                     (→ (draw-text imie '(100 . 100) 50 pink)))))
 ;;      (wait 2 (→ (delete-hook 'frame rysuj-id))))))
-
-(add-hook
- 'log
- (lambda (type s)
-   (print "will add for " s)
-   (let* ((id (add-hook 'frame (→ (draw-text s '(0 . 0) 16 white)))))
-     (print "added for " s)
-     (wait 2 (→ (delete-hook 'frame id))))))

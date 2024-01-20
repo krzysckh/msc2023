@@ -108,7 +108,7 @@
   (args '((color . "w postaci (r g b a)")))
   (let ((x (car pos))
         (y (cdr pos))
-        (spc (if (null? spacing) *default-spacing* spacing)))
+        (spc (if (null? spacing) *default-spacing* (car spacing))))
     (real-draw-text text x y sz spc color)))
 
 (define log-trace 1)

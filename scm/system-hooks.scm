@@ -112,3 +112,33 @@
  (lambda (first l r)
    (when (and *click-can-be-handled* r)
      (gui/option-menu (get-mouse-position) mouse-menu))))
+
+;;;; tracelog
+(define *tracelog-queue* '())
+
+;; witam chcialem tylko powiedziec ze system tracelogow trzyma sie na dykcie i gownie
+;; pozdrawiam serdecznie
+;; ~ kpm
+(add-hook
+ 'log
+ (lambda (type s)
+   (set! *tracelog-queue*
+         (append *tracelog-queue* `(((s . ,s) (time . ,(time)) (type . ,type)))))))
+
+(define (display-next-log)
+  "ale fajna funkcja ciekawe jak dziala :333"
+  (if (> (length *tracelog-queue*) 0)
+    (let* ((tl (car *tracelog-queue*))
+           (s (string-append
+               "[" (number->string (aq 'time tl)) "] "
+               (symbol->string (aq 'type tl)) ": "
+               (aq 's tl)))
+           (id (add-hook 'frame (→ (draw-text s '(0 . 0) 16 (aq 'font *colorscheme*) 2)))))
+      (set! *tracelog-queue* (cdr *tracelog-queue*))
+      (wait 2 (→ (delete-hook 'frame id)
+                 (display-next-log))))
+    (letrec ((id (add-hook 'log (→2 (display-next-log)        ; korzystam tu z faktu,
+                                    (delete-hook 'log id))))) ; że hooki wykonywane są kolejno
+      nil)))                                                  ; (od najstarszych do najnowszych)
+
+(display-next-log) ; lol
