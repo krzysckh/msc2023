@@ -57,3 +57,7 @@
  (args
   '((bgcolor . "kolor tła w formacie `(r g b a)` *(można pominąć `a`)*")
     (mirror-color . "kolor zwierciadła w formacie j.w."))))
+
+(document-function
+ (real-tracelog T s)
+ "wykonuje TraceLog(T, s)")

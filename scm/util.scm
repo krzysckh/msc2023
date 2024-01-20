@@ -4,8 +4,8 @@
 (macro nil '())
 (macro t #t)
 (macro f #f)
-
-; malo czytelne to to, ale za to jakie fajne
+(macro ⊤ #t)
+(macro ⊥ #f)
 (macro (→ v) `(lambda () ,@(cdr v)))
 (macro (→1 v) `(lambda (x) ,@(cdr v)))
 (macro (→2 v) `(lambda (x y) ,@(cdr v)))
@@ -133,6 +133,10 @@
                   (else
                     (I (+ s step) step e (append acc (list s))))))))
     (I s step e '())))
+
+;; setxkbmap pl,apl -option grp:menu_switch
+;; ~ kpm
+(define ⍳ iota)
 
 (define (sum l)
   "sumuje wartości listy *l*"

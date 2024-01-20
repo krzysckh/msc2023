@@ -1,20 +1,24 @@
 #include "optyka.h"
 #include "raylib.h"
 #include "raymath.h"
+#include "tinyscheme/scheme.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
+#include <stdbool.h>
 
 #define DEBUG 0
 #undef DEBUG
 
+extern bool scheme_is_initialized;
 extern scheme scm;
-extern hookable_event_t keypress, click, unclick, frame, clocke;
+extern hookable_event_t keypress, click, unclick, frame, clocke, loge;
 
 #define MAX_INPUT_BUFFER_SIZE 4096
 /* static void (*input_func)(void) = NULL; */
@@ -322,6 +326,58 @@ static void silent_tracelog_callback(__attribute__((unused))int a,
 {
 }
 
+static char *logtype2string(TraceLogLevel l)
+{
+  switch (l) {
+  case LOG_TRACE: return "TRACE";
+  case LOG_DEBUG: return "DEBUG";
+  case LOG_INFO: return "INFO";
+  case LOG_WARNING: return "WARNING";
+  case LOG_ERROR: return "ERROR";
+  case LOG_FATAL: return "FATAL";
+  default: return "OTHER";
+  }
+
+  /* unreachable */
+}
+
+static pointer logtype2sym(TraceLogLevel l)
+{
+  switch (l) {
+  case LOG_TRACE:   return mk_symbol(&scm, "trace");
+  case LOG_DEBUG:   return mk_symbol(&scm, "debug");
+  case LOG_INFO:    return mk_symbol(&scm, "info");
+  case LOG_WARNING: return mk_symbol(&scm, "warning");
+  case LOG_ERROR:   return mk_symbol(&scm, "error");
+  case LOG_FATAL:   return mk_symbol(&scm, "fatal");
+  default:          return mk_symbol(&scm, "other");
+  }
+
+}
+
+#define TRACELOG_BUFSIZE 8196
+static char tracelog_buf[TRACELOG_BUFSIZE];
+static void tracelog_cb(int type, const char *fmt, va_list vl)
+{
+  memset(tracelog_buf, 0, TRACELOG_BUFSIZE);
+  vsnprintf(tracelog_buf, TRACELOG_BUFSIZE, fmt, vl);
+
+  fprintf(stderr, "%s: %s\n", logtype2string(type), tracelog_buf);
+  fflush(stderr);
+
+
+
+  if (scheme_is_initialized)
+    do_hooks(&loge,
+             cons(&scm,
+                  logtype2sym(type),
+                  cons(&scm,
+                       mk_string(&scm, tracelog_buf),
+                       scm.NIL)));
+
+
+}
+
 int main(int argc, char **argv)
 {
   extern scheme scm;
@@ -335,6 +391,7 @@ int main(int argc, char **argv)
     .right = false,
   };
 
+  SetTraceLogCallback(tracelog_cb);
   while ((opt = getopt(argc, argv, "e:F:")) != -1) {
     switch (opt) {
     case 'e':

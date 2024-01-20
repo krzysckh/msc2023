@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdbool.h>
 
 /* funkcje zdefiniowane tutaj udokumentowane są w scm/cdocs.scm */
 
@@ -16,10 +17,13 @@ pointer mk_port(scheme *sc, port *p);
 pointer port_from_file(scheme *sc, FILE *f, int prop);
 
 scheme scm;
+bool scheme_is_initialized = false;
+
 hookable_event_t keypress = {0};
 hookable_event_t click    = {0};
 hookable_event_t unclick  = {0};
 hookable_event_t clocke   = {0}; // co sekundę
+hookable_event_t loge     = {0}; // na każdy TraceLog()
 
 hookable_event_t frame    = {0};
 /* uwaga uwaga: należy pamiętać o tym, żeby usuwać niepotrzebne hooki
@@ -47,6 +51,7 @@ static struct hlist_el hookable_events_list[] = {
   {"unclick",  &unclick},
   {"frame",    &frame},
   {"clock",    &clocke},
+  {"log",      &loge},
 };
 static int n_hookable_events = sizeof(hookable_events_list)/
   sizeof(*hookable_events_list);
@@ -54,6 +59,9 @@ static int n_hookable_events = sizeof(hookable_events_list)/
 void do_hooks(hookable_event_t *he, pointer args)
 {
   int i;
+  if (!scheme_is_initialized)
+    return;
+
   for (i = 0; i < he->n_hooks; ++i) {
     if (he->hooks[i])
       scheme_call(&scm, he->hooks[i], args);
@@ -87,6 +95,22 @@ static Color list2color(scheme *sc, pointer p)
     .b = rvalue(caddr(p)),
     .a = cadddr(p) == sc->NIL ? 255 : rvalue(cadddr(p))
   };
+}
+
+// (real-tracelog T text)
+static pointer scm_tracelog(scheme *sc, pointer args)
+{
+  int type;
+  char *text;
+
+  expect_args("real-tracelog", 2);
+
+  type = rvalue(car(args));
+  text = string_value(cadr(args));
+
+  TraceLog(type, text);
+
+  return sc->NIL;
 }
 
 // troche getto rozwiązanie, wytłumaczone w main.c
@@ -393,7 +417,7 @@ static pointer scm_delete_hook(scheme *sc, pointer args)
 
   he->hooks[id] = NULL;
 
-  TraceLog(LOG_INFO, "deleted hook %d for %s", id, sym);
+  /* TraceLog(LOG_INFO, "deleted hook %d for %s", id, sym); */
   return sc->T;
 }
 
@@ -424,7 +448,7 @@ static pointer scm_add_hook(scheme *sc, pointer args)
   he->hooks[he->n_hooks] = f;
   he->n_hooks++;
 
-  TraceLog(LOG_INFO, "successfully added hook %p for %s", f, name);
+  /* TraceLog(LOG_INFO, "successfully added hook %p for %s", f, name); */
   return mk_integer(sc, he->n_hooks - 1);
 }
 
@@ -490,6 +514,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_tracelog,           "real-tracelog");
   SCHEME_FF(scm_set_winconf,        "set-winconf");
   SCHEME_FF(scm_get_winconf,        "get-winconf");
   SCHEME_FF(scm_get_screen_size,    "get-screen-size");
@@ -527,6 +552,7 @@ void initialize_scheme(void)
   load_scheme_cfunctions();
   load_compiled_scripts();
 
+  scheme_is_initialized = true;
 }
 
 void load_rc(void)

@@ -111,6 +111,29 @@
         (spc (if (null? spacing) *default-spacing* spacing)))
     (real-draw-text text x y sz spc color)))
 
+(define log-trace 1)
+(define log-debug 2)
+(define log-info 3)
+(define log-warning 4)
+(define log-error 5)
+(define log-fatal 6)
+
+(define (tracelog T . vs)
+  "robi TraceLog z typem T i tekstem vs"
+  (args
+   '((T . "typ logu (moze być `'trace | 'debug | 'info | 'warning | 'error | 'fatal`)")
+     (vs . "tekst")))
+
+  (let ((type (if (number? T) T
+                  (cond
+                   ((eqv? T 'trace)   log-trace)
+                   ((eqv? T 'debug)   log-debug)
+                   ((eqv? T 'info)    log-info)
+                   ((eqv? T 'warning) log-warning)
+                   ((eqv? T 'error)   log-error)
+                   ((eqv? T 'fatal)   log-fatal)))))
+    (real-tracelog type (apply ->string vs))))
+
 (define add-system-hook real-add-hook)
 
 ;; to jest takie idiotyczne XDDD
