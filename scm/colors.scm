@@ -1,3 +1,10 @@
+(define *colorscheme*
+  '((drawing-new-mirror . (#xd6 #x99 #xb6 #xff))
+    (font               . (#xd3 #xc6 #xaa #xff))
+    (frame              . (#xdb #xbc #x7f #xff))
+    (default-light      . (#xd6 #x99 #xb6 #xff))
+    ))
+
 (define alice-blue             '(240 248 255 255))
 (define antique-white          '(250 235 215 255))
 (define aqua                   '(0 255 255 255))

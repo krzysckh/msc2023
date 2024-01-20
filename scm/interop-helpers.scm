@@ -25,8 +25,6 @@
       (cdr v)
       o)))
 
-(define default-color '(255 0 255 255))
-
 (define (update-sources)
   "wewnętrzna funkcja aktualizująca *sources* za każdym razem gdy zostaną
   zmienione"
@@ -52,11 +50,8 @@
          (thickness (aq-or 'thickness a 1))
          (reactive (aq-or 'reactive a #t))
          (n-beams (aq-or 'n-beams a 1))
-         (r (list-ref (aq-or 'color a default-color) 0))
-         (g (list-ref (aq-or 'color a default-color) 1))
-         (b (list-ref (aq-or 'color a default-color) 2))
-         (a (list-ref (aq-or 'color a default-color) 3)))
-    (real-create-source x y size ang thickness reactive n-beams r g b a))
+         (color (aq-or 'color a (aq 'default-light *colorscheme*))))
+    (real-create-source x y size ang thickness reactive n-beams color))
   (update-sources))
 
 (define (draw-line pt1 pt2 thick color)
@@ -123,12 +118,8 @@
   (args '((color . "w postaci (r g b a)")))
   (let ((x (car pos))
         (y (cdr pos))
-        (r (list-ref color 0))
-        (g (list-ref color 1))
-        (b (list-ref color 2))
-        (a (list-ref color 3))
         (spc (if (null? spacing) *default-spacing* spacing)))
-    (real-draw-text text x y sz spc r g b a)))
+    (real-draw-text text x y sz spc color)))
 
 (define add-system-hook real-add-hook)
 

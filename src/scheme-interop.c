@@ -60,8 +60,9 @@ void do_hooks(hookable_event_t *he, pointer args)
   }
 }
 
-// TODO: zaktualizować żeby reszta funkcji zwracjąca kolory zwracała je jako listę
-// (jeśli takie istnieją bo nie pamiętam lol kldjsfl)
+// Color → '(r g b)
+// TODO: sprawdzić czy przypadkiem nie powinien zwracać też alpha
+// (r g b a?)
 // ~ kpm
 static pointer color2list(scheme *sc, Color c)
 {
@@ -72,6 +73,7 @@ static pointer color2list(scheme *sc, Color c)
   return Cons(r, Cons(g, Cons(b, sc->NIL)));
 }
 
+// '(r g b a?) → (Color){r, g, b, a}
 static Color list2color(scheme *sc, pointer p)
 {
   if (list_length(sc, p) != 3 && list_length(sc, p) != 4)
@@ -202,26 +204,24 @@ static pointer scm_loads(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-// (real-draw-text text x y sz spacing r g b a) → #t
+// (real-draw-text text x y sz spacing color) → #t
 static pointer scm_draw_text(scheme *sc, pointer args)
 {
   extern Font default_font;
-  float x, y, sz, spacing, r, g, b, a;
+  float x, y, sz, spacing;
+  Color color;
   char *s;
 
-  expect_args("real-draw-text", 9);
+  expect_args("real-draw-text", 6);
 
   s       = string_value(car(args));
   x       = rvalue(cadr(args));
   y       = rvalue(caddr(args));
   sz      = rvalue(cadddr(args));
   spacing = rvalue(cadddr(cdr(args)));
-  r       = rvalue(cadddr(cddr(args)));
-  g       = rvalue(cadddr(cdddr(args)));
-  b       = rvalue(cadddr(cddddr(args)));
-  a       = rvalue(cadddr(cddddr(cdr(args))));
+  color   = list2color(sc, cadddr(cddr(args)));
 
-  DrawTextEx(default_font, s, (Vector2){x,y}, sz, spacing, (Color){r,g,b,a});
+  DrawTextEx(default_font, s, (Vector2){x,y}, sz, spacing, color);
 
   return sc->T;
 }
@@ -464,15 +464,16 @@ static pointer scm_create_mirror(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-// (real-create-source x y sz angle thickness reactive n_beams r g b a) → nil
+// (real-create-source x y sz angle thickness reactive n_beams color) → nil
 // reactive? to #t | #f
 static pointer scm_create_source(scheme *sc, pointer args)
 {
-  float x, y, sz, thickness, angle, r, g, b, a;
+  float x, y, sz, thickness, angle;
+  Color color;
   bool rel;
   int n_beams;
 
-  expect_args("real-create-source", 11);
+  expect_args("real-create-source", 8);
 
   x = rvalue(car(args));
   y = rvalue(cadr(args));
@@ -481,10 +482,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
   thickness = rvalue(cadddr(cdr(args)));
   rel = cadddr(cddr(args)) == sc->T;
   n_beams = rvalue(cadddr(cdddr(args)));
-  r = rvalue(cadddr(cddddr(args)));
-  g = rvalue(cadddr(cddddr(cdr(args))));
-  b = rvalue(cadddr(cddddr(cddr(args))));
-  a = rvalue(cadddr(cddddr(cdddr(args)))); // lol
+  color = list2color(sc, cadddr(cddddr(args)));
 
   add_source((source_t){
     .mouse_reactive = rel,
@@ -492,7 +490,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
     .pt = (Vector2){x, y},
     .thickness = thickness,
     .angle = angle,
-    .color = (Color){r,g,b,a},
+    .color = color,
     .n_beam = n_beams
   });
 

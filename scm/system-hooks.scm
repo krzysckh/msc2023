@@ -52,7 +52,6 @@
 
 ;; bardzo fajna nazwa, nie ma za co
 ;; ~ kpm
-(define system/mirror-hook-new-mirror-color '(#xd6 #x99 #xb6 #xff))
 
 (define (start-drawing-mirror-hook first left right)
   (when (and (or *click-can-be-handled* drawing-new-mirror) (not right))
@@ -66,7 +65,7 @@
       (draw-line `(,mirror-last-x . ,mirror-last-y)
                  `(,(car (get-mouse-position)) . ,(cdr (get-mouse-position)))
                  2
-                 system/mirror-hook-new-mirror-color))))
+                 (aq 'drawing-new-mirror *colorscheme*)))))
 
 (define (end-drawing-mirror-hook first left right)
   (when drawing-new-mirror
