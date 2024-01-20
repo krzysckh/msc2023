@@ -8,8 +8,8 @@ ifeq "$(OS)" "OpenBSD"
 LDFLAGS+=-lglfw
 endif
 
-CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) -g
-LDFLAGS+=-lm -L/usr/local/lib -lraylib
+CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) -g $(ACFLAGS)
+LDFLAGS=-lm -L/usr/local/lib -lraylib $(ALDFLAGS)
 
 SCMFILES!=echo tinyscheme/r5rs.scm `find scm -type f -name '*.scm'`
 
@@ -36,8 +36,8 @@ tinyscheme/libtinyscheme.a:
 build-windows:
 	[ -f "libraylib.a" ] || wget -O libraylib.a https://pub.krzysckh.org/libraylib.a
 	[ -f "libtinyscheme-w64.a" ] || wget -O libtinyscheme-w64.a https://pub.krzysckh.org/libtinyscheme-w64.a
-	$(MAKE) clean $(OFILES) CC=x86_64-w64-mingw32-gcc
-	x86_64-w64-mingw32-gcc -g $(CFLAGS) $(OFILES) -L. -l:libraylib.a \
+	$(MAKE) clean $(OFILES) CC=x86_64-w64-mingw32-gcc ACFLAGS=-O2
+	x86_64-w64-mingw32-gcc -g -O2 $(CFLAGS) $(OFILES) -L. -l:libraylib.a \
 		-l:libtinyscheme-w64.a \
 		-lm -lwinmm -lgdi32 \
 		-static -o rl-optyka-test.exe
