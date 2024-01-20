@@ -58,6 +58,7 @@
 (define gui/input-popup:ident 'GUI-input-popup)
 (define (gui/input-popup title callback)
   (when *click-can-be-handled*
+    (stop-simulation)
     (define state "")
     (set! *click-can-be-handled* #f)
     (set! *keypress-can-be-handled* #f)
@@ -83,6 +84,7 @@
                             state 0
                             (- (string-length state) 1))))
                     ((eqv? k 257) ;; RET (end popup)
+                     (start-simulation)
                      (set! *click-can-be-handled* #t)
                      (set! *keypress-can-be-handled* #t)
                      (set! *current-keypress-handler* #f)

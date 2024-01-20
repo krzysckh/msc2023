@@ -1,6 +1,8 @@
 #include <raylib.h>
 #include <raymath.h>
-#include <raygui.h>
+/* #include <raygui.h> */
+#include <stdbool.h>
+
 #ifndef WIN32
 #include <err.h>
 #endif
@@ -48,9 +50,16 @@
 
 #define TODO(s) panic("TODO: %s", s)
 
+typedef enum {
+  state_running = 0,
+  state_stopped = 1
+} sim_state_t;
+
 struct window_conf_t {
   Color bgcolor;
   Color mirror_color;
+
+  sim_state_t state;
 };
 
 struct mouse_information_t {

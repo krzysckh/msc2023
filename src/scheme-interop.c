@@ -97,6 +97,8 @@ static Color list2color(scheme *sc, pointer p)
   };
 }
 
+/* ---------- tu sie zaczyna implementacja funkcji przeróżnych ------------ */
+
 // (real-tracelog T text)
 static pointer scm_tracelog(scheme *sc, pointer args)
 {
@@ -120,20 +122,24 @@ static pointer scm_get_winconf(scheme *sc, pointer args)
   expect_args("get-winconf", 0);
 
   return Cons(color2list(sc, winconf.bgcolor),
-              Cons(color2list(sc, winconf.mirror_color), sc->NIL));
+              Cons(color2list(sc, winconf.mirror_color),
+                   Cons(mk_integer(sc, winconf.state), sc->NIL)));
 }
 
-// (set-winconf bgcolor mirror-color) + wiecej w przyszlosci
+// (set-winconf bgcolor mirror-color state) + wiecej w przyszlosci
 static pointer scm_set_winconf(scheme *sc, pointer args)
 {
   Color bg, mirrorc;
+  sim_state_t state;
 
-  expect_args("set-winconf", 2);
+  expect_args("set-winconf", 3);
   bg = list2color(sc, car(args));
   mirrorc = list2color(sc, cadr(args));
+  state = rvalue(caddr(args));
 
   winconf.bgcolor = bg;
   winconf.mirror_color = mirrorc;
+  winconf.state = state;
 
   return sc->NIL;
 }

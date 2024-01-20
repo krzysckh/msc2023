@@ -132,7 +132,7 @@
                    ((eqv? T 'warning) log-warning)
                    ((eqv? T 'error)   log-error)
                    ((eqv? T 'fatal)   log-fatal)))))
-    (real-tracelog type (apply ->string vs))))
+    (real-tracelog type (->string vs))))
 
 (define add-system-hook real-add-hook)
 
@@ -150,3 +150,22 @@
   (real-add-hook s (last *all-hooks*)))
 
 (define add-hook add-user-hook)
+
+;; TODO: DRY
+;; ~ kpm
+(define __state_running 0)
+(define __state_stopped 1)
+
+(define (stop-simulation)
+  (let* ((conf (get-winconf))
+         (next-conf (map
+                     (→1 (if (eqv? x 2) __state_stopped (list-ref conf x)))
+                     (⍳ 0 1 (length conf)))))
+    (apply set-winconf next-conf)))
+
+(define (start-simulation)
+  (let* ((conf (get-winconf))
+         (next-conf (map
+                     (→1 (if (eqv? x 2) __state_running (list-ref conf x)))
+                     (⍳ 0 1 (length conf)))))
+    (apply set-winconf next-conf)))

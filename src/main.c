@@ -314,12 +314,6 @@ void add_source(source_t s)
   ++N_SOURCES;
 }
 
-static void initialize_raygui(void)
-{
-  load_default_font();
-  GuiSetFont(default_font);
-}
-
 static void silent_tracelog_callback(__attribute__((unused))int a,
                                      __attribute__((unused))const char *b,
                                      __attribute__((unused))va_list c)
@@ -413,7 +407,7 @@ int main(int argc, char **argv)
   InitWindow(800, 600, "giga optyka");
   initialize_scheme();
   SetExitKey(-1);
-  initialize_raygui();
+  load_default_font();
   load_rc();
 
   add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f);
@@ -457,12 +451,14 @@ int main(int argc, char **argv)
         mi._dx = mi._dy = 0, mi._currently_moving = NULL;
       }
 
-      draw_all_bounceables();
+      if (winconf.state == state_running) {
+        draw_all_bounceables();
 
-      // TODO: to powinno być w osobnej funkcji. ale to kiedyś
-      for (i = 0; i < N_SOURCES; ++i) {
-        draw_source(&sources[i]);
-        draw_light(&sources[i]);
+        // TODO: to powinno być w osobnej funkcji. ale to kiedyś
+        for (i = 0; i < N_SOURCES; ++i) {
+          draw_source(&sources[i]);
+          draw_light(&sources[i]);
+        }
       }
 
       if (mi.pressed_moving && mi._currently_moving == NULL) {

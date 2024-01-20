@@ -12,6 +12,7 @@
 (define max-thickness 64)
 
 (define (update-thicknesses)
+  (tracelog 'info "updating thickness to " current-thickness)
   (for-each
    (→1 (set-source-e! x 'thickness current-thickness))
    (iota 0 1 (length *sources*))))

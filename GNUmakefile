@@ -57,5 +57,6 @@ pubcpy:
 	$(MAKE) clean build-windows
 	yes | pubcpy ./rl-optyka-test.exe
 	yes | pubcpy ./rc.scm
+	$(MAKE) clean
 cloc: clean
 	cloc `ls | grep -v tinyscheme`
