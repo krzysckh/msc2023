@@ -4481,7 +4481,8 @@ static void Eval_Cycle(scheme *sc, enum scheme_opcodes op) {
       return;
     }
     if(sc->no_memory) {
-      TraceLog(LOG_ERROR, "No memory!");
+      fprintf(stderr, "No memory!\n");
+      //sc->no_memory = 0;
       return;
     }
   }

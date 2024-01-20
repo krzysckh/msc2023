@@ -69,7 +69,8 @@ int tracing;
 
 
 #ifndef CELL_SEGSIZE
-#define CELL_SEGSIZE    5000  /* # of cells in one segment */
+// #define CELL_SEGSIZE    5000  /* # of cells in one segment */
+#define CELL_SEGSIZE    500000  /* # of cells in one segment */
 #endif
 #ifndef CELL_NSEGMENT
 #define CELL_NSEGMENT   10    /* # of segments for cells */
