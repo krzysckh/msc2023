@@ -65,20 +65,14 @@
   (let ((x1 (car pt1))
         (y1 (cdr pt1))
         (x2 (car pt2))
-        (y2 (cdr pt2))
-        (r (list-ref color 0))
-        (g (list-ref color 1))
-        (b (list-ref color 2))
-        (a (list-ref color 3)))
-    (real-draw-line x1 y1 x2 y2 thick r g b a)))
+        (y2 (cdr pt2)))
+    (real-draw-line x1 y1 x2 y2 thick color)))
 
-(define (set-source! n x y ang thickness mouse-reactive n-beams r g b a)
-  "aktualizuje źródło o id n ustawiając wszystkie jego wartości.
-  lepiej używać set-source-e!"
-  (real-set-source! n x y ang thickness mouse-reactive n-beams r g b a)
+(define (set-source! n x y ang thickness mouse-reactive n-beams color)
+  "aktualizuje źródło o id n ustawiając wszystkie jego wartości. lepiej używać set-source-e!"
+  (real-set-source! n x y ang thickness mouse-reactive n-beams color)
   (update-sources))
 
-; sym = pos | angle | thickness | color | mouse-reactive | n-beams
 (define (set-source-e! n sym v)
   "aktualizuje właściwość sym na v w źródle o id n"
   (args
@@ -95,12 +89,8 @@
            (thickness (if (eq? 'thickness sym) v (list-ref src 2)))
            (mouse-reactive (if (eq? 'mouse-reactive sym) v (list-ref src 3)))
            (n-beams (if (eq? 'n-beams sym) v (list-ref src 4)))
-           (color (if (eq? 'color sym) v (list-ref src 5)))
-           (r (list-ref color 0))
-           (g (list-ref color 1))
-           (b (list-ref color 2))
-           (a (list-ref color 3)))
-      (set-source! n x y ang thickness mouse-reactive n-beams r g b a)))
+           (color (if (eq? 'color sym) v (list-ref src 5))))
+      (set-source! n x y ang thickness mouse-reactive n-beams color)))
   (update-sources))
 
 (define *default-spacing* 4)
@@ -111,7 +101,7 @@
   (let ((spacing (if (null? spacing) *default-spacing* spacing)))
     (real-measure-text text size spacing)))
 
-; (real-draw-text text x y sz spacing r g b a) → #t
+; (real-draw-text text x y sz spacing color) → #t
 (define (draw-text text pos sz color . spacing)
   "wypisuje tekst text domyślnym fontem na pozycji pos, o wielkości sz i kolorze
   color. można też podać spacing."
@@ -123,10 +113,17 @@
 
 (define add-system-hook real-add-hook)
 
-(define all-hooks '()) ; żeby gc nie usuwało mi lambd
+;; to jest takie idiotyczne XDDD
+;; GC Tinyscheme usuwa lambdy przekazywane do FF funkcji (tych zdefiniowanych w c)
+;; dlatego żeby cały czas o nich "pamiętało" dodaje je do *all-hooks* :33333
+;; ~ kpm
+(define *all-hooks* '())
+
+;; TODO: zrobić tak żeby nie trzeba było sprawdzać *can-click-be-handled* etc.
+;; ~ kpm
 (define (add-user-hook s f)
   "w przyszłości będzie dodawała hooki które mogą być blokowane przez systemowe"
-  (set! all-hooks (append all-hooks (list f)))
-  (real-add-hook s (last all-hooks)))
+  (set! *all-hooks* (append *all-hooks* (list f)))
+  (real-add-hook s (last *all-hooks*)))
 
 (define add-hook add-user-hook)

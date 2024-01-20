@@ -245,17 +245,18 @@ static pointer scm_measure_text(scheme *sc, pointer args)
   return cons(sc, mk_integer(sc, ret.x), mk_integer(sc, ret.y));
 }
 
-// (real-set-source! n x y angle thickness mouse-reactive n-beams r g b a)
+// (real-set-source! n x y angle thickness mouse-reactive n-beams color)
 static pointer scm_set_source(scheme *sc, pointer args)
 {
   extern int N_SOURCES;
   extern source_t *sources;
+  Color color;
   source_t *s;
 
   int n, mouse_reactive, n_beams;
-  float x, y, angle, thickness, r, g, b, a;
+  float x, y, angle, thickness;
 
-  expect_args("real-set-source!", 11);
+  expect_args("real-set-source!", 8);
 
   n              = rvalue(car(ncdr(0, args)));
   x              = rvalue(car(ncdr(1, args)));
@@ -264,10 +265,7 @@ static pointer scm_set_source(scheme *sc, pointer args)
   thickness      = rvalue(car(ncdr(4, args)));
   mouse_reactive = rvalue(car(ncdr(5, args)));
   n_beams        = rvalue(car(ncdr(6, args)));
-  r              = rvalue(car(ncdr(7, args)));
-  g              = rvalue(car(ncdr(8, args)));
-  b              = rvalue(car(ncdr(9, args)));
-  a              = rvalue(car(ncdr(10, args)));
+  color          = list2color(sc, car(ncdr(7, args)));
 
   if (n >= N_SOURCES) {
     TraceLog(LOG_WARNING, "no such source: %d", n);
@@ -280,15 +278,15 @@ static pointer scm_set_source(scheme *sc, pointer args)
     n_beams = s->size - 1;
   }
 
-  s->pt.x = x, s->pt.y = y, s->angle = angle,
-  s->thickness = thickness, s->color = (Color){r,g,b,a};
+  s->pt.x = x, s->pt.y = y, s->angle = angle;
+  s->thickness = thickness, s->color = color;
   s->mouse_reactive = mouse_reactive;
   s->n_beam = n_beams;
 
   return sc->T;
 }
 
-// (real-get-source n) → ((x . y) angle thickness mouse-reactive n-beams r g b a)
+// (real-get-source n) → ((x . y) angle thickness mouse-reactive n-beams '(r g b a))
 static pointer scm_get_source(scheme *sc, pointer args)
 {
   extern int N_SOURCES;
@@ -306,18 +304,13 @@ static pointer scm_get_source(scheme *sc, pointer args)
   }
   s = &sources[(int)n];
 
-  // no comment
   return
-    cons(sc,
-         cons(sc, mk_integer(sc, s->pt.x), mk_integer(sc, s->pt.y)),
-         cons(sc, mk_integer(sc, s->angle),
-              cons(sc, mk_integer(sc, s->thickness),
-                   cons(sc, s->mouse_reactive ? sc->T : sc->F,
-                        cons(sc, mk_integer(sc, s->n_beam),
-                             cons(sc, cons(sc, mk_integer(sc, s->color.r),
-                                           cons(sc, mk_integer(sc, s->color.g),
-                                                cons(sc, mk_integer(sc, s->color.b),
-                                                     cons(sc, mk_integer(sc, s->color.a), sc->NIL)))), sc->NIL))))));
+    Cons(Cons(mk_integer(sc, s->pt.x), mk_integer(sc, s->pt.y)),
+         Cons(mk_integer(sc, s->angle),
+              Cons(mk_integer(sc, s->thickness),
+                   Cons(s->mouse_reactive ? sc->T : sc->F,
+                        Cons(mk_integer(sc, s->n_beam),
+                             Cons(color2list(sc, s->color), sc->NIL))))));
 }
 
 // (get-all-sources) → '((id x y sz...) ...)
@@ -349,22 +342,19 @@ static pointer scm_get_all_sources(scheme *sc, pointer args)
 // (real-draw-line x1 y1 x2 y2 thickness r g b a) → nil
 static pointer scm_draw_line(scheme *sc, pointer args)
 {
-  float x1, y1, x2, y2, thick, r, g, b, a;
+  float x1, y1, x2, y2, thick;
+  Color color;
 
-  expect_args("real-draw-line", 9);
+  expect_args("real-draw-line", 6);
 
   x1    = rvalue(car(args));
   y1    = rvalue(cadr(args));
   x2    = rvalue(caddr(args));
   y2    = rvalue(cadddr(args));
   thick = rvalue(cadddr(cdr(args)));
-  r     = rvalue(cadddr(cddr(args)));
-  g     = rvalue(cadddr(cdddr(args)));
-  b     = rvalue(cadddr(cddddr(args)));
-  a     = rvalue(cadddr(cddddr(cdr(args)))); // swiete gowno
+  color = list2color(sc, cadddr(cddr(args)));
 
-  DrawLineEx((Vector2){ x1, y1 }, (Vector2){ x2, y2 }, thick,
-    (Color){ r, g, b, a });
+  DrawLineEx((Vector2){ x1, y1 }, (Vector2){ x2, y2 }, thick, color);
 
   return sc->NIL;
 }

@@ -1,5 +1,4 @@
 (macro (document-function v) '())
-
 (macro (example . v) '())
 (macro (args . v) '())
 (macro nil '())
