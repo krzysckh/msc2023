@@ -73,13 +73,13 @@ STATICLIBTARGET = $(LIBPREFIX)tinyscheme.$(LIBsuf)
 all: $(LIBTARGET) $(STATICLIBTARGET)
 
 %.$(Osuf): %.c
-	$(CC) $(NO_STANDALONE) -I. -c $(DEBUG) $(FEATURES) $(DL_FLAGS) $<
+	$(CC) $(NO_STANDALONE) -I/tmp/raylib -I. -g -c $(DEBUG) $(FEATURES) $(DL_FLAGS) $<
 
 $(LIBTARGET): $(OBJS)
-	$(LD) $(LDFLAGS) $(OUT) $(OBJS) $(SYS_LIBS)
+	$(LD) $(LDFLAGS) $(OUT) $(OBJS) $(SYS_LIBS) -g
 
 scheme$(EXE_EXT): $(OBJS)
-	$(CC) -o $@ $(DEBUG) $(OBJS) $(SYS_LIBS)
+	$(CC) -o $@ $(DEBUG) $(OBJS) $(SYS_LIBS) -g
 
 $(STATICLIBTARGET): $(OBJS)
 	$(AR) $@ $(OBJS)
@@ -101,5 +101,9 @@ TAGS: $(TAGS_SRCS)
 	etags $(TAGS_SRCS)
 
 build-windows:
-	make clean all SOsuf=dll PLATFORM_FEATURES="-DUSE_STRLWR=0" CC=x86_64-w64-mingw32-gcc LD=x86_64-w64-mingw32-gcc
+	make clean
+	mkdir -p /tmp/raylib
+	[ -f "/tmp/raylib/libraylib.a" ] || wget -O /tmp/raylib/libraylib.a https://pub.krzysckh.org/libraylib.a
+	cp /usr/local/include/raylib.h /tmp/raylib/
+	make all SOsuf=dll PLATFORM_FEATURES="-DUSE_STRLWR=0" CC=x86_64-w64-mingw32-gcc LD=x86_64-w64-mingw32-gcc SYS_LIBS="-L/tmp/raylib -lm -lraylib -lm -lwinmm -lgdi32"
 	mv libtinyscheme.a libtinyscheme-w64.a

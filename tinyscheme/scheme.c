@@ -978,6 +978,7 @@ static char *store_string(scheme *sc, int len_str, const char *str, char fill) {
 
      q=(char*)sc->malloc(len_str+1);
      if(q==0) {
+       TraceLog(LOG_ERROR, "couldn't mallco for store_string");
           sc->no_memory=1;
           return sc->strbuff;
      }
@@ -4678,6 +4679,7 @@ int scheme_init_custom_alloc(scheme *sc, func_alloc malloc, func_dealloc free) {
   sc->interactive_repl=0;
 
   if (alloc_cellseg(sc,FIRST_CELLSEGS) != FIRST_CELLSEGS) {
+    TraceLog(LOG_ERROR, "couldn't alloc_cellseg idk lol");
     sc->no_memory=1;
     return 0;
   }

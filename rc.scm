@@ -30,11 +30,82 @@
 
 (add-hook 'keypress kp-hook)
 
-;; teścik dla gui/input-popup + wait + wszystko po drodze
-;; (gui/input-popup
-;;  "podaj imie"
-;;  (lambda (imie)
-;;    (let ((rysuj-id (add-hook
-;;                     'frame
-;;                     (→ (draw-text imie '(100 . 100) 50 pink)))))
-;;      (wait 2 (→ (delete-hook 'frame rysuj-id))))))
+
+(define gui/slider:ident 'GUI-slider)
+;; TODO: sposób stwierdzenia jak długo ma istnieć i posprzątania po nim
+(define (gui/slider rect from to cb)
+  "tworzy slider. wywołuje `cb` z wynikiem za każdym `'unclick` eventem"
+  (args
+   '((rect . "w formacie `(x y w h)`")
+     (from . "minimum")
+     (to   . "maksimum")
+     (cb   . "callback")))
+
+  (let* ((sl-h (/ (list-ref rect 3) 2))
+         (sl-w (list-ref rect 2))
+         (inner-rect (list (list-ref rect 0)
+                           (+ (list-ref rect 1)
+                              (/ sl-h 2))
+                           sl-w
+                           sl-h))
+         (slider-rect nil)
+         (slider-rect-w 10)
+         (maxx (- (+ (car rect) sl-w (/ slider-rect-w 2)) slider-rect-w))
+         (minx (- (car rect) (/ slider-rect-w 2)))
+         (current-x minx)
+         (holding #f)
+         (update-slider-rect
+          (lambda () (set!
+                 slider-rect
+                 `(,current-x ,(list-ref rect 1) ,slider-rect-w ,(list-ref rect 3))))))
+    (update-slider-rect)
+    (add-hook
+     'frame
+     (→ (gui/rect inner-rect (aq 'frame *colorscheme*))
+        (update-slider-rect)
+        (fill-rect slider-rect (aq 'frame *colorscheme*))
+
+        (let ((mp (get-mouse-position))) ;; HACK
+          (when *click-can-be-handled*
+            (if (point-in-rect? mp rect)
+                (begin
+                  (set! *current-click-handler* gui/slider:ident)
+                  (set! *click-can-be-handled* #f))
+                (set! *click-can-be-handled* #t))))))
+
+    (add-hook
+     'click
+     (lambda (first l r)
+       (let ((mp (get-mouse-position)))
+         (when (or (and (or (point-in-rect? mp inner-rect) (point-in-rect? mp slider-rect))
+                        (or *click-can-be-handled* (eqv? *current-click-handler*
+                                                         gui/slider:ident))
+                        l
+                        first)
+                   holding)
+           (set! holding #t)
+           (set! *click-can-be-handled* #f)
+           (set! current-x (max2 minx (min2 maxx (car mp))))
+           (let* ((v (- current-x minx))
+                  (∆range (- to from))
+                  (∆ (/ v sl-w))
+                  (r (* ∆range ∆)))
+             (cb r))))))
+
+    (add-hook
+     'unclick
+     (→3 (when (eqv? *current-click-handler* gui/slider:ident)
+           (set! holding #f)
+           (set! *current-click-handler* nil)
+           (set! *click-can-be-handled* #t))))))
+
+(define current-slider-state 0)
+;; TODO: ten slider cos mi kurrrcze cuchnie
+;; (gui/slider '(100 100 100 20) 0 100 (→1 (set! current-slider-state x)))
+;; (add-hook
+;;  'frame
+;;  (→ (draw-text (number->string current-slider-state)
+;;                '(210 . 100)
+;;                16
+;;                (aq 'font *colorscheme*)
+;;                3)))

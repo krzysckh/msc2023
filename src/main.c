@@ -439,7 +439,7 @@ int main(int argc, char **argv)
           mi.left = true;
 
         if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
-          mi.right = true;;
+          mi.right = true;
       }
 
       if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
@@ -448,7 +448,6 @@ int main(int argc, char **argv)
         do_hooks(&unclick, scheme_click_info(&mi));
 
         mi.pressed_moving = mi.first_click = mi.left = mi.right = false;
-        mi._dx = mi._dy = 0, mi._currently_moving = NULL;
       }
 
       if (winconf.state == state_running) {
@@ -461,7 +460,7 @@ int main(int argc, char **argv)
         }
       }
 
-      if (mi.pressed_moving && mi._currently_moving == NULL) {
+      if (mi.pressed_moving) {
         do_hooks(&click, scheme_click_info(&mi));
       }
 

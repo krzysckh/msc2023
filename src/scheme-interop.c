@@ -99,6 +99,24 @@ static Color list2color(scheme *sc, pointer p)
 
 /* ---------- tu sie zaczyna implementacja funkcji przeróżnych ------------ */
 
+// (real-fill-rect x y w h color)
+static pointer scm_fill_rect(scheme *sc, pointer args)
+{
+  int x, y, w, h;
+  Color c;
+  expect_args("real-fill-rect", 5);
+
+  x = rvalue(car(args));
+  y = rvalue(cadr(args));
+  w = rvalue(caddr(args));
+  h = rvalue(cadddr(args));
+  c = list2color(sc, cadddr(cdr(args)));
+
+  DrawRectangle(x, y, w, h, c);
+
+  return sc->NIL;
+}
+
 // (real-tracelog T text)
 static pointer scm_tracelog(scheme *sc, pointer args)
 {
@@ -520,6 +538,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_fill_rect,          "real-fill-rect");
   SCHEME_FF(scm_tracelog,           "real-tracelog");
   SCHEME_FF(scm_set_winconf,        "set-winconf");
   SCHEME_FF(scm_get_winconf,        "get-winconf");
@@ -566,6 +585,7 @@ void load_rc(void)
   FILE *rc = fopen("rc.scm", "r+");
   if (rc)
     scheme_load_file(&scm, rc);
+  fclose(rc);
 }
 
 pointer scheme_click_info(struct mouse_information_t *mi)

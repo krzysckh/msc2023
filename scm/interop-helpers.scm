@@ -157,6 +157,7 @@
 (define __state_stopped 1)
 
 (define (stop-simulation)
+  "zatrzymuje wszystko (przestaje renderować)"
   (let* ((conf (get-winconf))
          (next-conf (map
                      (→1 (if (eqv? x 2) __state_stopped (list-ref conf x)))
@@ -164,8 +165,17 @@
     (apply set-winconf next-conf)))
 
 (define (start-simulation)
+  "odpala z powrotem wszystko (zaczyna renderować)"
   (let* ((conf (get-winconf))
          (next-conf (map
                      (→1 (if (eqv? x 2) __state_running (list-ref conf x)))
                      (⍳ 0 1 (length conf)))))
     (apply set-winconf next-conf)))
+
+; (real-fill-rect x y w h color)
+(define (fill-rect rect color)
+  (let ((x (car rect))
+        (y (cadr rect))
+        (w (caddr rect))
+        (h (cadddr rect)))
+    (real-fill-rect x y w h color)))
