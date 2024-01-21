@@ -1,5 +1,8 @@
 ; TODO: sprawdź czy przypadkiem używanie wbudowanej funkcji w raylib nie będzie
 ; szybsze
+
+(define *current-mode* nil)
+
 (define (gui/rect rect c)
   (let ((x (list-ref rect 0))
         (y (list-ref rect 1))
@@ -119,7 +122,7 @@
    '((pos . "pozycja lewego-górnego punktu opcji w formie `(x . y)`")
      (opts . "opcje w formie ((tekst . funkcja) (tekst . funkcja) ...)")))
 
-  (when *click-can-be-handled*
+  (when (and *click-can-be-handled* (eqv? *current-mode* nil))
     (set! *click-can-be-handled* #f)
     (set! *current-click-handler* gui/option-menu:ident)
     (let* ((measures (map (→1 (measure-text x *gui/option-menu-text-size*)) (map car opts)))

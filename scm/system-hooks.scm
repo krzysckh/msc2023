@@ -54,7 +54,7 @@
 ;; ~ kpm
 
 (define (start-drawing-mirror-hook first left right)
-  (when (and (or *click-can-be-handled* drawing-new-mirror) (not right))
+  (when (and (eqv? *current-mode* 'mirror-drawing-mode) (or *click-can-be-handled* drawing-new-mirror) (not right))
     (set! *click-can-be-handled* #f)
     (set! *current-click-handler* 'START-DRAWING-MIRROR-HOOK)
     (when (and first left)
@@ -71,6 +71,7 @@
   (when drawing-new-mirror
     (set! *click-can-be-handled* #t)
     (set! drawing-new-mirror #f)
+    (set! *current-mode* nil)
     (create-mirror
       mirror-last-x mirror-last-y
       (car (get-mouse-position)) (cdr (get-mouse-position)))))
@@ -105,7 +106,9 @@
 ;; mouse-menu
 (define mouse-menu
   `(("nowe zrodlo" . ,(→ (create-source-at-mouse-position)))
-    ("wyrazenie scheme" . ,(→ (gui/input-popup "eval scheme" loads)))))
+    ("wyrazenie scheme" . ,(→ (gui/input-popup "eval scheme" loads)))
+    ("narysuj zwierciadlo" . ,(→ (when (eqv? *current-mode* nil)
+                                   (set! *current-mode* 'mirror-drawing-mode))))))
 
 (add-hook
  'click
