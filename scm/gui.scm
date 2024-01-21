@@ -115,6 +115,7 @@
   (gui/message "" text 5))
 
 ;; option-menu
+;; TODO: uzyj gui/button zamiast ad-hoc sztynksów
 (define *gui/option-menu-text-size* 16)
 (define gui/option-menu:ident 'GUI-option-menu)
 (define (gui/option-menu pos opts)
@@ -152,11 +153,11 @@
              (lambda (first l r)
                (when l
                  (let ((mp (get-mouse-position)))
+                   (set! *click-can-be-handled* #t)
+                   (set! *current-click-handler* nil)
+                   (delete-hook 'unclick click-id)
+                   (delete-hook 'frame frame-id)
                    (when (point-in-rect? mp real-rect)
-                     (set! *click-can-be-handled* #t)
-                     (set! *current-click-handler* nil)
-                     (delete-hook 'unclick click-id)
-                     (delete-hook 'frame frame-id)
                      (for-each
                       (→1 (when (point-in-rect? mp (list-ref rects x))
                             ((cdr (list-ref opts x)))))
