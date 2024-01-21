@@ -160,3 +160,46 @@
                       (→1 (when (point-in-rect? mp (list-ref rects x))
                             ((cdr (list-ref opts x)))))
                       (iota 0 1 (length opts)))))))))))))
+
+;;; gui/button
+;; to troche posrana i skomplikowana sprawa, ale że nie mam innego pomysłu to cusz
+;; ~ kpm
+
+;; TODO: zmienic to na cos co oblicza gdzie jest srodek przycisku
+(define gui/button:padding 2)
+(define gui/button:text-size 16)
+(define gui/button:text-spacing 1)
+
+(define (gui/button rect text cb)
+  "tworzy przycisk w `rect` z tekstem text. po przyciśnięciu wykonuje `cb`.
+zwraca **destruktor** - funkcję usuwającą go"
+  (let ((frame-id
+         (add-hook
+          'frame
+          (→ (gui/rect rect (aq 'frame *colorscheme*))
+             (draw-text
+              text
+              (cons
+               (+ (list-ref rect 0) gui/button:padding)
+               (+ (list-ref rect 1) gui/button:padding))
+              16 (aq 'font *colorscheme*) 1))))
+        (click-id
+         (add-hook
+          'unclick
+          (→3
+           (when (and *click-can-be-handled*
+                      (point-in-rect? (get-mouse-position) rect))
+             (cb))))))
+    (→ (delete-hook 'frame frame-id)
+       (delete-hook 'click click-id))))
+
+(define (gui/btn pos text cb)
+  "wykonuje gui/button, tylko sam liczy jak szeroki i wysoki ma być przycisk się zmieścił. zwraca (destruktor szerokosc wysokosc)"
+  (args '((pos . "pozycja w formacie (x . y)")
+          (text . "tekst w przycisku")
+          (cb . "callback")))
+  (let* ((measure (measure-text text gui/button:text-size gui/button:text-spacing))
+         (w (+ (* 2 gui/button:padding) (car measure)))
+         (h (+ (* 2 gui/button:padding) (cdr measure))))
+    (list (gui/button `(,(car pos) ,(cdr pos) ,w ,h) text cb)
+          w h)))

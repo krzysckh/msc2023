@@ -109,3 +109,8 @@
 ;;                16
 ;;                (aq 'font *colorscheme*)
 ;;                3)))
+
+;; to jest niesamowite ze to dziala
+;; ~ kpm
+(letrec ((d (car (gui/btn '(100 . 100) "kliknij mnie" (→ (d))))))
+  nil)

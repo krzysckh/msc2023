@@ -98,7 +98,7 @@
 ; (measure-text text size . spacing) → (w . h)
 (define (measure-text text size . spacing)
   "zwraca (w . h) tekstu text o wielkości size i spacingu spacing (jeśli podany)"
-  (let ((spacing (if (null? spacing) *default-spacing* spacing)))
+  (let ((spacing (if (null? spacing) *default-spacing* (car spacing))))
     (real-measure-text text size spacing)))
 
 ; (real-draw-text text x y sz spacing color) → #t
