@@ -191,7 +191,7 @@ zwraca **destruktor** - funkcję usuwającą go"
                       (point-in-rect? (get-mouse-position) rect))
              (cb))))))
     (→ (delete-hook 'frame frame-id)
-       (delete-hook 'click click-id))))
+       (delete-hook 'unclick click-id))))
 
 (define (gui/btn pos text cb)
   "wykonuje gui/button, tylko sam liczy jak szeroki i wysoki ma być przycisk się zmieścił. zwraca (destruktor szerokosc wysokosc)"
