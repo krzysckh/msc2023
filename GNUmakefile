@@ -43,6 +43,9 @@ build-windows:
 		-static -o rl-optyka-test.exe
 clean:
 	rm -f $(TARGET) $(OFILES) *.core main *.scm.c load-compiled-scripts.c *.exe scdoc.html
+full-clean:
+	$(MAKE) -C tinyscheme clean
+	$(MAKE) clean
 doc: all
 	$(TARGET) -F ./generate-docs.scm > doc/scheme.md
 	cat doc/prelude.md doc/scheme.md \
