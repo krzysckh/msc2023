@@ -4,10 +4,6 @@ TARGET=./main
 
 CSTD=-std=gnu11
 
-ifeq "$(OS)" "OpenBSD"
-LDFLAGS+=-lglfw
-endif
-
 CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) -g $(ACFLAGS)
 LDFLAGS=-lm -L/usr/local/lib -lraylib $(ALDFLAGS)
 
@@ -17,6 +13,10 @@ CFILES!=echo load-compiled-scripts.c \
 	proggy.c \
 	`find src -type f -name '*.[cC]'` `echo $(SCMFILES) | sed 's/\.scm/.scm.c/g'`
 OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
+
+ifeq "$(OS)" "OpenBSD"
+LDFLAGS:=-lglfw $(LDFLAGS)
+endif
 
 .PHONY: all build-windows clean doc
 .SUFFIXES: .c .o .scm .scm.c .otf .c

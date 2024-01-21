@@ -33,7 +33,7 @@ AR= ar crs
 LD = clang
 LDFLAGS = -shared
 DEBUG=-g -Wno-char-subscripts -O
-SYS_LIBS= -ldl -lm
+SYS_LIBS= -ldl -lm -lglfw -L/usr/local/lib
 PLATFORM_FEATURES= -DSUN_DL=1
 
 # Cygwin
@@ -73,7 +73,7 @@ STATICLIBTARGET = $(LIBPREFIX)tinyscheme.$(LIBsuf)
 all: $(LIBTARGET) $(STATICLIBTARGET)
 
 %.$(Osuf): %.c
-	$(CC) $(NO_STANDALONE) -I/tmp/raylib -I. -g -c $(DEBUG) $(FEATURES) $(DL_FLAGS) $<
+	$(CC) $(NO_STANDALONE) -I/usr/local/include -I/tmp/raylib -I. -g -c $(DEBUG) $(FEATURES) $(DL_FLAGS) $<
 
 $(LIBTARGET): $(OBJS)
 	$(LD) $(LDFLAGS) $(OUT) $(OBJS) $(SYS_LIBS) -g
