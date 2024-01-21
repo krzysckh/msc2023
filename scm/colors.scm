@@ -1,8 +1,9 @@
 (define *colorscheme*
-  '((drawing-new-mirror . (#xd6 #x99 #xb6 #xff))
+  `((drawing-new-mirror . (#xd6 #x99 #xb6 #xff))
     (font               . (#xd3 #xc6 #xaa #xff))
     (frame              . (#xdb #xbc #x7f #xff))
     (default-light      . (#xd6 #x99 #xb6 #xff))
+    (background         . ,(car (get-winconf)))
     ))
 
 (define alice-blue             '(240 248 255 255))

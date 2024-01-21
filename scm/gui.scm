@@ -139,6 +139,7 @@
              'frame
              (→ (for-each
                  (lambda (n)
+                   (fill-rect (list-ref rects n) (aq 'background *colorscheme*))
                    (gui/rect (list-ref rects n) (aq 'frame *colorscheme*))
                    (draw-text
                     (car (list-ref opts n))
@@ -202,4 +203,4 @@ zwraca **destruktor** - funkcję usuwającą go"
          (w (+ (* 2 gui/button:padding) (car measure)))
          (h (+ (* 2 gui/button:padding) (cdr measure))))
     (list (gui/button `(,(car pos) ,(cdr pos) ,w ,h) text cb)
-          w h)))
+          w h)))                        ;
