@@ -105,7 +105,7 @@
 
 ;; mouse-menu
 (define mouse-menu
-  `(("nowe zrodlo" . ,(→ (create-source-at-mouse-position)))
+  `(("nowe zrodlo" . ,(→ (gui/new-source-form)))
     ("wyrazenie scheme" . ,(→ (gui/input-popup "eval scheme" loads)))
     ("narysuj zwierciadlo" . ,(→ (when (eqv? *current-mode* nil)
                                    (set! *current-mode* 'mirror-drawing-mode))))))

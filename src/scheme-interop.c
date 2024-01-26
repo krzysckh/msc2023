@@ -75,8 +75,8 @@ void do_hooks(hookable_event_t *he, pointer args)
 static pointer color2list(scheme *sc, Color c)
 {
   pointer r = mk_integer(sc, c.r),
-          g = mk_integer(sc, c.g),
-          b = mk_integer(sc, c.b);
+    g = mk_integer(sc, c.g),
+    b = mk_integer(sc, c.b);
 
   return Cons(r, Cons(g, Cons(b, sc->NIL)));
 }
@@ -375,7 +375,7 @@ static pointer scm_get_all_sources(scheme *sc, pointer args)
     return sc->F;
 
   ret = cons(sc, scm_get_source(sc, cons(sc, mk_integer(sc, 0), sc->NIL)),
-    sc->NIL);
+             sc->NIL);
   cur = ret;
 
   for (i = 1; i < N_SOURCES; ++i) {
@@ -452,7 +452,7 @@ static pointer scm_add_hook(scheme *sc, pointer args)
   pointer f;
   hookable_event_t *he;
 
-  expect_args("add-hook", 2);
+  expect_args("real-add-hook", 2);
 
   name = symname(car(args));
   f = cadr(args);
@@ -472,7 +472,7 @@ static pointer scm_add_hook(scheme *sc, pointer args)
   he->hooks[he->n_hooks] = f;
   he->n_hooks++;
 
-  /* TraceLog(LOG_INFO, "successfully added hook %p for %s", f, name); */
+  fprintf(stderr, "[NOT TRACELOG INFO] successfully added hook %p for %s\n", f, name);
   return mk_integer(sc, he->n_hooks - 1);
 }
 

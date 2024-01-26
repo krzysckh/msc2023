@@ -2,6 +2,7 @@
 ; szybsze
 
 (define *current-mode* nil)
+(define gui/draw-text draw-text)
 
 (define (gui/rect rect c)
   (let ((x (list-ref rect 0))
@@ -15,6 +16,10 @@
 
 (define gui/window-top-bar-size 16)
 
+(define (gui/window-box-get-empty-space rect)
+  (list (car rect) (+ (cadr rect) gui/window-top-bar-size)
+        (caddr rect) (- (cadddr rect) gui/window-top-bar-size)))
+
 (define (gui/window-box rect title)
   "rysuje bounding-box okienka wraz z tytułem, zwraca miejsce, które pozostało na elementy"
   (args
@@ -26,8 +31,14 @@
             (aq 'frame *colorscheme*))
   (draw-text title `(,(car rect) . ,(+ 1 (cadr rect)))
              (- gui/window-top-bar-size 2) (aq 'font *colorscheme*))
-  (list (car rect) (+ (cadr rect) gui/window-top-bar-size)
-        (caddr rect) (- (cadddr rect) gui/window-top-bar-size)))
+  (gui/window-box-get-empty-space rect))
+
+(define (gui/window-box-retained rect title)
+  "rysuje window-box, tylko, że dodaje hooki dla 'frame. zwraca `(destruktor to-co-gui/window-box)`"
+  (let ((frame-id (add-hook 'frame (→ (gui/window-box rect title)))))
+    (list
+     (→ (delete-hook 'frame frame-id))
+     (gui/window-box-get-empty-space rect))))
 
 (define (gui/input-box rect text)
   (error "not implemented"))
@@ -171,6 +182,7 @@
 (define gui/button:padding 2)
 (define gui/button:text-size 16)
 (define gui/button:text-spacing 1)
+(define *gui/button-force-can-be-handled* #f)
 
 (define (gui/button rect text cb)
   "tworzy przycisk w `rect` z tekstem text. po przyciśnięciu wykonuje `cb`.
@@ -189,7 +201,7 @@ zwraca **destruktor** - funkcję usuwającą go"
          (add-hook
           'unclick
           (→3
-           (when (and *click-can-be-handled*
+           (when (and (or *click-can-be-handled* *gui/button-force-can-be-handled*)
                       (point-in-rect? (get-mouse-position) rect))
              (cb))))))
     (→ (delete-hook 'frame frame-id)
@@ -204,4 +216,181 @@ zwraca **destruktor** - funkcję usuwającą go"
          (w (+ (* 2 gui/button:padding) (car measure)))
          (h (+ (* 2 gui/button:padding) (cdr measure))))
     (list (gui/button `(,(car pos) ,(cdr pos) ,w ,h) text cb)
-          w h)))                        ;
+          w h)))
+
+;;; gui/slider
+
+(define *gui/slider-force-can-be-handled* #t)
+(define gui/slider:ident 'GUI-slider)
+
+(define (gui/slider rect from to cb)
+  "tworzy slider. wywołuje `cb` z wynikiem za każdym `'unclick` eventem. zwraca destruktor."
+  (args
+   '((rect . "w formacie `(x y w h)`")
+     (from . "minimum")
+     (to   . "maksimum")
+     (cb   . "callback")))
+
+  (let* ((sl-h (/ (list-ref rect 3) 2))
+         (sl-w (list-ref rect 2))
+         (inner-rect (list (list-ref rect 0)
+                           (+ (list-ref rect 1)
+                              (/ sl-h 2))
+                           sl-w
+                           sl-h))
+         (slider-rect nil)
+         (slider-rect-w 10)
+         (maxx (- (+ (car rect) sl-w (/ slider-rect-w 2)) slider-rect-w))
+         (minx (- (car rect) (/ slider-rect-w 2)))
+         (current-x minx)
+         (holding #f)
+         (update-slider-rect
+          (lambda () (set!
+                 slider-rect
+                 `(,current-x ,(list-ref rect 1) ,slider-rect-w ,(list-ref rect 3)))))
+         (_ (update-slider-rect))
+         (frame-id
+          (add-hook
+           'frame
+           (→ (gui/rect inner-rect (aq 'frame *colorscheme*))
+              (update-slider-rect)
+              (fill-rect slider-rect (aq 'frame *colorscheme*))
+
+              (let ((mp (get-mouse-position))) ;; HACK
+                (when *click-can-be-handled*
+                  (if (point-in-rect? mp rect)
+                      (begin
+                        (set! *current-click-handler* gui/slider:ident)
+                        (set! *click-can-be-handled* #f))
+                      (set! *click-can-be-handled* #t)))))))
+
+         (click-id
+          (add-hook
+           'click
+           (lambda (first l r)
+             (let ((mp (get-mouse-position)))
+               (when (or (and (or (point-in-rect? mp inner-rect) (point-in-rect? mp slider-rect))
+                              (or (or *click-can-be-handled* *gui/slider-force-can-be-handled*)
+                                  (eqv? *current-click-handler* gui/slider:ident))
+                              l
+                              first)
+                         holding)
+                 (set! holding #t)
+                 (set! *click-can-be-handled* #f)
+                 (set! current-x (max2 minx (min2 maxx (car mp))))
+                 (let* ((v (- current-x minx))
+                        (∆range (- to from))
+                        (∆ (/ v sl-w))
+                        (r (* ∆range ∆)))
+                   (cb (+ r from))))))))
+         (unclick-id
+          (add-hook
+           'unclick
+           (→3 (when (or (eqv? *current-click-handler* gui/slider:ident) *gui/slider-force-can-be-handled*)
+                 (set! holding #f)
+                 (set! *current-click-handler* nil)
+                 (when (not *gui/slider-force-can-be-handled*)
+                   (set! *click-can-be-handled* #t)))))))
+
+    (→ (delete-hook 'frame frame-id)
+       (delete-hook 'click click-id)
+       (delete-hook 'unclick unclick-id))))
+
+(define (gui/checkbox rect cb . state)
+  "tworzy checkbox. zwraca destruktor."
+  (args
+   '((rect . "prostokąt na checkbox")
+     (cb . "callback wykonywany po kliknięciu, jako argument przekazuje aktualną wartość (#t | #f)")
+     (state . "(opcjonalnie) początkowa wartość (#t | #f)")))
+
+  (define checked (if (null? state) #f (car state)))
+  (let* ((padding (/ (list-ref rect 3) 4))
+         (checked-rect (list (+ padding (list-ref rect 0))
+                             (+ padding (list-ref rect 1))
+                             (- (list-ref rect 2) (* 2 padding))
+                             (- (list-ref rect 3) (* 2 padding))))
+         (frame-id
+          (add-hook
+           'frame
+           (→ (gui/rect rect (aq 'frame *colorscheme*))
+              (when checked
+                (fill-rect checked-rect (aq 'frame *colorscheme*))))))
+
+         (unclick-id
+          (add-hook
+           'unclick
+           (lambda (_ l r)
+             (when (and *click-can-be-handled*)
+               (when (point-in-rect? (get-mouse-position) rect)
+                 (set! checked (not checked))
+                 (cb checked)))))))
+
+    (→ (delete-hook 'frame frame-id)
+       (delete-hook 'unclick unclick-id))))
+
+(define (gui/draw-text-persist . args)
+  "zostawia narysowany tekst. zwraca destruktor. ***argumenty jak do `(draw-text)`***"
+  (let ((id (add-hook 'frame (→ (apply draw-text args)))))
+    (→ (delete-hook 'frame id))))
+
+(define gui/new-source-form:padding 40)
+(define (gui/new-source-form)
+  "form pytający użytkownika o dane nowego źródła"
+
+  (stop-simulation)
+  (set! *click-can-be-handled* #f)
+  (set! *keypress-can-be-handled* #f)
+
+  (set! *gui/slider-force-can-be-handled* #t)
+  (set! *gui/button-force-can-be-handled* #t)
+
+  (define n-beams 1)
+
+  (let* ((window-box-rect
+          (list
+           gui/new-source-form:padding
+           gui/new-source-form:padding
+           (- *SCREEN-WIDTH* (* 2 gui/new-source-form:padding))
+           (- *SCREEN-HEIGHT* (* 2 gui/new-source-form:padding))))
+         (window-box-data (gui/window-box-retained window-box-rect "nowe zrodlo"))
+         (d-window-box (car window-box-data))
+         (rect (cadr window-box-data))
+         (d-n-beam-slider (gui/slider
+                           (list (+ 10 (car rect))
+                                 (+ 10 (cadr rect))
+                                 128
+                                 32)
+                           1 20 (→1 (set! n-beams (round x)))))
+         (d-n-beam-label
+          (let ((id (add-hook
+                    'frame
+                    (→
+                     (gui/draw-text
+                      (string-append "ilosc wiazek: " (number->string n-beams))
+                      (cons (+ 10 (car rect) 128 10)
+                            (+ 10 (cadr rect) (/ (cdr (measure-text "A" 16)) 2)))
+                      16 (aq 'font *colorscheme*))))))
+            (→ (delete-hook 'frame id))))
+
+         (d-OK-btn (car (gui/btn (cons (+ (car rect) 10)
+                                       (- *SCREEN-HEIGHT* 80))
+                                 "Ok"
+                                 (→
+                                  (print "CLICK")
+                                  (create-source `((n-beams . ,n-beams)))
+
+                                  ;; cleanup gui
+                                  (d-window-box)
+                                  (d-n-beam-slider)
+                                  (d-n-beam-label)
+                                  (d-OK-btn)
+
+                                  ;; cleanup vars
+                                  (set! *click-can-be-handled* #t)
+                                  (set! *keypress-can-be-handled* #t)
+                                  (set! *gui/slider-force-can-be-handled* #f)
+                                  (set! *gui/button-force-can-be-handled* #f)
+
+                                  (start-simulation)
+                                  )))))
+    nil))
