@@ -78,8 +78,7 @@
      (lambda (first l r)
        (let ((mp (get-mouse-position)))
          (when (or (and (or (point-in-rect? mp inner-rect) (point-in-rect? mp slider-rect))
-                        (or *click-can-be-handled* (eqv? *current-click-handler*
-                                                         gui/slider:ident))
+                        (or *click-can-be-handled* (eqv? *current-click-handler* gui/slider:ident))
                         l
                         first)
                    holding)
@@ -101,17 +100,19 @@
 
 (define current-slider-state 0)
 ;; TODO: ten slider cos mi kurrrcze cuchnie
-;; (gui/slider '(100 100 100 20) 0 100 (→1 (set! current-slider-state x)))
-;; (add-hook
-;;  'frame
-;;  (→ (draw-text (number->string current-slider-state)
-;;                '(210 . 100)
-;;                16
-;;                (aq 'font *colorscheme*)
-;;                3)))
 
-;; to jest niesamowite ze to dziala
-;; ~ kpm
+(define n-id (- (length (create-source `((angle . 0) (pos . (500 . 500)) (reactive . #f)))) 1))
+(gui/slider
+ '(100 100 100 20)
+ 0 20
+ (→1 (set! current-slider-state x)
+     (set-source-e! n-id 'n-beams x)))
 
-(letrec ((d (car (gui/btn '(100 . 100) "kliknij mnie" (→ (d))))))
-  nil)
+(add-hook
+ 'frame
+ (→ (draw-text
+     (number->string current-slider-state)
+     '(210 . 100)
+     16
+     (aq 'font *colorscheme*)
+     3)))

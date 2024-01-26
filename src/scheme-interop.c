@@ -311,7 +311,7 @@ static pointer scm_set_source(scheme *sc, pointer args)
   y              = rvalue(car(ncdr(2, args)));
   angle          = rvalue(car(ncdr(3, args)));
   thickness      = rvalue(car(ncdr(4, args)));
-  mouse_reactive = rvalue(car(ncdr(5, args)));
+  mouse_reactive = car(ncdr(5, args)) == sc->T ? 1 : 0;
   n_beams        = rvalue(car(ncdr(6, args)));
   color          = list2color(sc, car(ncdr(7, args)));
 
