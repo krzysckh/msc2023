@@ -43,6 +43,7 @@ build-windows:
 		-static -o rl-optyka-test.exe
 clean:
 	rm -f $(TARGET) $(OFILES) *.core main *.scm.c load-compiled-scripts.c *.exe scdoc.html
+	rm -f ./doc/msc2023.html ./doc/scheme.md
 full-clean:
 	$(MAKE) -C tinyscheme clean
 	$(MAKE) clean
