@@ -1,7 +1,7 @@
-(macro (document-function v) '())
-(macro (example . v) '())
-(macro (args . v) '())
 (macro nil '())
+(macro (document-function v) nil)
+(macro (example . v) nil)
+(macro (args . v) nil)
 (macro t #t)
 (macro f #f)
 (macro ⊤ #t)
@@ -10,6 +10,11 @@
 (macro (→1 v) `(lambda (x) ,@(cdr v)))
 (macro (→2 v) `(lambda (x y) ,@(cdr v)))
 (macro (→3 v) `(lambda (x y z) ,@(cdr v)))
+
+(macro -> →)
+(macro ->1 →1)
+(macro ->2 →2)
+(macro ->3 →3)
 
 ;; "programowanie" ""funkcyjne"" :33333
 (macro (-- v) `(set! ,(cadr v) (- ,(cadr v) 1)))
@@ -125,6 +130,8 @@
   "uruchamia `system`, wcześniej zamieniając argumenty na jeden string"
   (system (apply string-append (map (lambda (v) (string-append (->string v) " ")) l))))
 
+;; jak range() w pytongu
+;; ~ kpm
 (define (iota s step e)
   "generuje ciąg liczb od *d* do *e* zwiększający się o *step*"
   (letrec ((I (lambda (s step e acc)
