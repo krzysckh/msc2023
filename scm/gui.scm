@@ -296,6 +296,9 @@ zwraca **destruktor** - funkcję usuwającą go"
        (delete-hook 'click click-id)
        (delete-hook 'unclick unclick-id))))
 
+;;; gui/checkbox
+
+(define *gui/checkbox-force-can-be-handled* #t)
 (define (gui/checkbox rect cb . state)
   "tworzy checkbox. zwraca destruktor."
   (args
@@ -307,8 +310,8 @@ zwraca **destruktor** - funkcję usuwającą go"
   (let* ((padding (/ (list-ref rect 3) 4))
          (checked-rect (list (+ padding (list-ref rect 0))
                              (+ padding (list-ref rect 1))
-                             (- (list-ref rect 2) (* 2 padding))
-                             (- (list-ref rect 3) (* 2 padding))))
+                             (- (- (list-ref rect 2) 1) (* 2 padding))
+                             (- (- (list-ref rect 3) 1) (* 2 padding))))
          (frame-id
           (add-hook
            'frame
@@ -320,7 +323,7 @@ zwraca **destruktor** - funkcję usuwającą go"
           (add-hook
            'unclick
            (lambda (_ l r)
-             (when (and *click-can-be-handled*)
+             (when (or *click-can-be-handled* *gui/checkbox-force-can-be-handled*)
                (when (point-in-rect? (get-mouse-position) rect)
                  (set! checked (not checked))
                  (cb checked)))))))
@@ -343,8 +346,11 @@ zwraca **destruktor** - funkcję usuwającą go"
 
   (set! *gui/slider-force-can-be-handled* #t)
   (set! *gui/button-force-can-be-handled* #t)
+  (set! *gui/checkbox-force-can-be-handled* #t)
 
   (define n-beams 1)
+  (define mouse-reactive #t)
+  (define angle 0)
 
   (let* ((window-box-rect
           (list
@@ -371,18 +377,60 @@ zwraca **destruktor** - funkcję usuwającą go"
                             (+ 10 (cadr rect) (/ (cdr (measure-text "A" 16)) 2)))
                       16 (aq 'font *colorscheme*))))))
             (→ (delete-hook 'frame id))))
+         (_1-line-height (+ 10 (cadr rect) 32))
 
+         (d-mouse-r-checkbox (gui/checkbox (list (+ (car rect) 10)
+                                                 (+ 10 _1-line-height)
+                                                 20 20)
+                                           (→1 (set! mouse-reactive x))
+                                           mouse-reactive))
+         (d-mouse-r-label (gui/draw-text-persist
+                           "czy wiazka wskazuje na myszke?"
+                           (cons (+ (car rect) 10 16 10)
+                                 (+ _1-line-height (/ (cdr (measure-text "A" 16)) 2)))
+                           16 (aq 'font *colorscheme*)))
+
+         (_2-line-height (+ _1-line-height 32))
+
+         (d-angle-slider (gui/slider
+                           (list (+ 10 (car rect))
+                                 (+ 10 _2-line-height)
+                                 128
+                                 32)
+                           0 360 (→1 (set! angle (round x)))))
+         (d-angle-label
+          (let ((id (add-hook
+                    'frame
+                    (→
+                     (gui/draw-text
+                      (string-append "kat: " (number->string angle))
+                      (cons (+ 10 (car rect) 128 10)
+                            (+ 10 _2-line-height (/ (cdr (measure-text "A" 16)) 2)))
+                      16 (aq 'font *colorscheme*))))))
+            (→ (delete-hook 'frame id))))
+
+         ;; końcowy przycisk "ok"
          (d-OK-btn (car (gui/btn (cons (+ (car rect) 10)
                                        (- *SCREEN-HEIGHT* 80))
                                  "Ok"
                                  (→
-                                  (print "CLICK")
-                                  (create-source `((n-beams . ,n-beams)))
+                                  (print "reactive: " mouse-reactive)
+                                  (create-source
+                                   `((n-beams . ,n-beams)
+                                     (reactive . ,mouse-reactive)
+                                     (angle . ,angle)))
 
                                   ;; cleanup gui
                                   (d-window-box)
                                   (d-n-beam-slider)
                                   (d-n-beam-label)
+
+                                  (d-mouse-r-checkbox)
+                                  (d-mouse-r-label)
+
+                                  (d-angle-slider)
+                                  (d-angle-label)
+
                                   (d-OK-btn)
 
                                   ;; cleanup vars
@@ -390,6 +438,7 @@ zwraca **destruktor** - funkcję usuwającą go"
                                   (set! *keypress-can-be-handled* #t)
                                   (set! *gui/slider-force-can-be-handled* #f)
                                   (set! *gui/button-force-can-be-handled* #f)
+                                  (set! *gui/checkbox-force-can-be-handled* #f)
 
                                   (start-simulation)
                                   )))))
