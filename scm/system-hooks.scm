@@ -145,3 +145,8 @@
       nil)))                                                  ; (od najstarszych do najnowszych)
 
 (display-next-log) ; lol
+
+(add-hook
+ 'resize
+ (→2 (set! *SCREEN-WIDTH* x)
+     (set! *SCREEN-HEIGHT* y)))

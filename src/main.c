@@ -18,7 +18,7 @@
 
 extern bool scheme_is_initialized;
 extern scheme scm;
-extern hookable_event_t keypress, click, unclick, frame, clocke, loge;
+extern hookable_event_t keypress, click, unclick, frame, clocke, loge, resize;
 
 #define MAX_INPUT_BUFFER_SIZE 4096
 /* static void (*input_func)(void) = NULL; */
@@ -363,7 +363,8 @@ static void tracelog_cb(int type, const char *fmt, va_list vl)
     do_hooks(&loge,
              cons(&scm,
                   logtype2sym(type),
-                  cons(&scm,
+
+cons(&scm,
                        mk_string(&scm, tracelog_buf),
                        scm.NIL)));
 
@@ -402,6 +403,8 @@ int main(int argc, char **argv)
     }
   }
 
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+
   InitWindow(800, 600, "giga optyka");
   initialize_scheme();
   SetExitKey(-1);
@@ -412,6 +415,7 @@ int main(int argc, char **argv)
 
   time_prev = time_cur = time(NULL);
   while (!WindowShouldClose()) {
+    update_screen_size_variables();
     mi.pos = GetMousePosition();
 
     BeginDrawing();

@@ -18,10 +18,12 @@ pointer port_from_file(scheme *sc, FILE *f, int prop);
 
 scheme scm;
 bool scheme_is_initialized = false;
+static int last_screen_width = 0, last_screen_height = 0;
 
 hookable_event_t keypress = {0};
 hookable_event_t click    = {0};
 hookable_event_t unclick  = {0};
+hookable_event_t resize   = {0};
 hookable_event_t clocke   = {0}; // co sekundę
 hookable_event_t loge     = {0}; // na każdy TraceLog()
 
@@ -52,6 +54,7 @@ static struct hlist_el hookable_events_list[] = {
   {"frame",    &frame},
   {"clock",    &clocke},
   {"log",      &loge},
+  {"resize",   &resize},
 };
 static int n_hookable_events = sizeof(hookable_events_list)/
   sizeof(*hookable_events_list);
@@ -95,6 +98,17 @@ static Color list2color(scheme *sc, pointer p)
     .b = rvalue(caddr(p)),
     .a = cadddr(p) == sc->NIL ? 255 : rvalue(cadddr(p))
   };
+}
+
+void update_screen_size_variables(void)
+{
+  int w = GetScreenWidth(), h = GetScreenHeight();
+
+  if (w != last_screen_width || h != last_screen_height) {
+    last_screen_width = w, last_screen_height = h;
+    do_hooks(&resize, cons(&scm, mk_integer(&scm, w),
+                           cons(&scm, mk_integer(&scm, h), scm.NIL)));
+  }
 }
 
 /* ---------- tu sie zaczyna implementacja funkcji przeróżnych ------------ */
