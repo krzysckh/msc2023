@@ -403,7 +403,9 @@ int main(int argc, char **argv)
     }
   }
 
-  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+  // TODO: idk czy resizable + bardzo duzo nowego scheme
+  // czy Camera2D + [wasd] + malo nowego kodu
+  /* SetConfigFlags(FLAG_WINDOW_RESIZABLE); */
 
   InitWindow(800, 600, "giga optyka");
   initialize_scheme();
