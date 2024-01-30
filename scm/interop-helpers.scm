@@ -93,7 +93,7 @@
       (set-source! n x y ang thickness mouse-reactive n-beams color)))
   (update-sources))
 
-(define *default-spacing* 4)
+(define *default-spacing* 1)
 
 ; (measure-text text size . spacing) → (w . h)
 (define (measure-text text size . spacing)

@@ -45,7 +45,7 @@ void load_default_font(void)
   extern unsigned char proggy_otf[];
 
   default_font = LoadFontFromMemory(".otf", proggy_otf, proggy_otf_len,
-    30, NULL, 0);
+    30, NULL, 1024);
   TraceLog(LOG_INFO, "loaded default font");
 }
 

@@ -30,7 +30,7 @@ $ ./main
 - TBD
 
 ## uwagi
-- [koloryt](https://user-images.githubusercontent.com/58662350/214382274-0108806d-b605-4047-af4b-c49ae06a2e8e.png)
+- ![koloryt](https://user-images.githubusercontent.com/58662350/214382274-0108806d-b605-4047-af4b-c49ae06a2e8e.png)
 - wymaga **GNU Make** (bsd make ma problem z *.SUFFIXES*)
 - wzory i pomysły są wyjęte z dupy, np.:
 

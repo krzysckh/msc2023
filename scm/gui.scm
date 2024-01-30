@@ -358,7 +358,7 @@ zwraca **destruktor** - funkcję usuwającą go"
            gui/new-source-form:padding
            (- *SCREEN-WIDTH* (* 2 gui/new-source-form:padding))
            (- *SCREEN-HEIGHT* (* 2 gui/new-source-form:padding))))
-         (window-box-data (gui/window-box-retained window-box-rect "nowe zrodlo"))
+         (window-box-data (gui/window-box-retained window-box-rect "nowe źródło"))
          (d-window-box (car window-box-data))
          (rect (cadr window-box-data))
          (d-n-beam-slider (gui/slider
@@ -372,7 +372,7 @@ zwraca **destruktor** - funkcję usuwającą go"
                     'frame
                     (→
                      (gui/draw-text
-                      (string-append "ilosc wiazek: " (number->string n-beams))
+                      (string-append "ilość wiązek: " (number->string n-beams))
                       (cons (+ 10 (car rect) 128 10)
                             (+ 10 (cadr rect) (/ (cdr (measure-text "A" 16)) 2)))
                       16 (aq 'font *colorscheme*))))))
@@ -385,7 +385,7 @@ zwraca **destruktor** - funkcję usuwającą go"
                                            (→1 (set! mouse-reactive x))
                                            mouse-reactive))
          (d-mouse-r-label (gui/draw-text-persist
-                           "czy wiazka wskazuje na myszke?"
+                           "czy wiązka wskazuje na myszkę?"
                            (cons (+ (car rect) 10 16 10)
                                  (+ _1-line-height (/ (cdr (measure-text "A" 16)) 2)))
                            16 (aq 'font *colorscheme*)))
@@ -403,7 +403,7 @@ zwraca **destruktor** - funkcję usuwającą go"
                     'frame
                     (→
                      (gui/draw-text
-                      (string-append "kat: " (number->string angle))
+                      (string-append "kąt: " (number->string angle))
                       (cons (+ 10 (car rect) 128 10)
                             (+ 10 _2-line-height (/ (cdr (measure-text "A" 16)) 2)))
                       16 (aq 'font *colorscheme*))))))

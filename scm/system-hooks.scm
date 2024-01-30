@@ -105,9 +105,9 @@
 
 ;; mouse-menu
 (define mouse-menu
-  `(("nowe zrodlo" . ,(→ (gui/new-source-form)))
-    ("wyrazenie scheme" . ,(→ (gui/input-popup "eval scheme" loads)))
-    ("narysuj zwierciadlo" . ,(→ (when (eqv? *current-mode* nil)
+  `(("nowe źródło" . ,(→ (gui/new-source-form)))
+    ("wyrażenie scheme" . ,(→ (gui/input-popup "eval scheme" loads)))
+    ("narysuj zwierciadło" . ,(→ (when (eqv? *current-mode* nil)
                                    (set! *current-mode* 'mirror-drawing-mode))))))
 
 (add-hook
@@ -136,7 +136,7 @@
                "[" (number->string (aq 'time tl)) "] "
                (symbol->string (aq 'type tl)) ": "
                (aq 's tl)))
-           (id (add-hook 'frame (→ (draw-text s '(0 . 0) 16 (aq 'font *colorscheme*) 2)))))
+           (id (add-hook 'frame (→ (draw-text s '(0 . 0) 16 (aq 'font *colorscheme*) *default-spacing*)))))
       (set! *tracelog-queue* (cdr *tracelog-queue*))
       (wait 2 (→ (delete-hook 'frame id)
                  (display-next-log))))

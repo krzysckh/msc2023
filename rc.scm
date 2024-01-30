@@ -31,3 +31,5 @@
 (add-hook 'keypress kp-hook)
 
 ;; TODO: gui/compose
+
+;; (gui/draw-text-persist "zażółć gęślą jaźń" '(100 . 100) 30 white)
