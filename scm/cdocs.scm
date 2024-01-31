@@ -61,3 +61,20 @@
 (document-function
  (real-tracelog T s)
  "wykonuje TraceLog(T, s)")
+
+(document-function
+ (real-fill-rect x y w h color)
+ "lepiej uzywać `fill-rect`")
+
+(document-function
+ (set-window-flag flag v)
+ "ustawia flagę raylib"
+ (args
+  '((flag . "flaga zdefiniowana w `interop-helpers.scm` jako `FLAG-*`")
+    (v . "`#t | #f`"))))
+
+(document-function
+ (get-window-flag flag)
+ "getter dla flagi raylib"
+ (args
+  '((flag . "flaga zdefiniowana w `interop-helpers.scm` jako `FLAG-*`"))))
