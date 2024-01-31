@@ -113,6 +113,33 @@ void update_screen_size_variables(void)
 
 /* ---------- tu sie zaczyna implementacja funkcji przeróżnych ------------ */
 
+// (get-window-flag v) → #t | #f
+static pointer scm_get_window_flag(scheme *sc, pointer args)
+{
+  int v;
+  expect_args("get-window-flag", 1);
+
+  v = rvalue(car(args));
+
+  return IsWindowState(v) ? sc->T : sc->F;
+}
+
+// (set-window-flag v #t|#f) → nil
+// TODO: ujednolicić window_flag i winconf
+static pointer scm_set_window_flag(scheme *sc, pointer args)
+{
+  int v;
+  bool b;
+  expect_args("set-window-flag", 2);
+
+  v = rvalue(car(args));
+  b = cadr(args) == sc->T;
+
+  (b ? SetWindowState : ClearWindowState)(v);
+
+  return sc->NIL;
+}
+
 // (real-fill-rect x y w h color)
 static pointer scm_fill_rect(scheme *sc, pointer args)
 {
@@ -552,6 +579,8 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_get_window_flag,    "get-window-flag");
+  SCHEME_FF(scm_set_window_flag,    "set-window-flag");
   SCHEME_FF(scm_fill_rect,          "real-fill-rect");
   SCHEME_FF(scm_tracelog,           "real-tracelog");
   SCHEME_FF(scm_set_winconf,        "set-winconf");

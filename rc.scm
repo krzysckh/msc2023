@@ -33,3 +33,10 @@
 ;; TODO: gui/compose
 
 ;; (gui/draw-text-persist "zażółć gęślą jaźń" '(100 . 100) 30 white)
+
+
+;; (define (set-bgcolor col)
+;;   (let ((wc (get-winconf)))
+;;     (apply set-winconf (append (list col) (cdr wc)))))
+
+;; (set-bgcolor black)

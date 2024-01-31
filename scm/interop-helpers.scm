@@ -5,6 +5,22 @@
 (define *SCREEN-WIDTH* (car *SCREEN-SIZE*))
 (define *SCREEN-HEIGHT* (cdr *SCREEN-SIZE*))
 
+(define FLAG-VSYNC-HINT #x00000040)
+(define FLAG-FULLSCREEN-MODE #x00000002)
+(define FLAG-WINDOW-RESIZABLE #x00000004)
+(define FLAG-WINDOW-UNDECORATED #x00000008)
+(define FLAG-WINDOW-HIDDEN #x00000080)
+(define FLAG-WINDOW-MINIMIZED #x00000200)
+(define FLAG-WINDOW-MAXIMIZED #x00000400)
+(define FLAG-WINDOW-UNFOCUSED #x00000800)
+(define FLAG-WINDOW-TOPMOST #x00001000)
+(define FLAG-WINDOW-ALWAYS-RUN #x00000100)
+(define FLAG-WINDOW-TRANSPARENT #x00000010)
+(define FLAG-WINDOW-HIGHDPI #x00002000)
+(define FLAG-WINDOW-MOUSE-PASSTHROUGH #x00004000)
+(define FLAG-MSAA-4X-HINT #x00000020)
+(define FLAG-INTERLACED-HINT #x00010000)
+
 (define (aq e alist)
   "zwraca wynik assq bez car"
   (args
@@ -179,3 +195,6 @@
         (w (caddr rect))
         (h (cadddr rect)))
     (real-fill-rect x y w h color)))
+
+(define (experimental/toggle-resizable)
+  (set-window-flag FLAG-WINDOW-RESIZABLE (not (get-window-flag FLAG-WINDOW-RESIZABLE))))
