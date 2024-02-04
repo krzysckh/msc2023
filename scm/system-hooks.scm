@@ -105,33 +105,6 @@
   (list (- (car pos) (/ *source-size* 2))
         (- (cdr pos) (/ *source-size* 2)) *source-size* *source-size*))
 
-(define (gui/rect-fit-into-screen rect)
-  (let ((x (list-ref rect 0))
-        (y (list-ref rect 1))
-        (w (list-ref rect 2))
-        (h (list-ref rect 3)))
-    (list
-     (if (> (+ x w) *SCREEN-WIDTH*)
-         (- x (- *SCREEN-WIDTH* (+ x w)))
-         x)
-     (if (> (+ y w) *SCREEN-HEIGHT*)
-         (- y (- *SCREEN-HEIGHT* (+ y w)))
-         y)
-     w h)))
-
-(define (gui/mp-slider+ok from to cb)
-  (let* ((mp (get-mouse-position)))
-    (letrec ((slider-dest
-              (gui/slider
-               (gui/rect-fit-into-screen (list (car mp) (cdr mp) 128 32))
-               from to cb))
-             (btn-dest
-              (car (gui/btn (cons (car mp) (+ (cdr mp) 48))
-                            "Ok"
-                            (→ (slider-dest)
-                               (btn-dest))))))
-      0)))
-
 (define source-settings
   `(("zmień kąt" . ,(→ (gui/mp-slider+ok
                        0 359 (→1 (set-source-e!

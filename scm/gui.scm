@@ -443,3 +443,29 @@ zwraca **destruktor** - funkcję usuwającą go"
                                   (start-simulation)
                                   )))))
     nil))
+
+(define (gui/rect-fit-into-screen rect)
+  "zwraca `rect`, który zmieści się na ekranie"
+  (let ((x (list-ref rect 0))
+        (y (list-ref rect 1))
+        (w (list-ref rect 2))
+        (h (list-ref rect 3)))
+    (list
+     (if (> (+ x w) *SCREEN-WIDTH*)
+         (- x (abs (- *SCREEN-WIDTH* (+ x w))))
+         x)
+     (if (> (+ y w) *SCREEN-HEIGHT*)
+         (- y (abs (- *SCREEN-HEIGHT* (+ y w))))
+         y)
+     w h)))
+
+(define (gui/mp-slider+ok from to cb)
+  (let* ((mp (get-mouse-position))
+         (sl-rect (gui/rect-fit-into-screen (list (car mp) (cdr mp) 128 32))))
+    (letrec ((slider-dest (gui/slider sl-rect from to cb))
+             (btn-dest
+              (car (gui/btn (cons (car sl-rect) (+ (cadr sl-rect) 48))
+                            "Ok"
+                            (→ (slider-dest)
+                               (btn-dest))))))
+      0)))
