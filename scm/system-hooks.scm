@@ -6,10 +6,8 @@
 (define *current-click-handler* #f)
 (define *current-keypress-handler* #f)
 
-; HACK: tu o
-
 ;; ZMIANA POZYCJI DANEGO SOURCE_T
-(define *source-size* 20)
+(define *source-size* 20) ;; TODO: ?????
 (define repositioning-source #f)
 (define repositioning-dx 0)
 (define repositioning-dy 0)
@@ -17,7 +15,7 @@
 (define (reposition-source-hook first left right)
   (when (or *click-can-be-handled* repositioning-source)
     (let ((mp (get-mouse-position)))
-      (when first
+      (when (and first left)
         (for-each
           (lambda (n)
             (let* ((s (list-ref *sources* n))
@@ -103,6 +101,25 @@
 
 (add-system-hook 'keypress keypress-default-hook)
 
+(define (src->rect pos)
+  (list (- (car pos) (/ *source-size* 2))
+        (- (cdr pos) (/ *source-size* 2)) *source-size* *source-size*))
+
+;; opts per source
+(add-hook
+ 'unclick
+ (lambda (_ l r)
+   (when *click-can-be-handled*
+     (let ((mp (get-mouse-position)))
+       (for-each
+        (→1 (let ((pos (car x)))
+              (print pos)
+              (when (point-in-rect? mp (src->rect pos))
+                (gui/option-menu
+                 (get-mouse-position)
+                 `(("edytuj źródło" . ,(→ (print "TODO: edytuj źródło"))))))))
+        *sources*)))))
+
 ;; mouse-menu
 (define mouse-menu
   `(("nowe źródło" . ,(→ (gui/new-source-form)))
@@ -111,7 +128,7 @@
                                    (set! *current-mode* 'mirror-drawing-mode))))))
 
 (add-hook
- 'click
+ 'unclick
  (lambda (first l r)
    (when (and *click-can-be-handled* r)
      (gui/option-menu (get-mouse-position) mouse-menu))))
