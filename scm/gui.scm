@@ -220,7 +220,7 @@ zwraca **destruktor** - funkcję usuwającą go"
 
 ;;; gui/slider
 
-(define *gui/slider-force-can-be-handled* #t)
+(define *gui/slider-force-can-be-handled* #f)
 (define gui/slider:ident 'GUI-slider)
 
 (define (gui/slider rect from to cb)
@@ -298,7 +298,7 @@ zwraca **destruktor** - funkcję usuwającą go"
 
 ;;; gui/checkbox
 
-(define *gui/checkbox-force-can-be-handled* #t)
+(define *gui/checkbox-force-can-be-handled* #f)
 (define (gui/checkbox rect cb . state)
   "tworzy checkbox. zwraca destruktor."
   (args
