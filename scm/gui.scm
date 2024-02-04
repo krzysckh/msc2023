@@ -337,6 +337,7 @@ zwraca **destruktor** - funkcję usuwającą go"
     (→ (delete-hook 'frame id))))
 
 (define gui/new-source-form:padding 40)
+(define gui/new-source-form:pos nil)
 (define (gui/new-source-form)
   "form pytający użytkownika o dane nowego źródła"
 
@@ -418,7 +419,9 @@ zwraca **destruktor** - funkcję usuwającą go"
                                   (create-source
                                    `((n-beams . ,n-beams)
                                      (reactive . ,mouse-reactive)
-                                     (angle . ,angle)))
+                                     (angle . ,angle)
+                                     (pos . ,gui/new-source-form:pos)))
+
 
                                   ;; cleanup gui
                                   (d-window-box)
