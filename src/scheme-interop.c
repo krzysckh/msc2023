@@ -626,9 +626,10 @@ void initialize_scheme(void)
 void load_rc(void)
 {
   FILE *rc = fopen("rc.scm", "r+");
-  if (rc)
+  if (rc) {
     scheme_load_file(&scm, rc);
-  fclose(rc);
+    fclose(rc);
+  }
 }
 
 pointer scheme_click_info(struct mouse_information_t *mi)
