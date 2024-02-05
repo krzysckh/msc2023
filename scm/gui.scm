@@ -472,3 +472,46 @@ zwraca **destruktor** - funkcję usuwającą go"
                             (→ (slider-dest)
                                (btn-dest))))))
       0)))
+
+(define winopts-names
+  '(FLAG-VSYNC-HINT
+    FLAG-FULLSCREEN-MODE
+    FLAG-WINDOW-RESIZABLE
+    FLAG-WINDOW-UNDECORATED
+    FLAG-WINDOW-HIDDEN
+    FLAG-WINDOW-MINIMIZED
+    FLAG-WINDOW-MAXIMIZED
+    FLAG-WINDOW-UNFOCUSED
+    FLAG-WINDOW-TOPMOST
+    FLAG-WINDOW-ALWAYS-RUN
+    FLAG-WINDOW-TRANSPARENT
+    FLAG-WINDOW-HIGHDPI
+    FLAG-WINDOW-MOUSE-PASSTHROUGH
+    FLAG-MSAA-4X-HINT
+    FLAG-INTERLACED-HINT))
+
+;; lol
+;; to jest mój wykręt do nie-pisania faktycznie ważnego kodu
+;; może jeszcze to, że nie mam na to teraz psychy
+;; mi psycha siada??
+;; może
+;; ~ kpm
+(define (gui/show-window-opts)
+  (let* ((cb-dests
+          (map
+           (→1 (gui/checkbox
+                (list 10 (+ 20 (* 30 x)) 22 22)
+                (lambda (v) (set-window-flag (eval (list-ref winopts-names x)) v))))
+           (⍳ 0 1 (length winopts-names))))
+         (frame-id
+          (add-hook
+           'frame
+           (→ (for-each
+               (→1 (gui/draw-text
+                    (symbol->string (list-ref winopts-names x))
+                    (cons 40 (+ 20 (* 30 x)))
+                    18 (aq 'font *colorscheme*)))
+               (⍳ 0 1 (length winopts-names)))))))
+
+    (→ (for-each (→1 (x)) cb-dests)
+       (delete-hook 'frame frame-id))))
