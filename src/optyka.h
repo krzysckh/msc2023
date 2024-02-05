@@ -12,8 +12,8 @@
 
 #include "cxr.h"
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
+/* #define SCREEN_WIDTH 800 */
+/* #define SCREEN_HEIGHT 600 */
 
 #define MAX(x,y) (((x)>(y))?(x):(y))
 #define MIN(x,y) (((x)<(y))?(x):(y))

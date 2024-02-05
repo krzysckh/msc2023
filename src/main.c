@@ -65,11 +65,12 @@ float absf(float x)
 // via ./notatki.ora
 static Vector2 create_target(Vector2 a, float angle)
 {
+  const int H = GetScreenHeight();
+
   if ((angle >= 180 && angle <= 360) || angle == 0)
     return (Vector2){(ctg((180-angle)*(PI/180.f))*a.y+a.x), 0};
   else
-    return (Vector2){a.x + ((SCREEN_HEIGHT - a.y) / ctg((90-angle)*PI/180.f)),
-      SCREEN_HEIGHT};
+    return (Vector2){a.x + ((H - a.y) / ctg((90-angle)*PI/180.f)), H};
 }
 
 static void draw_source(source_t *s)

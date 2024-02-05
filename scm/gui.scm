@@ -499,9 +499,11 @@ zwraca **destruktor** - funkcję usuwającą go"
 (define (gui/show-window-opts)
   (let* ((cb-dests
           (map
-           (→1 (gui/checkbox
-                (list 10 (+ 20 (* 30 x)) 22 22)
-                (lambda (v) (set-window-flag (eval (list-ref winopts-names x)) v))))
+           (→1 (let ((nam (list-ref winopts-names x)))
+                 (gui/checkbox
+                  (list 10 (+ 20 (* 30 x)) 22 22)
+                  (lambda (v) (set-window-flag (eval nam) v))
+                  (get-window-flag (eval nam)))))
            (⍳ 0 1 (length winopts-names))))
          (frame-id
           (add-hook
