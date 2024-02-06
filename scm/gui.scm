@@ -226,10 +226,10 @@ zwraca **destruktor** - funkcję usuwającą go"
 (define (gui/slider rect from to cb)
   "tworzy slider. wywołuje `cb` z wynikiem za każdym `'unclick` eventem. zwraca destruktor."
   (args
-   '((rect . "w formacie `(x y w h)`")
-     (from . "minimum")
-     (to   . "maksimum")
-     (cb   . "callback")))
+   '((rect  . "w formacie `(x y w h)`")
+     (from  . "minimum")
+     (to    . "maksimum")
+     (cb    . "callback")))
 
   (let* ((sl-h (/ (list-ref rect 3) 2))
          (sl-w (list-ref rect 2))

@@ -105,37 +105,33 @@
   (list (- (car pos) (/ *source-size* 2))
         (- (cdr pos) (/ *source-size* 2)) *source-size* *source-size*))
 
-(define source-settings
-  `(("zmień kąt" . ,(→ (gui/mp-slider+ok
-                       0 359 (→1 (set-source-e!
-                                  source-settings-current-source-id
-                                  'angle x)))))
-    ("zmień ilość wiązek" . ,(→ (gui/mp-slider+ok
-                                0 *source-size*
-                                (→1 (set-source-e!
-                                           source-settings-current-source-id
-                                           'n-beams x)))))))
 ;; opts per source
-(define source-settings-current-source-id nil) ;; TODO: hack lol
 (add-hook
  'unclick
  (lambda (_ l r)
    (when (and *click-can-be-handled* r)
      (let ((mp (get-mouse-position)))
        (for-each
-        (→1 (let ((pos (car (list-ref *sources* x))))
+        (→1 (let ((pos (car (list-ref *sources* x)))
+                  (cur (list-ref *sources* x)))
               (when (point-in-rect? mp (src->rect pos))
-                (set! source-settings-current-source-id x)
-                (gui/option-menu
-                 (get-mouse-position)
-                 source-settings))))
+                (print (list-ref cur 1))
+                (let ((source-settings
+                       `(("zmień kąt" . ,(→ (gui/mp-slider+ok
+                                             0 359
+                                             (lambda (v) (set-source-e! x 'angle v)))
+                         ("'mouse-reactive" . ,(→ (set-source-e! x 'mouse-reactive (not (list-ref cur 3)))))
+                         ("zmień ilość wiązek" . ,(→ (gui/mp-slider+ok
+                                                      0 *source-size*
+                                                      (lambda (v) (set-source-e! x 'n-beams v))))))))))
+                  (gui/option-menu (get-mouse-position) source-settings)))))
         (⍳ 0 1 (length *sources*)))))))
 
 ;; mouse-menu
 (define mouse-menu
   `(("nowe źródło" . ,(→ (set! gui/new-source-form:pos (get-mouse-position))
                           (gui/new-source-form)))
-    ("wyrażenie scheme" . ,(→ (gui/input-popup "eval scheme" loads)))
+    ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
     ("narysuj zwierciadło" . ,(→ (when (eqv? *current-mode* nil)
                                    (set! *current-mode* 'mirror-drawing-mode))))))
 
