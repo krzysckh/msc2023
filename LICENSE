@@ -1,14 +1,11 @@
 tinyscheme - oryginalnie (c) Dimitrios Souflis (1998-2023)
-             drobne zmiany względem 1.42 - (c) Krzysztof Michałczyk (2023)
+             drobne zmiany względem 1.42 - (c) Krzysztof Michałczyk (2023, 2024)
              [https://tinyscheme.sourceforge.net/home.html]
-raylib - (c) Ramon Santamaria 2013-2023 na licencji zlib
-         [https://github.com/raysan5/raylib]
-raygui - (c) Ramon Santamaria 2013-2023 na licencji zlib
-         [https://github.com/raysan5/raygui]
-
+raylib 4.5 - (c) Ramon Santamaria 2013-2024 na licencji zlib
+             [https://github.com/raysan5/raylib]
 
 cała reszta:
-Copyright (c) 2023, Krzysztof Michałczyk <kpm@linux.pl>
+Copyright (c) 2023, 2024, Krzysztof Michałczyk <kpm@linux.pl>
 
 All rights reserved.
 
