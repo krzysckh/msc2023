@@ -296,10 +296,10 @@ static pointer scm_loads(scheme *sc, pointer args)
 // (real-draw-text text x y sz spacing color) → #t
 static pointer scm_draw_text(scheme *sc, pointer args)
 {
-  extern Font default_font;
   float x, y, sz, spacing;
   Color color;
   char *s;
+  Font fnt;
 
   expect_args("real-draw-text", 6);
 
@@ -310,7 +310,8 @@ static pointer scm_draw_text(scheme *sc, pointer args)
   spacing = rvalue(cadddr(cdr(args)));
   color   = list2color(sc, cadddr(cddr(args)));
 
-  DrawTextEx(default_font, s, (Vector2){x,y}, sz, spacing, color);
+  fnt = get_font_with_size(sz);
+  DrawTextEx(fnt, s, (Vector2){x,y}, sz, spacing, color);
 
   return sc->T;
 }
@@ -329,7 +330,7 @@ static pointer scm_measure_text(scheme *sc, pointer args)
   sz = rvalue(cadr(args));
   spacing = rvalue(caddr(args));
 
-  ret = MeasureTextEx(default_font, s, sz, spacing);
+  ret = MeasureTextEx(get_font_with_size(sz), s, sz, spacing);
 
   return cons(sc, mk_integer(sc, ret.x), mk_integer(sc, ret.y));
 }

@@ -17,6 +17,7 @@
 
 #define MAX(x,y) (((x)>(y))?(x):(y))
 #define MIN(x,y) (((x)<(y))?(x):(y))
+#define MAX_FONT_SIZE 1024
 
 #define _vec0 Vector2
 #define _vec1(a) ((Vector2){a,a})
@@ -125,6 +126,7 @@ void add_bounceable(bounceable_type_t t, void *data);
 void add_mirror(Vector2 p1, Vector2 p2);
 void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, float opacity);
 void add_source(source_t s);
+Font get_font_with_size(int size);
 
 void initialize_scheme(void);
 void load_rc(void);

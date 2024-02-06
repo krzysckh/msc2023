@@ -24,7 +24,8 @@ extern hookable_event_t keypress, click, unclick, frame, clocke, loge, resize;
 /* static void (*input_func)(void) = NULL; */
 /* static char input_buffer[MAX_INPUT_BUFFER_SIZE] = {0}; */
 
-Font default_font;
+
+Font fontset[MAX_FONT_SIZE] = {0};
 
 /* to jest nieco niespójne ze scheme podejście, ale co klatkę wykonywane jest
    ClearBackground(), i robienie tego w scheme było by po prostu zbyt powolne */
@@ -39,14 +40,17 @@ int N_BOUNCEABLES = 0,
 bounceable_t *bounceables = NULL;
 source_t *sources = NULL;
 
-void load_default_font(void)
+Font get_font_with_size(int size)
 {
   extern unsigned int proggy_otf_len;
   extern unsigned char proggy_otf[];
 
-  default_font = LoadFontFromMemory(".otf", proggy_otf, proggy_otf_len,
-    30, NULL, 1024);
-  TraceLog(LOG_INFO, "loaded default font");
+  if (fontset[size].baseSize == 0) {
+    fontset[size] = LoadFontFromMemory(".otf", proggy_otf, proggy_otf_len, size, NULL, 1024);
+    TraceLog(LOG_INFO, "loaded default font with size %d", size);
+  }
+
+  return fontset[size];
 }
 
 float normalize_angle(float f)
@@ -411,7 +415,6 @@ int main(int argc, char **argv)
   InitWindow(800, 600, "giga optyka");
   initialize_scheme();
   SetExitKey(-1);
-  load_default_font();
   load_rc();
 
   add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f);
