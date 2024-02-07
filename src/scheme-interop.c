@@ -483,7 +483,7 @@ static pointer scm_delete_hook(scheme *sc, pointer args)
 
   he->hooks[id] = NULL;
 
-  /* TraceLog(LOG_INFO, "deleted hook %d for %s", id, sym); */
+  fprintf(stderr, "(not tracelogged) successfully deleted hook %d for %s\n", id, sym);
   return sc->T;
 }
 
@@ -514,7 +514,7 @@ static pointer scm_add_hook(scheme *sc, pointer args)
   he->hooks[he->n_hooks] = f;
   he->n_hooks++;
 
-  fprintf(stderr, "[NOT TRACELOG INFO] successfully added hook %p for %s\n", f, name);
+  fprintf(stderr, "(not tracelogged) successfully added hook %p for %s\n", f, name);
   return mk_integer(sc, he->n_hooks - 1);
 }
 

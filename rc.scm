@@ -17,7 +17,22 @@
    (→1 (set-source-e! x 'thickness current-thickness))
    (iota 0 1 (length *sources*))))
 
+(define (show-fps pos)
+  (let* ((cur-fps 0)
+         (fps 0)
+         (frame-id
+          (add-hook 'frame (→ (draw-text
+                               (string-append "fps: " (number->string cur-fps))
+                               pos 21 (aq 'font *colorscheme*))
+                              (++ fps))))
+         (clock-id
+          (add-hook 'clock (→ (set! cur-fps fps)
+                              (set! fps 0)))))
+    (→ (delete-hook 'frame frame-id)
+       (delete-hook 'clock clock-id))))
+
 (define window-opts-dest nil)
+(define fps-dest nil)
 (define (kp-hook k d)
   (when *keypress-can-be-handled*
     (cond
@@ -29,11 +44,17 @@
       (set! current-thickness (max (- current-thickness 1) 1))
       (update-thicknesses))
      ((eqv? k #\o)
-      (cond
-       ((null? window-opts-dest) (set! window-opts-dest (gui/show-window-opts)))
-       (else
-        (window-opts-dest)
-        (set! window-opts-dest nil)))))))
+      (if (null? window-opts-dest)
+          (set! window-opts-dest (gui/show-window-opts))
+          (begin
+            (window-opts-dest)
+            (set! window-opts-dest nil))))
+     ((eqv? k #\f)
+      (if (null? fps-dest)
+          (set! fps-dest (show-fps '(16 . 16)))
+          (begin
+            (fps-dest)
+            (set! fps-dest nil)))))))
 
 (add-hook 'keypress kp-hook)
 
@@ -47,3 +68,6 @@
 
 ;; (define (toggle-flag flag)
 ;;   (set-window-flag flag (not (get-window-flag flag))))
+
+
+;; (define d (show-fps '(16 . 16)))

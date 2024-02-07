@@ -412,6 +412,8 @@ int main(int argc, char **argv)
   // czy Camera2D + [wasd] + malo nowego kodu
   /* SetConfigFlags(FLAG_WINDOW_RESIZABLE); */
 
+  SetTargetFPS(30);
+
   InitWindow(800, 600, "giga optyka");
   initialize_scheme();
   SetExitKey(-1);
