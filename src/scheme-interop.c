@@ -605,14 +605,13 @@ static pointer scm_get_bounceable(scheme *sc, pointer args)
 {
   int id;
   bounceable_t *cur;
-  extern bounceable_t *bounceables;
-  extern int N_BOUNCEABLES;
+  extern Bounceables bounceables;
 
   expect_args("get-bounceable", 1);
 
   id = rvalue(car(args));
-  if (id >= 0 && id <= N_BOUNCEABLES) {
-    cur = &bounceables[id];
+  if (id >= 0 && id <= bounceables.n) {
+    cur = &bounceables.v[id];
     switch (cur->t) {
     case B_MIRROR: {
       Vector2 p1 = cur->data.mirror->p1, p2 = cur->data.mirror->p2;
@@ -635,8 +634,7 @@ static pointer scm_get_bounceable(scheme *sc, pointer args)
 // (set-mirror! id pt1 pt2)
 static pointer scm_set_mirror(scheme *sc, pointer args)
 {
-  extern int N_BOUNCEABLES;
-  extern bounceable_t *bounceables;
+  extern Bounceables bounceables;
   int id;
   Vector2 p1, p2;
   pointer sp1, sp2;
@@ -649,10 +647,10 @@ static pointer scm_set_mirror(scheme *sc, pointer args)
   p1.x = rvalue(car(sp1)), p1.y = rvalue(cdr(sp1));
   p2.x = rvalue(car(sp2)), p2.y = rvalue(cdr(sp2));
 
-  if (id >= 0 && id < N_BOUNCEABLES) {
-    if (bounceables[id].t == B_MIRROR) {
-      bounceables[id].data.mirror->p1 = p1;
-      bounceables[id].data.mirror->p2 = p2;
+  if (id >= 0 && id < bounceables.n) {
+    if (bounceables.v[id].t == B_MIRROR) {
+      bounceables.v[id].data.mirror->p1 = p1;
+      bounceables.v[id].data.mirror->p2 = p2;
 
       // no prawie
       do_hooks(&new, Cons(mk_symbol(sc, "mirror"), sc->NIL));
@@ -669,10 +667,10 @@ static pointer scm_set_mirror(scheme *sc, pointer args)
 
 static pointer scm_get_all_bounceables(scheme *sc, pointer args)
 {
-  extern int N_BOUNCEABLES;
+  extern Bounceables bounceables;
   expect_args("get-all-bounceables", 0);
 
-  return scm_get_all_of_thing(sc, N_BOUNCEABLES, scm_get_bounceable);
+  return scm_get_all_of_thing(sc, bounceables.n, scm_get_bounceable);
 }
 
 

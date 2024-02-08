@@ -35,9 +35,9 @@ struct window_conf_t winconf = {
 };
 
 #define MIRROR_THICKNESS 1
-int N_BOUNCEABLES = 0,
-    N_SOURCES = 0;
-bounceable_t *bounceables = NULL;
+// TODO: sources też powinny być dyn tablicą, a nie realloc-bumpowane raz po razie
+int N_SOURCES = 0;
+Bounceables bounceables = {0};
 source_t *sources = NULL;
 
 Font get_font_with_size(int size)
@@ -127,13 +127,13 @@ static void draw_mirror(bounceable_t *b)
 static void draw_all_bounceables(void)
 {
   int i;
-  for (i = 0; i < N_BOUNCEABLES; ++i) {
-    switch (bounceables[i].t) {
+  for (i = 0; i < bounceables.n; ++i) {
+    switch (bounceables.v[i].t) {
     case B_MIRROR:
-      draw_mirror(&bounceables[i]);
+      draw_mirror(&bounceables.v[i]);
       break;
     case B_LENS:
-      draw_lens(&bounceables[i]);
+      draw_lens(&bounceables.v[i]);
       break;
     default:
       panic("unreachable");
@@ -151,19 +151,19 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
   while (max_iter) {
     source = Vector2MoveTowards(source, target, CAST_LIGHT_STEP_SIZE);
 
-    for (i = 0; i < N_BOUNCEABLES; ++i) {
-      switch (bounceables[i].t) {
+    for (i = 0; i < bounceables.n; ++i) {
+      switch (bounceables.v[i].t) {
       case B_MIRROR:
         if (CheckCollisionPointLine(source,
-              bounceables[i].data.mirror->p1,
-              bounceables[i].data.mirror->p2,
+              bounceables.v[i].data.mirror->p1,
+              bounceables.v[i].data.mirror->p2,
               CAST_LIGHT_STEP_SIZE))
           goto hit;
         break;
       case B_LENS:
         if (CheckCollisionPointLine(source,
-              bounceables[i].data.lens->p1,
-              bounceables[i].data.lens->p2,
+              bounceables.v[i].data.lens->p1,
+              bounceables.v[i].data.lens->p2,
               CAST_LIGHT_STEP_SIZE))
           goto hit;
         break;
@@ -179,7 +179,7 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
   return false;
 
  hit:
-  *hit_bounceable = bounceables[i];
+  *hit_bounceable = bounceables.v[i];
   ret->x = source.x, ret->y = source.y;
   return true;
 }
@@ -259,16 +259,10 @@ static void draw_light(source_t *src)
 
 void add_bounceable(bounceable_type_t t, void *data)
 {
-  bounceables = realloc(bounceables, sizeof(bounceable_t) *
-    (1 + N_BOUNCEABLES));
-
-  bounceables[N_BOUNCEABLES] = (bounceable_t){
-    .t = t,
-    .data.p = data
-  };
+  bounceable_t b = (bounceable_t){.t = t, .data.p = data};
+  dyn_add(bounceables, b);
 
   TraceLog(LOG_INFO, "new bounceable with T = %02x", t);
-  N_BOUNCEABLES++;
 }
 
 void add_mirror(Vector2 p1, Vector2 p2)
@@ -488,6 +482,6 @@ int main(int argc, char **argv)
   }
 
   free(sources);
-  free(bounceables);
+  free(bounceables.v);
   scheme_deinit(&scm);
 }

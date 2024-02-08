@@ -43,6 +43,21 @@
         func " called with invalid n of args (expected " #n ")"); \
     return sc->F; }
 
+/*
+  typedef struct {
+    TYPE *v;
+    int n;
+    int size;
+  } Arr;
+*/
+#define DYN_BUMP_SIZE 128
+#define dyn_add(d, val) \
+  if (d.n + 1 > d.size) { \
+    d.v = realloc(d.v, sizeof(d.v[0]) * (d.size + DYN_BUMP_SIZE)); \
+    d.size += DYN_BUMP_SIZE; \
+  } \
+  d.v[d.n++] = (val);
+
 #ifdef PROD
 #define panic(fmt,...) (void)(0);
 #else
@@ -121,6 +136,13 @@ typedef struct {
   pointer *hooks;
   int n_hooks;
 } hookable_event_t;
+
+/* dyn arrs */
+typedef struct {
+  bounceable_t *v;
+  int n;
+  int size;
+} Bounceables;
 
 float normalize_angle(float f);
 float absf(float x);
