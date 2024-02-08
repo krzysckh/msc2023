@@ -78,3 +78,18 @@
  "getter dla flagi raylib"
  (args
   '((flag . "flaga zdefiniowana w `interop-helpers.scm` jako `FLAG-*`"))))
+
+(document-function
+ (rect-collision r1 r2)
+ "zwraca wspólny prostokąt dla r1 i r2. w razie braku, zwraca `(0 0 0 0)`")
+
+(document-function
+ (get-bounceable id)
+ "zwraca dane dla `bounceable_t` od id `id`")
+
+(document-function
+ (get-all-bounceables) 0)
+
+(document-function
+ (set-mirror! id pt1 pt2)
+ "zmienia dane zwierciadła o id `id`")

@@ -4,6 +4,10 @@
     (frame              . (#xdb #xbc #x7f #xff))
     (default-light      . (#xd6 #x99 #xb6 #xff))
     (background         . ,(car (get-winconf)))
+    (selection          . (#x9d #xa9 #xa0 #xff))
+    (selected           . (#xe6 #x98 #x75 #xff))
+    (red                . (#xe6 #x7e #x80 #xff))
+    (green              . (#xa7 #xc0 #x80 #xff))
     ))
 
 (define alice-blue             '(240 248 255 255))

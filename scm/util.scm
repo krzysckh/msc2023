@@ -191,3 +191,12 @@
 (define (avg l)
   "zwraca średnią z listy"
   (/ (sum l) (length l)))
+
+(define (true? v) v)
+
+(define (pts->rect p1 p2)
+  (list
+   (car p1)
+   (cdr p1)
+   (- (car p2) (car p1))
+   (- (cdr p2) (cdr p1))))

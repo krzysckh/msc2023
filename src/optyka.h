@@ -28,6 +28,8 @@
 
 // lol
 #define Cons(a,b) cons(sc, (a), (b))
+#define MKI(n) mk_integer(sc, (n))
+#define MR(f) mk_real(sc, (f))
 
 #define ctg(x) (pow(tan((x)),-1))
 

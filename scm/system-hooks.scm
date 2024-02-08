@@ -48,9 +48,6 @@
 (define mirror-last-y 0)
 (define drawing-new-mirror #f)
 
-;; bardzo fajna nazwa, nie ma za co
-;; ~ kpm
-
 (define (start-drawing-mirror-hook first left right)
   (when (and (eqv? *current-mode* 'mirror-drawing-mode) (or *click-can-be-handled* drawing-new-mirror) (not right))
     (set! *click-can-be-handled* #f)
@@ -132,6 +129,7 @@
                           (gui/new-source-form)))
     ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
     ("narysuj zwierciadło" . ,(→ (when (eqv? *current-mode* nil)
+                                   (tracelog 'info "narysuj nowe zwierciadło...")
                                    (set! *current-mode* 'mirror-drawing-mode))))))
 
 (add-hook
@@ -174,3 +172,175 @@
  'resize
  (→2 (set! *SCREEN-WIDTH* x)
      (set! *SCREEN-HEIGHT* y)))
+
+;;; selection-mode
+(define sel-mode:start-position nil)
+(define sel-mode:mirror-rects nil)
+(define sel-mode:selected-mirror-ids nil)
+(define sel-mode:last-time 0)
+
+(define (rect-collision? r1 r2)
+  (not (eqv? (sum (rect-collision r1 r2)) 0.0)))
+
+(add-hook
+ 'click
+ (lambda (first l r)
+   (when (and l (> (time) sel-mode:last-time))
+     (when (and (not first) *click-can-be-handled*)
+       (set! first #t))
+     (when (or (and *click-can-be-handled* (eqv? *current-mode* nil)) (eqv? *current-mode* 'selection))
+       (if first
+           (begin
+             (set! *click-can-be-handled* #f)
+             (set! sel-mode:start-position (get-mouse-position))
+             (set! *current-mode* 'selection)
+             (set! sel-mode:mirror-rects (map (→1 (apply pts->rect x)) (map cdr *mirrors*))))
+           (begin
+             (let* ((mp (get-mouse-position))
+                    (rect (list
+                           (car sel-mode:start-position)
+                           (cdr sel-mode:start-position)
+                           (- (car mp) (car sel-mode:start-position))
+                           (- (cdr mp) (cdr sel-mode:start-position))))
+                    (selected-mirror-map
+                     (map (→1 (rect-collision? rect x)) sel-mode:mirror-rects)))
+               (draw-text "selection-mode" (cons 16 (- *SCREEN-HEIGHT* 32)) 16 (aq 'font *colorscheme*))
+               (for-each
+                (→1 (gui/rect
+                     (list-ref sel-mode:mirror-rects x)
+                     (if (list-ref selected-mirror-map x)
+                         (aq 'green *colorscheme*)
+                         (aq 'red *colorscheme*))))
+                (⍳ 0 1 (length sel-mode:mirror-rects)))
+               (gui/rect rect (aq 'selection *colorscheme*)))))))))
+
+(add-hook
+ 'unclick
+ (→3 (when (and y (eqv? *current-mode* 'selection))
+       (set! *current-mode* 'selected)
+       (set!
+        sel-mode:selected-mirror-ids
+        (map car
+             (filter
+              (→1 (let ((mp (get-mouse-position)))
+                    (rect-collision?
+                     (pts->rect (cadr x) (caddr x))
+                     (list
+                      (car sel-mode:start-position)
+                      (cdr sel-mode:start-position)
+                      (- (car mp) (car sel-mode:start-position))
+                      (- (cdr mp) (cdr sel-mode:start-position))))))
+              *mirrors*)))
+
+       (start-selected-mode))))
+
+(define (start-selected-mode)
+  (stop-simulation)
+  (if (> (length sel-mode:selected-mirror-ids) 0)
+      (let* ((mp (get-mouse-position))
+             (real-sel-mirrors (map (→1 (assq x *mirrors*)) sel-mode:selected-mirror-ids))
+             (sel-mirrors (map cdr real-sel-mirrors))
+             (p1s (map car sel-mirrors))
+             (p2s (map cadr sel-mirrors))
+             (minx (minl (append (map car p1s) (map car p2s))))
+             (miny (minl (append (map cdr p1s) (map cdr p2s))))
+             (maxx (maxl (append (map car p1s) (map car p2s))))
+             (maxy (maxl (append (map cdr p1s) (map cdr p2s))))
+             (∆x 0)
+             (∆y 0)
+             (∆mouse nil)
+             (bounding-rect nil)
+             (update-bounding-rect
+              (→ (set! bounding-rect (list (+ ∆x minx)
+                                           (+ ∆y miny)
+                                           (- maxx minx)
+                                           (- maxy miny)))))
+             (_ (update-bounding-rect))
+             (mode-text-dest
+              (gui/draw-text-persist
+               "selected-mode" (cons 16 (- *SCREEN-HEIGHT* 32)) 16 (aq 'font *colorscheme*)))
+             (selected-id
+              (add-hook
+               'frame
+               (→ (for-each
+                   (→1 (draw-line
+                        (cons (+ ∆x (caar x)) (+ ∆y (cdar x)))
+                        (cons (+ ∆x (car (cadr x))) (+ ∆y (cdr (cadr x))))
+                        2 (aq 'selected *colorscheme*)))
+                   sel-mirrors))))
+             (b-rect-id (add-hook 'frame (→ (gui/rect bounding-rect (aq 'red *colorscheme*)))))
+             (cursor-handler-id
+              (add-hook
+               'frame
+               (→ (if (point-in-rect? (get-mouse-position) bounding-rect)
+                      (set-cursor MOUSE-CURSOR-RESIZE-ALL)
+                      (set-cursor MOUSE-CURSOR-ARROW)))))
+             (move-handler-id
+              (add-hook
+               'click
+               (lambda (first l r)
+                 (let ((mp (get-mouse-position)))
+                   (when first
+                     (set! ∆mouse (cons (- (car mp) minx ∆x)
+                                        (- (cdr mp) miny ∆y))))
+                   (set! ∆x (- (car mp) minx (car ∆mouse)))
+                   (set! ∆y (- (cdr mp) miny (cdr ∆mouse)))
+                   (update-bounding-rect)))))
+             (close-handler-id
+              (add-hook
+               'click
+               (lambda (first l r)
+                 (when (and first l (not (point-in-rect? (get-mouse-position) bounding-rect)))
+                   (mode-text-dest)
+                   (delete-hook 'frame selected-id)
+                   (delete-hook 'frame b-rect-id)
+                   (delete-hook 'frame cursor-handler-id)
+                   (delete-hook 'click move-handler-id)
+                   (delete-hook 'click close-handler-id)
+
+                   (for-each
+                    (→1 (let ((p1 (list-ref x 1))
+                              (p2 (list-ref x 2)))
+                          (set-mirror!
+                           (car x)
+                           (cons (+ ∆x (car p1)) (+ ∆y (cdr p1)))
+                           (cons (+ ∆x (car p2)) (+ ∆y (cdr p2))))))
+                    real-sel-mirrors)
+
+                   (end-selected-mode))))))
+
+
+             0)
+        (end-selected-mode)))
+
+(define (end-selected-mode)
+  (set! sel-mode:last-time (if (> (length sel-mode:selected-mirror-ids) 0)
+                               (time)
+                               0))
+  (set! *click-can-be-handled* #t)
+  (set! *current-mode* nil)
+  (start-simulation))
+
+;;; mirror data
+(define *mirrors* nil)
+(define (update-*mirrors*)
+  (let ((bbs (get-all-bounceables)))
+    (set!
+     *mirrors*
+     (map
+      (→1 (cons (car x) (cdr (cdr x))))
+      (filter
+       (→1 (if (not (eqv? (cdr x) #f))
+               (if (eqv? (cadr x) 'mirror)
+                   #t
+                   #f)
+               #f))
+       (map
+        (→1 (append (list x) (list-ref bbs x)))
+        (⍳ 0 1 (length bbs))))))))
+
+(add-hook
+ 'new
+ (→1 (cond
+      ((eqv? x 'mirror) (update-*mirrors*))
+      (else (error "not implemented: " x)))))

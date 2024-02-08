@@ -26,6 +26,7 @@ hookable_event_t unclick  = {0};
 hookable_event_t resize   = {0};
 hookable_event_t clocke   = {0}; // co sekundę
 hookable_event_t loge     = {0}; // na każdy TraceLog()
+hookable_event_t new      = {0}; // add_{mirror,lens}()
 
 hookable_event_t frame    = {0};
 /* uwaga uwaga: należy pamiętać o tym, żeby usuwać niepotrzebne hooki
@@ -55,6 +56,7 @@ static struct hlist_el hookable_events_list[] = {
   {"clock",    &clocke},
   {"log",      &loge},
   {"resize",   &resize},
+  {"new",      &new},
 };
 static int n_hookable_events = sizeof(hookable_events_list)/
   sizeof(*hookable_events_list);
@@ -111,7 +113,77 @@ void update_screen_size_variables(void)
   }
 }
 
-/* ---------- tu sie zaczyna implementacja funkcji przeróżnych ------------ */
+static pointer scm_get_all_of_thing(scheme *sc, int max, pointer(*f)(scheme*, pointer))
+{
+  pointer ret, cur;
+  int i;
+
+  if (max < 1)
+    return sc->F;
+
+  ret = cons(sc, f(sc, cons(sc, mk_integer(sc, 0), sc->NIL)),
+             sc->NIL);
+  cur = ret;
+
+  for (i = 1; i < max; ++i) {
+    set_cdr(cur, cons(sc, f(sc, cons(sc, mk_integer(sc, i), sc->NIL)), sc->NIL));
+    cur = cdr(cur);
+  }
+
+  return ret;
+}
+
+static Rectangle normalize_rectangle(Rectangle r)
+{
+  if (r.width < 0) {
+    r.width = -r.width;
+    r.x = r.x - r.width;
+  }
+  if (r.height < 0) {
+    r.height = -r.height;
+    r.y = r.y - r.height;
+  }
+
+  return r;
+}
+
+/* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
+
+// (set-cursor v)
+static pointer scm_set_cursor(scheme *sc, pointer args)
+{
+  expect_args("set-cursor", 1);
+
+  SetMouseCursor(rvalue(car(args)));
+  return sc->T;
+}
+
+// (rect-collision r1 r2)
+// nie mam pomysłu na ciekawszą nazwę lol
+// ~ kpm
+static pointer scm_rect_collision(scheme *sc, pointer args)
+{
+  Rectangle r1, r2, ret;
+  pointer sr1, sr2;
+  expect_args("rect-collision", 2);
+
+  sr1 = car(args);
+  sr2 = cadr(args);
+
+  r1 = (Rectangle) {
+    rvalue(car(sr1)), rvalue(cadr(sr1)),
+    rvalue(caddr(sr1)), rvalue(cadddr(sr1))
+  };
+
+  r2 = (Rectangle) {
+    rvalue(car(sr2)), rvalue(cadr(sr2)),
+    rvalue(caddr(sr2)), rvalue(cadddr(sr2))
+  };
+
+  ret = GetCollisionRec(normalize_rectangle(r1), normalize_rectangle(r2));
+
+  return Cons(MR(ret.x), Cons(MR(ret.y), Cons(MR(ret.width), Cons(MR(ret.height), sc->NIL))));
+}
 
 // (get-window-flag v) → #t | #f
 static pointer scm_get_window_flag(scheme *sc, pointer args)
@@ -407,26 +479,9 @@ static pointer scm_get_source(scheme *sc, pointer args)
 static pointer scm_get_all_sources(scheme *sc, pointer args)
 {
   extern int N_SOURCES;
-  extern source_t *sources;
-  (void)args;
+  expect_args("get-all-sources", 0);
 
-  pointer ret, cur;
-  int i;
-
-  if (N_SOURCES < 1)
-    return sc->F;
-
-  ret = cons(sc, scm_get_source(sc, cons(sc, mk_integer(sc, 0), sc->NIL)),
-             sc->NIL);
-  cur = ret;
-
-  for (i = 1; i < N_SOURCES; ++i) {
-    set_cdr(cur, cons(sc, scm_get_source(sc, cons(sc, mk_integer(sc, i),
-      sc->NIL)), sc->NIL));
-    cur = cdr(cur);
-  }
-
-  return ret;
+  return scm_get_all_of_thing(sc, N_SOURCES, scm_get_source);
 }
 
 // (real-draw-line x1 y1 x2 y2 thickness r g b a) → nil
@@ -540,9 +595,86 @@ static pointer scm_create_mirror(scheme *sc, pointer args)
   y2 = rvalue(cadddr(args));
 
   add_mirror((Vector2){x1,y1}, (Vector2){x2,y2});
+  do_hooks(&new, Cons(mk_symbol(sc, "mirror"), sc->NIL));
 
   return sc->NIL;
 }
+
+// (get-bounceable id) → TYPE_data_t
+static pointer scm_get_bounceable(scheme *sc, pointer args)
+{
+  int id;
+  bounceable_t *cur;
+  extern bounceable_t *bounceables;
+  extern int N_BOUNCEABLES;
+
+  expect_args("get-bounceable", 1);
+
+  id = rvalue(car(args));
+  if (id >= 0 && id <= N_BOUNCEABLES) {
+    cur = &bounceables[id];
+    switch (cur->t) {
+    case B_MIRROR: {
+      Vector2 p1 = cur->data.mirror->p1, p2 = cur->data.mirror->p2;
+      // ('mirror (x . y) (x . y))
+      return Cons(mk_symbol(sc, "mirror"),
+                  Cons(Cons(MKI(p1.x), MKI(p1.y)),
+                       Cons(Cons(MKI(p2.x), MKI(p2.y)), sc->NIL)));
+    } break;
+    default: {
+      warnx("%s: only B_MIRROR implemented for get-bounceable", __func__);
+    }
+    }
+  } else {
+    TraceLog(LOG_ERROR, "no such bounceable: %d", id);
+  }
+
+  return sc->F;
+}
+
+// (set-mirror! id pt1 pt2)
+static pointer scm_set_mirror(scheme *sc, pointer args)
+{
+  extern int N_BOUNCEABLES;
+  extern bounceable_t *bounceables;
+  int id;
+  Vector2 p1, p2;
+  pointer sp1, sp2;
+
+  expect_args("set-mirror!", 3);
+  id  = rvalue(car(args));
+  sp1 = cadr(args);
+  sp2 = caddr(args);
+
+  p1.x = rvalue(car(sp1)), p1.y = rvalue(cdr(sp1));
+  p2.x = rvalue(car(sp2)), p2.y = rvalue(cdr(sp2));
+
+  if (id >= 0 && id < N_BOUNCEABLES) {
+    if (bounceables[id].t == B_MIRROR) {
+      bounceables[id].data.mirror->p1 = p1;
+      bounceables[id].data.mirror->p2 = p2;
+
+      // no prawie
+      do_hooks(&new, Cons(mk_symbol(sc, "mirror"), sc->NIL));
+      return sc->T;
+    } else {
+      TraceLog(LOG_ERROR, "couldn't set-mirror! with id %d: not a mirror", id);
+    }
+  } else {
+    TraceLog(LOG_ERROR, "couldn't set-mirror! with id %d: no such bounceable", id);
+  }
+
+  return sc->F;
+}
+
+static pointer scm_get_all_bounceables(scheme *sc, pointer args)
+{
+  extern int N_BOUNCEABLES;
+  expect_args("get-all-bounceables", 0);
+
+  return scm_get_all_of_thing(sc, N_BOUNCEABLES, scm_get_bounceable);
+}
+
 
 // (real-create-source x y sz angle thickness reactive n_beams color) → nil
 // reactive? to #t | #f
@@ -580,29 +712,34 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
-  SCHEME_FF(scm_get_window_flag,    "get-window-flag");
-  SCHEME_FF(scm_set_window_flag,    "set-window-flag");
-  SCHEME_FF(scm_fill_rect,          "real-fill-rect");
-  SCHEME_FF(scm_tracelog,           "real-tracelog");
-  SCHEME_FF(scm_set_winconf,        "set-winconf");
-  SCHEME_FF(scm_get_winconf,        "get-winconf");
-  SCHEME_FF(scm_get_screen_size,    "get-screen-size");
-  SCHEME_FF(scm_time_since_init,    "time-since-init");
-  SCHEME_FF(scm_time,               "time");
-  SCHEME_FF(scm_system,             "system");
-  SCHEME_FF(scm_exit,               "exit");
-  SCHEME_FF(scm_loads,              "loads");
-  SCHEME_FF(scm_delete_hook,        "delete-hook");
-  SCHEME_FF(scm_measure_text,       "real-measure-text");
-  SCHEME_FF(scm_draw_text,          "real-draw-text");
-  SCHEME_FF(scm_set_source,         "real-set-source!");
-  SCHEME_FF(scm_get_source,         "get-source");
-  SCHEME_FF(scm_get_all_sources,    "get-all-sources");
-  SCHEME_FF(scm_create_mirror,      "create-mirror");
-  SCHEME_FF(scm_create_source,      "real-create-source");
-  SCHEME_FF(scm_add_hook,           "real-add-hook");
-  SCHEME_FF(scm_get_mouse_position, "get-mouse-position");
-  SCHEME_FF(scm_draw_line,          "real-draw-line");
+  SCHEME_FF(scm_set_mirror,          "set-mirror!");
+  SCHEME_FF(scm_set_cursor,          "set-cursor");
+  SCHEME_FF(scm_rect_collision,      "rect-collision");
+  SCHEME_FF(scm_get_all_bounceables, "get-all-bounceables");
+  SCHEME_FF(scm_get_bounceable,      "get-bounceable");
+  SCHEME_FF(scm_get_window_flag,     "get-window-flag");
+  SCHEME_FF(scm_set_window_flag,     "set-window-flag");
+  SCHEME_FF(scm_fill_rect,           "real-fill-rect");
+  SCHEME_FF(scm_tracelog,            "real-tracelog");
+  SCHEME_FF(scm_set_winconf,         "set-winconf");
+  SCHEME_FF(scm_get_winconf,         "get-winconf");
+  SCHEME_FF(scm_get_screen_size,     "get-screen-size");
+  SCHEME_FF(scm_time_since_init,     "time-since-init");
+  SCHEME_FF(scm_time,                "time");
+  SCHEME_FF(scm_system,              "system");
+  SCHEME_FF(scm_exit,                "exit");
+  SCHEME_FF(scm_loads,               "loads");
+  SCHEME_FF(scm_delete_hook,         "delete-hook");
+  SCHEME_FF(scm_measure_text,        "real-measure-text");
+  SCHEME_FF(scm_draw_text,           "real-draw-text");
+  SCHEME_FF(scm_set_source,          "real-set-source!");
+  SCHEME_FF(scm_get_source,          "get-source");
+  SCHEME_FF(scm_get_all_sources,     "get-all-sources");
+  SCHEME_FF(scm_create_mirror,       "create-mirror");
+  SCHEME_FF(scm_create_source,       "real-create-source");
+  SCHEME_FF(scm_add_hook,            "real-add-hook");
+  SCHEME_FF(scm_get_mouse_position,  "get-mouse-position");
+  SCHEME_FF(scm_draw_line,           "real-draw-line");
 }
 
 void initialize_scheme(void)

@@ -5,6 +5,8 @@
 (define *SCREEN-WIDTH* (car *SCREEN-SIZE*))
 (define *SCREEN-HEIGHT* (cdr *SCREEN-SIZE*))
 
+;; prosto z raylib.h
+;; (4.5)
 (define FLAG-VSYNC-HINT #x00000040)
 (define FLAG-FULLSCREEN-MODE #x00000002)
 (define FLAG-WINDOW-RESIZABLE #x00000004)
@@ -20,6 +22,18 @@
 (define FLAG-WINDOW-MOUSE-PASSTHROUGH #x00004000)
 (define FLAG-MSAA-4X-HINT #x00000020)
 (define FLAG-INTERLACED-HINT #x00010000)
+
+(define MOUSE-CURSOR-DEFAULT       0) ; default pointer shape
+(define MOUSE-CURSOR-ARROW         1) ; arrow shape
+(define MOUSE-CURSOR-IBEAM         2) ; text writing cursor shape
+(define MOUSE-CURSOR-CROSSHAIR     3) ; cross shape
+(define MOUSE-CURSOR-POINTING-HAND 4) ; pointing hand cursor
+(define MOUSE-CURSOR-RESIZE-EW     5) ; horizontal resize/move arrow shape
+(define MOUSE-CURSOR-RESIZE-NS     6) ; vertical resize/move arrow shape
+(define MOUSE-CURSOR-RESIZE-NWSE   7) ; top-left to bottom-right diagonal resize/move arrow shape
+(define MOUSE-CURSOR-RESIZE-NESW   8) ; the top-right to bottom-left diagonal resize/move arrow shape
+(define MOUSE-CURSOR-RESIZE-ALL    9) ; the omnidirectional resize/move cursor shape
+(define MOUSE-CURSOR-NOT-ALLOWED   10); the operation-not-allowed shape
 
 (define (aq e alist)
   "zwraca wynik assq bez car"
@@ -198,3 +212,10 @@
 
 (define (experimental/toggle-resizable)
   (set-window-flag FLAG-WINDOW-RESIZABLE (not (get-window-flag FLAG-WINDOW-RESIZABLE))))
+
+(define (add-mirror p1 p2)
+  "wywołuje `create-mirror`, tylko, że argumenty to punkty w parach"
+  (args
+   '((p1 . "'(x . y)")
+     (p2 . "'(x . y)")))
+  (create-mirror (car p1) (cdr p1) (car p2) (cdr p2)))
