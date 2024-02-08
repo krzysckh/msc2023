@@ -10,4 +10,9 @@ void errx(int v, char *fmt, va_list vl)
   exit(v);
 }
 
+void warnx(int v, char *fmt, va_list vl)
+{
+  vfprintf(stderr, fmt, vl);
+}
+
 #endif
