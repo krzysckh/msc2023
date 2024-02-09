@@ -190,7 +190,8 @@ zwraca **destruktor** - funkcję usuwającą go"
   (let ((frame-id
          (add-hook
           'frame
-          (→ (gui/rect rect (aq 'frame *colorscheme*))
+          (→ (fill-rect rect (aq 'background *colorscheme*))
+             (gui/rect rect (aq 'frame *colorscheme*))
              (draw-text
               text
               (cons
@@ -252,7 +253,8 @@ zwraca **destruktor** - funkcję usuwającą go"
          (frame-id
           (add-hook
            'frame
-           (→ (gui/rect inner-rect (aq 'frame *colorscheme*))
+           (→ (fill-rect inner-rect (aq 'background *colorscheme*))
+              (gui/rect inner-rect (aq 'frame *colorscheme*))
               (update-slider-rect)
               (fill-rect slider-rect (aq 'frame *colorscheme*))
 

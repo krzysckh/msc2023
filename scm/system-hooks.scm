@@ -130,11 +130,11 @@
 (define mouse-menu
   `(("nowe źródło" . ,(→ (set! gui/new-source-form:pos (get-mouse-position))
                           (gui/new-source-form)))
-    ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
     ("narysuj zwierciadło" . ,(→ (when (eqv? *current-mode* nil)
                                    (set-cursor MOUSE-CURSOR-CROSSHAIR)
                                    (tracelog 'info "narysuj nowe zwierciadło...")
-                                   (set! *current-mode* 'mirror-drawing-mode))))))
+                                   (set! *current-mode* 'mirror-drawing-mode))))
+    ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))))
 
 (add-hook
  'unclick
