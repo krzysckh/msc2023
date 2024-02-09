@@ -72,12 +72,13 @@
 
 ;; (define d (show-fps '(16 . 16)))
 
+(define % modulo)
 (define (rand-mirror)
   (add-mirror
-   (cons (modulo (random-next) *SCREEN-WIDTH*)
-         (modulo (random-next) *SCREEN-HEIGHT*))
-   (cons (modulo (random-next) *SCREEN-WIDTH*)
-         (modulo (random-next) *SCREEN-HEIGHT*))))
+   (cons (% (random-next) *SCREEN-WIDTH*)
+         (% (random-next) *SCREEN-HEIGHT*))
+   (cons (% (random-next) *SCREEN-WIDTH*)
+         (% (random-next) *SCREEN-HEIGHT*))))
 
 ;; (for-each rand-mirror (⍳ 0 1 128))
 ;; (rand-mirror)

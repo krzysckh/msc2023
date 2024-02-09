@@ -362,8 +362,7 @@ static void tracelog_cb(int type, const char *fmt, va_list vl)
     do_hooks(&loge,
              cons(&scm,
                   logtype2sym(type),
-
-cons(&scm,
+                  cons(&scm,
                        mk_string(&scm, tracelog_buf),
                        scm.NIL)));
 
