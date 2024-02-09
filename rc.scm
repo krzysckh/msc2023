@@ -31,6 +31,21 @@
     (→ (delete-hook 'frame frame-id)
        (delete-hook 'clock clock-id))))
 
+(define hookable '(keypress click unclick resize clock log new update frame))
+(define (show-hook-status)
+  (let ((id (add-hook
+             'frame
+             (→ (for-each
+                 (→1 (let* ((sym (list-ref hookable x))
+                            (n (length (get-all-hooks sym))))
+                       (draw-text (string-append (symbol->string sym) " " (number->string n))
+                                  (cons 16 (- *SCREEN-HEIGHT* 32 (+ 10 (* x 20))))
+                                  16
+                                  white)))
+                 (⍳ 0 1 (length hookable)))))))
+    (→ (delete-hook 'frame id))))
+
+(define hook-status-dest nil)
 (define window-opts-dest nil)
 (define fps-dest nil)
 (define (kp-hook k d)
@@ -50,6 +65,12 @@
           (begin
             (window-opts-dest)
             (set! window-opts-dest nil))))
+     ((eqv? k #\?)
+      (if (null? hook-status-dest)
+          (set! hook-status-dest (show-hook-status))
+          (begin
+            (hook-status-dest)
+            (set! hook-status-dest nil))))
      ((eqv? k #\f)
       (if (null? fps-dest)
           (set! fps-dest (show-fps '(16 . 16)))
@@ -70,8 +91,6 @@
 ;; (define (toggle-flag flag)
 ;;   (set-window-flag flag (not (get-window-flag flag))))
 
-
-;; (define d (show-fps '(16 . 16)))
 
 (set! *seed* (time))
 (define % modulo)

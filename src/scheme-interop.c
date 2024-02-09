@@ -149,7 +149,88 @@ static Rectangle normalize_rectangle(Rectangle r)
   return r;
 }
 
+static hookable_event_t *get_he_by_name(char *name)
+{
+  int i;
+  for (i = 0; i < n_hookable_events; ++i)
+    if (strcmp(hookable_events_list[i].nam, name) == 0)
+      return hookable_events_list[i].he;
+
+  return NULL;
+}
+
+static int get_real_n_hooks(hookable_event_t *he)
+{
+  int n = 0, i;
+  for (i = 0; i < he->n_hooks; ++i)
+    if (he->hooks[i])
+      n++;
+
+  return n;
+}
+
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
+
+// (get-hook 'type id)
+static pointer scm_get_hook(scheme *sc, pointer args)
+{
+  char *type;
+  int id;
+  hookable_event_t *he;
+  expect_args("get-hook", 2);
+
+  type = symname(car(args));
+  id = rvalue(cadr(args));
+
+  he = get_he_by_name(type);
+  // chuj dupa biskupa
+  // ~ kpm
+  if (he) {
+    if (id >= 0 && id < he->n_hooks) {
+      if (he->hooks[id])
+        return he->hooks[id];
+      else
+        TraceLog(LOG_ERROR, "no such lambda: %s @ %d", type, id);
+    } else
+      TraceLog(LOG_ERROR, "no such lambda: %s @ %d", type, id);
+  } else
+    TraceLog(LOG_ERROR, "no such hookable event: %s", type);
+
+  return sc->F;
+}
+
+// (get-all-hooks 'type)
+static pointer scm_get_all_hooks(scheme *sc, pointer args)
+{
+  pointer ret, cur;
+  int i;
+  char *type;
+  hookable_event_t *he;
+  expect_args("get-all-hooks", 1);
+
+  type = symname(car(args));
+  he = get_he_by_name(type);
+
+  if (!he) {
+    TraceLog(LOG_ERROR, "no such hookable event: %s", type);
+    return sc->F;
+  }
+
+  ret = sc->NIL;
+  for (i = 0; i < he->n_hooks; ++i) {
+    if (he->hooks[i]) {
+      if (ret == sc->NIL) {
+        ret = Cons(he->hooks[i], sc->NIL);
+        cur = ret;
+      } else {
+        set_cdr(cur, Cons(he->hooks[i], sc->NIL));
+        cur = cdr(cur);
+      }
+    }
+  }
+
+  return ret;
+}
 
 // (set-cursor v)
 static pointer scm_set_cursor(scheme *sc, pointer args)
@@ -506,16 +587,6 @@ static pointer scm_draw_line(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-static hookable_event_t *get_he_by_name(char *name)
-{
-  int i;
-  for (i = 0; i < n_hookable_events; ++i)
-    if (strcmp(hookable_events_list[i].nam, name) == 0)
-      return hookable_events_list[i].he;
-
-  return NULL;
-}
-
 // (delete-hook sym id) → nil
 static pointer scm_delete_hook(scheme *sc, pointer args)
 {
@@ -712,6 +783,8 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_get_all_hooks,       "get-all-hooks");
+  SCHEME_FF(scm_get_hook,            "get-hook");
   SCHEME_FF(scm_set_mirror,          "set-mirror!");
   SCHEME_FF(scm_set_cursor,          "set-cursor");
   SCHEME_FF(scm_rect_collision,      "rect-collision");

@@ -359,15 +359,15 @@ static void tracelog_cb(int type, const char *fmt, va_list vl)
   fprintf(stderr, "%s: %s\n", logtype2string(type), tracelog_buf);
   fflush(stderr);
 
-  if (scheme_is_initialized)
-    do_hooks(&loge,
-             cons(&scm,
-                  logtype2sym(type),
-                  cons(&scm,
-                       mk_string(&scm, tracelog_buf),
-                       scm.NIL)));
-
-
+  if (scheme_is_initialized) {
+    if (strncmp(tracelog_buf, "GLFW", 4) != 0)
+      do_hooks(&loge,
+               cons(&scm,
+                    logtype2sym(type),
+                    cons(&scm,
+                         mk_string(&scm, tracelog_buf),
+                         scm.NIL)));
+  }
 }
 
 int main(int argc, char **argv)

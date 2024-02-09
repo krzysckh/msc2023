@@ -24,6 +24,7 @@
               (when (point-in-rect?
                      mp (list (+ x (/ *source-size* 2))
                               (+ y (/ *source-size* 2)) *source-size* *source-size*))
+                (set-cursor MOUSE-CURSOR-RESIZE-ALL)
                 (set! *click-can-be-handled* #f)
                 (set! *current-click-handler* 'REPOSITION-SOURCE-HOOK)
                 (set! repositioning-dx (- (car mp) x *source-size*))
@@ -37,6 +38,7 @@
 
 (define (reposition-source-end-hook first left right)
   (when repositioning-source
+    (set-cursor MOUSE-CURSOR-DEFAULT)
     (set! *click-can-be-handled* #t)
     (set! repositioning-source #f)))
 
@@ -64,6 +66,7 @@
 
 (define (end-drawing-mirror-hook first left right)
   (when drawing-new-mirror
+    (set-cursor MOUSE-CURSOR-DEFAULT)
     (set! *click-can-be-handled* #t)
     (set! drawing-new-mirror #f)
     (set! *current-mode* nil)
@@ -129,6 +132,7 @@
                           (gui/new-source-form)))
     ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
     ("narysuj zwierciadło" . ,(→ (when (eqv? *current-mode* nil)
+                                   (set-cursor MOUSE-CURSOR-CROSSHAIR)
                                    (tracelog 'info "narysuj nowe zwierciadło...")
                                    (set! *current-mode* 'mirror-drawing-mode))))))
 
