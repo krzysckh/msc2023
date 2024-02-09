@@ -37,6 +37,7 @@
   (when *keypress-can-be-handled*
     (cond
      ((eqv? k #\s) (spawn-things))
+     ((eqv? k #\m) (rand-mirror))
      ((eqv? k #\+)
       (set! current-thickness (min (+ current-thickness 1) max-thickness))
       (update-thicknesses))
@@ -72,6 +73,7 @@
 
 ;; (define d (show-fps '(16 . 16)))
 
+(set! *seed* (time))
 (define % modulo)
 (define (rand-mirror)
   (add-mirror
@@ -81,4 +83,4 @@
          (% (random-next) *SCREEN-HEIGHT*))))
 
 ;; (for-each rand-mirror (⍳ 0 1 128))
-;; (rand-mirror)
+(rand-mirror)

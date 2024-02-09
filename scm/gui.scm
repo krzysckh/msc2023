@@ -463,13 +463,19 @@ zwraca **destruktor** - funkcję usuwającą go"
      w h)))
 
 (define (gui/mp-slider+ok from to cb)
+  (set! *click-can-be-handled* #f)
+  (set! *gui/button-force-can-be-handled* #t)
+  (set! *gui/slider-force-can-be-handled* #t)
   (let* ((mp (get-mouse-position))
          (sl-rect (gui/rect-fit-into-screen (list (car mp) (cdr mp) 180 32))))
     (letrec ((slider-dest (gui/slider sl-rect from to cb))
              (btn-dest
               (car (gui/btn (cons (car sl-rect) (+ (cadr sl-rect) 48))
                             "Ok"
-                            (→ (slider-dest)
+                            (→ (set! *click-can-be-handled* #t)
+                               (set! *gui/button-force-can-be-handled* #f)
+                               (set! *gui/slider-force-can-be-handled* #f)
+                               (slider-dest)
                                (btn-dest))))))
       0)))
 

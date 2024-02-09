@@ -412,7 +412,7 @@ int main(int argc, char **argv)
   SetExitKey(-1);
   load_rc();
 
-  add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f);
+  /* add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f); */
 
   time_prev = time_cur = time(NULL);
   while (!WindowShouldClose()) {
