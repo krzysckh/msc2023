@@ -464,7 +464,7 @@ zwraca **destruktor** - funkcję usuwającą go"
 
 (define (gui/mp-slider+ok from to cb)
   (let* ((mp (get-mouse-position))
-         (sl-rect (gui/rect-fit-into-screen (list (car mp) (cdr mp) 128 32))))
+         (sl-rect (gui/rect-fit-into-screen (list (car mp) (cdr mp) 180 32))))
     (letrec ((slider-dest (gui/slider sl-rect from to cb))
              (btn-dest
               (car (gui/btn (cons (car sl-rect) (+ (cadr sl-rect) 48))

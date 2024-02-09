@@ -27,6 +27,7 @@ hookable_event_t resize   = {0};
 hookable_event_t clocke   = {0}; // co sekundę
 hookable_event_t loge     = {0}; // na każdy TraceLog()
 hookable_event_t new      = {0}; // add_{mirror,lens}()
+hookable_event_t update   = {0}; // set_{mirror,lens}()
 
 hookable_event_t frame    = {0};
 /* uwaga uwaga: należy pamiętać o tym, żeby usuwać niepotrzebne hooki
@@ -57,6 +58,7 @@ static struct hlist_el hookable_events_list[] = {
   {"log",      &loge},
   {"resize",   &resize},
   {"new",      &new},
+  {"update",   &update},
 };
 static int n_hookable_events = sizeof(hookable_events_list)/
   sizeof(*hookable_events_list);
@@ -652,8 +654,8 @@ static pointer scm_set_mirror(scheme *sc, pointer args)
       bounceables.v[id].data.mirror->p1 = p1;
       bounceables.v[id].data.mirror->p2 = p2;
 
-      // no prawie
-      do_hooks(&new, Cons(mk_symbol(sc, "mirror"), sc->NIL));
+      // lol
+      do_hooks(&update, Cons(mk_symbol(sc, "mirror"), Cons(MKI(id), sc->NIL)));
       return sc->T;
     } else {
       TraceLog(LOG_ERROR, "couldn't set-mirror! with id %d: not a mirror", id);

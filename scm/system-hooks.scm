@@ -323,7 +323,7 @@
 
 ;;; mirror data
 (define *mirrors* nil)
-(define (update-*mirrors*)
+(define (reload-*mirrors*)
   (let ((bbs (get-all-bounceables)))
     (set!
      *mirrors*
@@ -339,8 +339,23 @@
         (→1 (append (list x) (list-ref bbs x)))
         (⍳ 0 1 (length bbs))))))))
 
+(define (update-*mirrors* id)
+  (set!
+   *mirrors*
+   (map
+    (→1 (if (eqv? (car x) id)
+            (append (list id) (cdr (get-bounceable id)))
+            x))
+    *mirrors*)))
+
 (add-hook
  'new
  (→1 (cond
-      ((eqv? x 'mirror) (update-*mirrors*))
+      ((eqv? x 'mirror) (reload-*mirrors*))
+      (else (error "not implemented: " x)))))
+
+(add-hook
+ 'update
+ (→2 (cond
+      ((eqv? x 'mirror) (update-*mirrors* y))
       (else (error "not implemented: " x)))))
