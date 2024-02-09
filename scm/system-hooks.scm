@@ -134,7 +134,8 @@
                                    (set-cursor MOUSE-CURSOR-CROSSHAIR)
                                    (tracelog 'info "narysuj nowe zwierciadło...")
                                    (set! *current-mode* 'mirror-drawing-mode))))
-    ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))))
+    ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
+    ("wyczyść *tracelog-queue*" . ,(→ (set! *tracelog-queue* nil)))))
 
 (add-hook
  'unclick
