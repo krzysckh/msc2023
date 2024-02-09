@@ -352,10 +352,15 @@
             x))
     *mirrors*)))
 
+(define (new-mirror-update-*mirrors* id)
+  (set!
+   *mirrors*
+   (append *mirrors* (list (append (list id) (cdr (get-bounceable id)))))))
+
 (add-hook
  'new
- (→1 (cond
-      ((eqv? x 'mirror) (reload-*mirrors*))
+ (→2 (cond
+      ((eqv? x 'mirror) (new-mirror-update-*mirrors* y)) ; TODO: wymysl lepsza nazwe + idk czy reload-*mirrors* bedzie kiedykolwiek potrzebne
       (else (error "not implemented: " x)))))
 
 (add-hook

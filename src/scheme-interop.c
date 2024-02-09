@@ -659,6 +659,7 @@ static pointer scm_get_mouse_position(scheme *sc, pointer args)
 static pointer scm_create_mirror(scheme *sc, pointer args)
 {
   int x1, y1, x2, y2;
+  extern Bounceables bounceables;
 
   expect_args("create-mirror", 4);
 
@@ -668,7 +669,7 @@ static pointer scm_create_mirror(scheme *sc, pointer args)
   y2 = rvalue(cadddr(args));
 
   add_mirror((Vector2){x1,y1}, (Vector2){x2,y2});
-  do_hooks(&new, Cons(mk_symbol(sc, "mirror"), sc->NIL));
+  do_hooks(&new, Cons(mk_symbol(sc, "mirror"), Cons(MKI(bounceables.n-1), sc->NIL)));
 
   return sc->NIL;
 }

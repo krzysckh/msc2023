@@ -101,5 +101,4 @@
    (cons (% (random-next) *SCREEN-WIDTH*)
          (% (random-next) *SCREEN-HEIGHT*))))
 
-;; (for-each rand-mirror (⍳ 0 1 128))
-(rand-mirror)
+;; (for-each rand-mirror (⍳ 0 1 1024))
