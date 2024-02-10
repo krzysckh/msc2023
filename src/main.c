@@ -412,6 +412,10 @@ int main(int argc, char **argv)
 
   SetTargetFPS(30);
 
+#ifdef ANTIALIAS
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
+#endif
+
   InitWindow(800, 600, "giga optyka");
   initialize_scheme();
   SetExitKey(-1);

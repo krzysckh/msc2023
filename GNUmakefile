@@ -4,7 +4,10 @@ TARGET=./main
 
 CSTD=-std=gnu11
 
-CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) -g $(ACFLAGS)
+# do przemyślenia
+FEATURES=-DANTIALIAS
+
+CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) $(FEATURES) $(ACFLAGS) -g
 LDFLAGS=-lm -L/usr/local/lib -lraylib $(ALDFLAGS)
 
 SCMFILES!=echo tinyscheme/r5rs.scm `find scm -type f -name '*.scm'`
