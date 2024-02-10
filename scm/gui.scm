@@ -8,7 +8,7 @@
         (y (list-ref rect 1))
         (w (list-ref rect 2))
         (h (list-ref rect 3)))
-    (draw-line `(,x . ,y)       `(,(+ x w) . ,y)       1 c)
+    (draw-line `(,(- x 1) . ,y) `(,(+ x w) . ,y)       1 c)
     (draw-line `(,x . ,(+ y h)) `(,(+ x w) . ,(+ y h)) 1 c)
     (draw-line `(,x . ,y)       `(,x       . ,(+ y h)) 1 c)
     (draw-line `(,(+ x w) . ,y) `(,(+ x w) . ,(+ y h)) 1 c)))
