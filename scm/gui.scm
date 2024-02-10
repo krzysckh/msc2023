@@ -129,15 +129,21 @@
 ;; TODO: uzyj gui/button zamiast ad-hoc sztynksów
 (define *gui/option-menu-text-size* 16)
 (define gui/option-menu:ident 'GUI-option-menu)
-(define (gui/option-menu pos opts)
+(define *gui/option-menu-force-can-be-handled* #f)
+(define (gui/option-menu pos opts . exit-handler)
   (args
    '((pos . "pozycja lewego-górnego punktu opcji w formie `(x . y)`")
      (opts . "opcje w formie ((tekst . funkcja) (tekst . funkcja) ...)")))
 
-  (when (and *click-can-be-handled* (eqv? *current-mode* nil))
-    (set! *click-can-be-handled* #f)
-    (set! *current-click-handler* gui/option-menu:ident)
+  (when (or (and *click-can-be-handled* (eqv? *current-mode* nil))
+            *gui/option-menu-force-can-be-handled*)
+    (when (not *gui/option-menu-force-can-be-handled*)
+      (set! *click-can-be-handled* #f)
+      (set! *current-click-handler* gui/option-menu:ident))
     (let* ((measures (map (→1 (measure-text x *gui/option-menu-text-size*)) (map car opts)))
+           (onexit (if (null? exit-handler)
+                       (→ 0)
+                       (car exit-handler)))
            (w (maxl (map car measures)))
            (h (+ (sum (map cdr measures)) (* 4 (length opts))))
            (x (if (> (+ w (car pos)) *SCREEN-WIDTH*) (- *SCREEN-WIDTH* w) (car pos)))
@@ -164,15 +170,17 @@
              (lambda (first l r)
                (when l
                  (let ((mp (get-mouse-position)))
-                   (set! *click-can-be-handled* #t)
-                   (set! *current-click-handler* nil)
+                   (when (not *gui/option-menu-force-can-be-handled*)
+                     (set! *click-can-be-handled* #t)
+                     (set! *current-click-handler* nil))
                    (delete-hook 'unclick click-id)
                    (delete-hook 'frame frame-id)
-                   (when (point-in-rect? mp real-rect)
-                     (for-each
-                      (→1 (when (point-in-rect? mp (list-ref rects x))
-                            ((cdr (list-ref opts x)))))
-                      (iota 0 1 (length opts)))))))))))))
+                   (if (point-in-rect? mp real-rect)
+                       (for-each
+                        (→1 (when (point-in-rect? mp (list-ref rects x))
+                              ((cdr (list-ref opts x)))))
+                        (iota 0 1 (length opts)))
+                       (onexit)))))))))))
 
 ;;; gui/button
 ;; to troche posrana i skomplikowana sprawa, ale że nie mam innego pomysłu to cusz

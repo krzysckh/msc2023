@@ -28,6 +28,7 @@ hookable_event_t clocke   = {0}; // co sekundę
 hookable_event_t loge     = {0}; // na każdy TraceLog()
 hookable_event_t new      = {0}; // add_{mirror,lens}()
 hookable_event_t update   = {0}; // set_{mirror,lens}()
+hookable_event_t delete   = {0}; // {mirror,lens}...removed = 1
 
 hookable_event_t frame    = {0};
 /* uwaga uwaga: należy pamiętać o tym, żeby usuwać niepotrzebne hooki
@@ -59,6 +60,7 @@ static struct hlist_el hookable_events_list[] = {
   {"resize",   &resize},
   {"new",      &new},
   {"update",   &update},
+  {"delete",   &delete},
 };
 static int n_hookable_events = sizeof(hookable_events_list)/
   sizeof(*hookable_events_list);
@@ -170,6 +172,25 @@ static int get_real_n_hooks(hookable_event_t *he)
 }
 
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
+
+// (delete-bounceable id)
+static pointer scm_delete_bounceable(scheme *sc, pointer args)
+{
+  int id;
+  extern Bounceables bounceables;
+
+  expect_args("delete-bounceable", 1);
+  id = rvalue(car(args));
+
+  if (id >= 0 && id < bounceables.n) {
+    bounceables.v[id].removed = 1;
+    do_hooks(&delete, Cons(mk_symbol(sc, "mirror"), Cons(MKI(id), sc->NIL)));
+    return sc->T;
+  }
+
+  TraceLog(LOG_ERROR, "no such bounceable: %d", id);
+  return sc->F;
+}
 
 // (get-hook 'type id)
 static pointer scm_get_hook(scheme *sc, pointer args)
@@ -784,6 +805,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_delete_bounceable,   "delete-bounceable");
   SCHEME_FF(scm_get_all_hooks,       "get-all-hooks");
   SCHEME_FF(scm_get_hook,            "get-hook");
   SCHEME_FF(scm_set_mirror,          "set-mirror!");

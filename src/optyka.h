@@ -111,6 +111,7 @@ typedef struct {
 
 typedef struct {
   bounceable_type_t t;
+  bool removed;
   union {
     mirror_data_t *mirror;
     lens_data_t   *lens;

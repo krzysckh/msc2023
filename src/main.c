@@ -129,15 +129,17 @@ static void draw_all_bounceables(void)
 {
   int i;
   for (i = 0; i < bounceables.n; ++i) {
-    switch (bounceables.v[i].t) {
-    case B_MIRROR:
-      draw_mirror(&bounceables.v[i]);
-      break;
-    case B_LENS:
-      draw_lens(&bounceables.v[i]);
-      break;
-    default:
-      panic("unreachable");
+    if (!bounceables.v[i].removed) {
+      switch (bounceables.v[i].t) {
+      case B_MIRROR:
+        draw_mirror(&bounceables.v[i]);
+        break;
+      case B_LENS:
+        draw_lens(&bounceables.v[i]);
+        break;
+      default:
+        panic("unreachable");
+      }
     }
   }
 }
@@ -153,23 +155,25 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
     source = Vector2MoveTowards(source, target, CAST_LIGHT_STEP_SIZE);
 
     for (i = 0; i < bounceables.n; ++i) {
-      switch (bounceables.v[i].t) {
-      case B_MIRROR:
-        if (CheckCollisionPointLine(source,
-              bounceables.v[i].data.mirror->p1,
-              bounceables.v[i].data.mirror->p2,
-              CAST_LIGHT_STEP_SIZE))
-          goto hit;
-        break;
-      case B_LENS:
-        if (CheckCollisionPointLine(source,
-              bounceables.v[i].data.lens->p1,
-              bounceables.v[i].data.lens->p2,
-              CAST_LIGHT_STEP_SIZE))
-          goto hit;
-        break;
-      default:
-        panic("unreachable");
+      if (!bounceables.v[i].removed) {
+        switch (bounceables.v[i].t) {
+        case B_MIRROR:
+          if (CheckCollisionPointLine(source,
+                bounceables.v[i].data.mirror->p1,
+                bounceables.v[i].data.mirror->p2,
+                CAST_LIGHT_STEP_SIZE))
+            goto hit;
+          break;
+        case B_LENS:
+          if (CheckCollisionPointLine(source,
+                bounceables.v[i].data.lens->p1,
+                bounceables.v[i].data.lens->p2,
+                CAST_LIGHT_STEP_SIZE))
+            goto hit;
+          break;
+        default:
+          panic("unreachable");
+        }
       }
     }
 
@@ -260,7 +264,7 @@ static void draw_light(source_t *src)
 
 void add_bounceable(bounceable_type_t t, void *data)
 {
-  bounceable_t b = (bounceable_t){.t = t, .data.p = data};
+  bounceable_t b = (bounceable_t){.t = t, .data.p = data, .removed = 0};
   dyn_add(bounceables, b);
 
   TraceLog(LOG_INFO, "new bounceable with T = %02x", t);

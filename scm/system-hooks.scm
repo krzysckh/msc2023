@@ -243,6 +243,7 @@
   (stop-simulation)
   (if (> (length sel-mode:selected-mirror-ids) 0)
       (let* ((mp (get-mouse-position))
+             (menu-open #f)
              (real-sel-mirrors (map (→1 (assq x *mirrors*)) sel-mode:selected-mirror-ids))
              (sel-mirrors (map cdr real-sel-mirrors))
              (p1s (map car sel-mirrors))
@@ -277,7 +278,7 @@
              (cursor-handler-id
               (add-hook
                'frame
-               (→ (if (point-in-rect? (get-mouse-position) bounding-rect)
+               (→ (if (and (not menu-open) (point-in-rect? (get-mouse-position) bounding-rect))
                       (set-cursor MOUSE-CURSOR-RESIZE-ALL)
                       (set-cursor MOUSE-CURSOR-ARROW)))))
              (move-handler-id
@@ -285,45 +286,66 @@
                'click
                (lambda (first l r)
                  (let ((mp (get-mouse-position)))
-                   (when first
-                     (set! ∆mouse (cons (- (car mp) minx ∆x)
-                                        (- (cdr mp) miny ∆y))))
-                   (set! ∆x (- (car mp) minx (car ∆mouse)))
-                   (set! ∆y (- (cdr mp) miny (cdr ∆mouse)))
-                   (update-bounding-rect)))))
+                   (when (not menu-open)
+                     (when l
+                       (when first
+                         (set! ∆mouse (cons (- (car mp) minx ∆x)
+                                            (- (cdr mp) miny ∆y))))
+                       (set! ∆x (- (car mp) minx (car ∆mouse)))
+                       (set! ∆y (- (cdr mp) miny (cdr ∆mouse)))
+                       (update-bounding-rect)))))))
+             (menu-handler-id
+              (add-hook
+               'click
+               (lambda (first l r)
+                 (when (and first r (not menu-open))
+                   (set! menu-open #t)
+                   (set! *gui/option-menu-force-can-be-handled* #t)
+                   (gui/option-menu
+                    (get-mouse-position)
+                    `(("usuń" . ,(→ (set! menu-open #f)
+                                    (for-each
+                                     delete-bounceable
+                                     sel-mode:selected-mirror-ids)
+                                    (end-selected-mode))))
+                    (→ (set! menu-open #f)))))))
+             (end-selected-mode
+              (→ (mode-text-dest)
+                 (delete-hook 'frame selected-id)
+                 (delete-hook 'frame b-rect-id)
+                 (delete-hook 'frame cursor-handler-id)
+                 (delete-hook 'click move-handler-id)
+                 (delete-hook 'click menu-handler-id)
+                 (delete-hook 'click close-handler-id)
+                 (really-end-selected-mode)))
              (close-handler-id
               (add-hook
                'click
                (lambda (first l r)
-                 (when (and first l (not (point-in-rect? (get-mouse-position) bounding-rect)))
-                   (mode-text-dest)
-                   (delete-hook 'frame selected-id)
-                   (delete-hook 'frame b-rect-id)
-                   (delete-hook 'frame cursor-handler-id)
-                   (delete-hook 'click move-handler-id)
-                   (delete-hook 'click close-handler-id)
+                 (when (not menu-open)
+                   (when (and first l (not (point-in-rect? (get-mouse-position) bounding-rect)))
+                     (for-each
+                      (→1 (let ((p1 (list-ref x 1))
+                                (p2 (list-ref x 2)))
+                            (set-mirror!
+                             (car x)
+                             (cons (+ ∆x (car p1)) (+ ∆y (cdr p1)))
+                             (cons (+ ∆x (car p2)) (+ ∆y (cdr p2))))))
+                      real-sel-mirrors)
 
-                   (for-each
-                    (→1 (let ((p1 (list-ref x 1))
-                              (p2 (list-ref x 2)))
-                          (set-mirror!
-                           (car x)
-                           (cons (+ ∆x (car p1)) (+ ∆y (cdr p1)))
-                           (cons (+ ∆x (car p2)) (+ ∆y (cdr p2))))))
-                    real-sel-mirrors)
-
-                   (end-selected-mode))))))
-
-
+                     (end-selected-mode)))))))
              0)
-        (end-selected-mode)))
+        (really-end-selected-mode)))
 
-(define (end-selected-mode)
-  (set! sel-mode:last-time (if (> (length sel-mode:selected-mirror-ids) 0)
-                               (time)
-                               0))
+(define (really-end-selected-mode)
+  (set! *gui/option-menu-force-can-be-handled* #f)
+  (set! sel-mode:last-time
+        (if (> (length sel-mode:selected-mirror-ids) 0)
+            (time)
+            0))
   (set! *click-can-be-handled* #t)
   (set! *current-mode* nil)
+
   (start-simulation))
 
 ;;; mirror data
@@ -368,4 +390,15 @@
  'update
  (→2 (cond
       ((eqv? x 'mirror) (update-*mirrors* y))
+      (else (error "not implemented: " x)))))
+
+(add-hook
+ 'delete
+ (→2 (cond
+      ((eqv? x 'mirror)
+       (set!
+        *mirrors*
+        (filter
+         (→1 (not (eqv? (car x) y)))
+         *mirrors*)))
       (else (error "not implemented: " x)))))
