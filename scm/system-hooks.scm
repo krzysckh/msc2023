@@ -1,5 +1,7 @@
 ; TODO: HACK: to powinna byc funkcja pytajaca typu (can-handle-click?)
 ; i ogolnie user-hooki zalezne od tego i system-hooki niezalezne
+(define *current-mode* nil)
+
 (define *click-can-be-handled* #t)
 (define *keypress-can-be-handled* #t)
 
@@ -51,7 +53,7 @@
 (define drawing-new-mirror #f)
 
 (define (start-drawing-mirror-hook first left right)
-  (when (and (eqv? *current-mode* 'mirror-drawing-mode) (or *click-can-be-handled* drawing-new-mirror) (not right))
+  (when (and (eqv? *current-mode* 'mirror-drawing) (or *click-can-be-handled* drawing-new-mirror) (not right))
     (set! *click-can-be-handled* #f)
     (set! *current-click-handler* 'START-DRAWING-MIRROR-HOOK)
     (when (and first left)
@@ -129,11 +131,11 @@
 ;; mouse-menu
 (define mouse-menu
   `(("nowe źródło" . ,(→ (set! gui/new-source-form:pos (get-mouse-position))
-                          (gui/new-source-form)))
+                         (gui/new-source-form)))
     ("narysuj zwierciadło" . ,(→ (when (eqv? *current-mode* nil)
                                    (set-cursor MOUSE-CURSOR-CROSSHAIR)
                                    (tracelog 'info "narysuj nowe zwierciadło...")
-                                   (set! *current-mode* 'mirror-drawing-mode))))
+                                   (set! *current-mode* 'mirror-drawing))))
     ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
     ("wyczyść *tracelog-queue*" . ,(→ (set! *tracelog-queue* nil)))))
 
@@ -209,7 +211,6 @@
                            (- (cdr mp) (cdr sel-mode:start-position))))
                     (selected-mirror-map
                      (map (→1 (rect-collision? rect x)) sel-mode:mirror-rects)))
-               (draw-text "selection-mode" (cons 16 (- *SCREEN-HEIGHT* 32)) 16 (aq 'font *colorscheme*))
                (for-each
                 (→1 (gui/rect
                      (list-ref sel-mode:mirror-rects x)
@@ -262,9 +263,6 @@
                                            (- maxx minx)
                                            (- maxy miny)))))
              (_ (update-bounding-rect))
-             (mode-text-dest
-              (gui/draw-text-persist
-               "selected-mode" (cons 16 (- *SCREEN-HEIGHT* 32)) 16 (aq 'font *colorscheme*)))
              (selected-id
               (add-hook
                'frame
@@ -310,8 +308,7 @@
                                     (end-selected-mode))))
                     (→ (set! menu-open #f)))))))
              (end-selected-mode
-              (→ (mode-text-dest)
-                 (delete-hook 'frame selected-id)
+              (→(delete-hook 'frame selected-id)
                  (delete-hook 'frame b-rect-id)
                  (delete-hook 'frame cursor-handler-id)
                  (delete-hook 'click move-handler-id)
@@ -402,3 +399,13 @@
          (→1 (not (eqv? (car x) y)))
          *mirrors*)))
       (else (error "not implemented: " x)))))
+
+(add-hook
+ 'frame
+ (→ (draw-text
+     (string-append
+      (if (null? *current-mode*)
+          "normal"
+          (symbol->string *current-mode*))
+      "-mode")
+     (cons 16 (- *SCREEN-HEIGHT* 32)) 16 (aq 'font *colorscheme*))))

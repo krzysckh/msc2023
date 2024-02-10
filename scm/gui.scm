@@ -1,7 +1,6 @@
 ; TODO: sprawdź czy przypadkiem używanie wbudowanej funkcji w raylib nie będzie
 ; szybsze
 
-(define *current-mode* nil)
 (define gui/draw-text draw-text)
 
 (define (gui/rect rect c)
@@ -359,6 +358,8 @@ zwraca **destruktor** - funkcję usuwającą go"
   (set! *gui/button-force-can-be-handled* #t)
   (set! *gui/checkbox-force-can-be-handled* #t)
 
+  (set! *current-mode* 'new-source)
+
   (define n-beams 1)
   (define mouse-reactive #t)
   (define angle 0)
@@ -452,6 +453,8 @@ zwraca **destruktor** - funkcję usuwającą go"
                                   (set! *gui/slider-force-can-be-handled* #f)
                                   (set! *gui/button-force-can-be-handled* #f)
                                   (set! *gui/checkbox-force-can-be-handled* #f)
+
+                                  (set! *current-mode* nil)
 
                                   (start-simulation)
                                   )))))

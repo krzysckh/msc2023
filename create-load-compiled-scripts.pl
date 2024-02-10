@@ -7,6 +7,7 @@ use warnings;
 
 my @l = (
   "tinyscheme/r5rs.scm",
+  "scm/colors.scm",
   "scm/util.scm",
   "scm/interop-helpers.scm",
   "scm/system-hooks.scm"
