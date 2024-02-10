@@ -62,11 +62,6 @@ float normalize_angle(float f)
   return f;
 }
 
-float absf(float x)
-{
-  return x > 0 ? x : -x;
-}
-
 // via ./notatki.ora
 static Vector2 create_target(Vector2 a, float angle)
 {

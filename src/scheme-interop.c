@@ -860,11 +860,15 @@ void initialize_scheme(void)
 
 void load_rc(void)
 {
+#ifdef RCFILE
   FILE *rc = fopen("rc.scm", "r+");
   if (rc) {
     scheme_load_file(&scm, rc);
     fclose(rc);
+  } else {
+    TraceLog(LOG_WARNING, "could not load rc.scm, continuing.");
   }
+#endif /* RCFILE */
 }
 
 pointer scheme_click_info(struct mouse_information_t *mi)

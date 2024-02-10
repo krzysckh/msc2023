@@ -5,8 +5,9 @@ TARGET=./main
 CSTD=-std=gnu11
 
 # do przemyślenia
-FEATURES=
-# -DANTIALIAS
+FEATURES=-DRCFILE
+# ANTIALIAS - włącza anti-aliasing
+# RCFILE    - uruchamia rc.scm na początku
 
 CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) $(FEATURES) $(ACFLAGS) -g
 LDFLAGS=-lm -L/usr/local/lib -lraylib $(ALDFLAGS)

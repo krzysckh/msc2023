@@ -150,7 +150,6 @@ typedef struct {
 } Bounceables;
 
 float normalize_angle(float f);
-float absf(float x);
 void add_bounceable(bounceable_type_t t, void *data);
 void add_mirror(Vector2 p1, Vector2 p2);
 void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, float opacity);
