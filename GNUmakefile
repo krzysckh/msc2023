@@ -5,7 +5,8 @@ TARGET=./main
 CSTD=-std=gnu11
 
 # do przemyślenia
-FEATURES=-DANTIALIAS
+FEATURES=
+# -DANTIALIAS
 
 CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) $(FEATURES) $(ACFLAGS) -g
 LDFLAGS=-lm -L/usr/local/lib -lraylib $(ALDFLAGS)
