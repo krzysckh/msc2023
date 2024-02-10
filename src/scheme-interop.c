@@ -71,9 +71,9 @@ void do_hooks(hookable_event_t *he, pointer args)
   if (!scheme_is_initialized)
     return;
 
-  for (i = 0; i < he->n_hooks; ++i) {
-    if (he->hooks[i])
-      scheme_call(&scm, he->hooks[i], args);
+  for (i = 0; i < he->n; ++i) {
+    if (he->v[i])
+      scheme_call(&scm, he->v[i], args);
   }
 }
 
@@ -164,8 +164,8 @@ static hookable_event_t *get_he_by_name(char *name)
 static int get_real_n_hooks(hookable_event_t *he)
 {
   int n = 0, i;
-  for (i = 0; i < he->n_hooks; ++i)
-    if (he->hooks[i])
+  for (i = 0; i < he->n; ++i)
+    if (he->v[i])
       n++;
 
   return n;
@@ -207,9 +207,9 @@ static pointer scm_get_hook(scheme *sc, pointer args)
   // chuj dupa biskupa
   // ~ kpm
   if (he) {
-    if (id >= 0 && id < he->n_hooks) {
-      if (he->hooks[id])
-        return he->hooks[id];
+    if (id >= 0 && id < he->n) {
+      if (he->v[id])
+        return he->v[id];
       else
         TraceLog(LOG_ERROR, "no such lambda: %s @ %d", type, id);
     } else
@@ -238,13 +238,13 @@ static pointer scm_get_all_hooks(scheme *sc, pointer args)
   }
 
   ret = sc->NIL;
-  for (i = 0; i < he->n_hooks; ++i) {
-    if (he->hooks[i]) {
+  for (i = 0; i < he->n; ++i) {
+    if (he->v[i]) {
       if (ret == sc->NIL) {
-        ret = Cons(he->hooks[i], sc->NIL);
+        ret = Cons(he->v[i], sc->NIL);
         cur = ret;
       } else {
-        set_cdr(cur, Cons(he->hooks[i], sc->NIL));
+        set_cdr(cur, Cons(he->v[i], sc->NIL));
         cur = cdr(cur);
       }
     }
@@ -625,12 +625,12 @@ static pointer scm_delete_hook(scheme *sc, pointer args)
     return sc->F;
   }
 
-  if (id > he->n_hooks) {
+  if (id > he->n) {
     TraceLog(LOG_ERROR, "cannot delete hook %d: no such hook", id);
     return sc->F;
   }
 
-  he->hooks[id] = NULL;
+  he->v[id] = NULL;
 
   fprintf(stderr, "(not tracelogged) successfully deleted hook %d for %s\n", id, sym);
   return sc->T;
@@ -659,12 +659,13 @@ static pointer scm_add_hook(scheme *sc, pointer args)
     return sc->F;
   }
 
-  he->hooks = realloc(he->hooks, (1 + he->n_hooks) * sizeof(pointer));
-  he->hooks[he->n_hooks] = f;
-  he->n_hooks++;
+  dyn_add_ptr_sized(he, f, sizeof(pointer));
+  /* he->hooks = realloc(he->hooks, (1 + he->n_hooks) * sizeof(pointer)); */
+  /* he->hooks[he->n_hooks] = f; */
+  /* he->n_hooks++; */
 
   fprintf(stderr, "(not tracelogged) successfully added hook %p for %s\n", f, name);
-  return mk_integer(sc, he->n_hooks - 1);
+  return mk_integer(sc, he->n - 1);
 }
 
 // (get-mouse-position) → '(x y)

@@ -19,6 +19,7 @@ CFILES!=echo load-compiled-scripts.c \
 OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
 
 WINDRES=llvm-windres-16
+SCAN_BUILD=scan-build-16
 
 ifeq "$(OS)" "OpenBSD"
 LDFLAGS:=-lglfw $(LDFLAGS)
@@ -74,3 +75,7 @@ pubcpy:
 	$(MAKE) clean
 cloc: clean
 	cloc `ls | grep -v tinyscheme`
+scan-build:
+	$(MAKE) clean >/dev/null 2>/dev/null
+	$(MAKE) CC="$(SCAN_BUILD) clang" all >/dev/null
+	$(MAKE) clean >/dev/null 2>/dev/null

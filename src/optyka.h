@@ -50,13 +50,16 @@
     int size;
   } Arr;
 */
-#define DYN_BUMP_SIZE 128
-#define dyn_add(d, val) \
-  if (d.n + 1 > d.size) { \
-    d.v = realloc(d.v, sizeof(d.v[0]) * (d.size + DYN_BUMP_SIZE)); \
-    d.size += DYN_BUMP_SIZE; \
-  } \
-  d.v[d.n++] = (val);
+#define DYN_BUMP_SIZE 512
+#define dyn_add_ptr_sized(d, val, s)                            \
+  if (d->n + 1 > d->size) {                                     \
+    d->v = realloc(d->v, (s) * (d->size + DYN_BUMP_SIZE));      \
+    d->size += DYN_BUMP_SIZE;                                   \
+  }                                                             \
+  d->v[d->n++] = (val);
+
+#define dyn_add_ptr(d, val) dyn_add_ptr_sized((d), (val), (sizeof(d->v[0])))
+#define dyn_add(d, val) dyn_add_ptr((&d), (val))
 
 #ifdef PROD
 #define panic(fmt,...) (void)(0);
@@ -134,8 +137,9 @@ typedef struct {
 } source_t;
 
 typedef struct {
-  pointer *hooks;
-  int n_hooks;
+  pointer *v;
+  int n;
+  int size;
 } hookable_event_t;
 
 /* dyn arrs */
