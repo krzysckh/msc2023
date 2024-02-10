@@ -64,9 +64,7 @@
 #ifdef PROD
 #define panic(fmt,...) (void)(0);
 #else
-// TODO: zrob tak zeby nie trzeba bylo miec  __VA_OPT__ bo chcialbym zeby dalo
-// sie to skompilowac uzywajac tcc lol
-#define panic(fmt, ...) errx(1, "PANIC: " #fmt __VA_OPT__(,) __VA_ARGS__)
+#define panic(...) errx(1, __VA_ARGS__);
 #endif
 
 #define TODO(s) panic("TODO: %s", s)
@@ -96,8 +94,18 @@ struct mouse_information_t {
 
 typedef enum {
   B_MIRROR,
-  B_LENS
+  B_LENS,
+  B_PRISM,
 } bounceable_type_t;
+
+typedef struct {
+  Vector2 center;
+  int vert_len;
+  float phi;
+
+  /* obliczane przez program */
+  Vector2 p1, p2, p3;
+} prism_data_t;
 
 typedef struct {
   Vector2 p1, p2;
@@ -118,6 +126,7 @@ typedef struct {
   union {
     mirror_data_t *mirror;
     lens_data_t   *lens;
+    prism_data_t  *prism;
 
     void          *p;
     // p dla jakiegokolwiek wskaźnika, żeby nie było mi źle na duszy
@@ -136,11 +145,17 @@ typedef struct {
   int n_beam;
 } source_t;
 
-typedef struct {
-  pointer *v;
-  int n;
-  int size;
-} hookable_event_t;
+// tego sluchalem piszac ten kod:
+//   https://open.spotify.com/track/5X42tJfGZcsEWQTMtJaa19?si=db1c99b60b364e5a
+// ~ kpm
+// PROSZE NIE BRAC ZE MNIE PRZYKLADU I KOD NAPISaNY W TYM COMMICIE CO TA WIADOMOSC CZYTAC NA WLASNA ODPOWIEDZIALNOSC
+struct _teleport {
+  bool serio;
+  Vector2 luzik;
+};
+// XDD D JAK CI ZOSTANIE CZAS KRZYSZTOF TO PROSZE ZROB PORTALE
+// PROSZE PROSZE PROSZE PROSZE
+// ~ KPM
 
 /* dyn arrs */
 typedef struct {
@@ -149,12 +164,21 @@ typedef struct {
   int size;
 } Bounceables;
 
+typedef struct {
+  pointer *v;
+  int n;
+  int size;
+} hookable_event_t;
+
 float normalize_angle(float f);
 void add_bounceable(bounceable_type_t t, void *data);
 void add_mirror(Vector2 p1, Vector2 p2);
 void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, float opacity);
 void add_source(source_t s);
 Font get_font_with_size(int size);
+Vector2 create_target(Vector2 a, float angle);
+bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_bounceable);
+
 
 void initialize_scheme(void);
 void load_rc(void);
@@ -164,3 +188,7 @@ pointer ncdr(int n, pointer x);
 void update_screen_size_variables(void);
 
 void load_compiled_scripts(void);
+
+void draw_prism(bounceable_t *b);
+void calc_prism_pts(prism_data_t *pd);
+Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp);

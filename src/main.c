@@ -63,7 +63,7 @@ float normalize_angle(float f)
 }
 
 // via ./notatki.ora
-static Vector2 create_target(Vector2 a, float angle)
+Vector2 create_target(Vector2 a, float angle)
 {
   const int H = GetScreenHeight();
 
@@ -132,6 +132,9 @@ static void draw_all_bounceables(void)
       case B_LENS:
         draw_lens(&bounceables.v[i]);
         break;
+      case B_PRISM:
+        draw_prism(&bounceables.v[i]);
+        break;
       default:
         panic("unreachable");
       }
@@ -142,8 +145,7 @@ static void draw_all_bounceables(void)
 // jeśli miałoby coś się ścinać, zwiększże **TROCHĘ** tą liczbę żeby zwiększyć
 // wydajność kosztem dokładności
 #define CAST_LIGHT_STEP_SIZE 1
-static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
-    bounceable_t *hit_bounceable)
+bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_bounceable)
 {
   int max_iter = 4096, i;
   while (max_iter) {
@@ -154,16 +156,23 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
         switch (bounceables.v[i].t) {
         case B_MIRROR:
           if (CheckCollisionPointLine(source,
-                bounceables.v[i].data.mirror->p1,
-                bounceables.v[i].data.mirror->p2,
-                CAST_LIGHT_STEP_SIZE))
+                                      bounceables.v[i].data.mirror->p1,
+                                      bounceables.v[i].data.mirror->p2,
+                                      CAST_LIGHT_STEP_SIZE))
             goto hit;
           break;
         case B_LENS:
           if (CheckCollisionPointLine(source,
-                bounceables.v[i].data.lens->p1,
-                bounceables.v[i].data.lens->p2,
-                CAST_LIGHT_STEP_SIZE))
+                                      bounceables.v[i].data.lens->p1,
+                                      bounceables.v[i].data.lens->p2,
+                                      CAST_LIGHT_STEP_SIZE))
+            goto hit;
+          break;
+        case B_PRISM:
+          if (CheckCollisionPointTriangle(source,
+                                          bounceables.v[i].data.prism->p1,
+                                          bounceables.v[i].data.prism->p2,
+                                          bounceables.v[i].data.prism->p3))
             goto hit;
           break;
         default:
@@ -184,9 +193,10 @@ static bool cast_light(Vector2 target, Vector2 source, Vector2 *ret,
   return true;
 }
 
-Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next)
+Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp)
 {
   float cur_angle, hit_angle, rel_angle;
+  tp->serio = 0;
   switch (b->t) {
   case B_MIRROR:
     hit_angle = normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2)
@@ -211,15 +221,17 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next)
       return create_target(ld->focal_point1,
                normalize_angle(Vector2Angle(next, ld->focal_point1) * 180 / PI));
   } break;
+  case B_PRISM: {
+    return prism_create_target(b, cur, next, tp);
+  };
   }
 }
 
 // https://www.physicsclassroom.com/class/refln/Lesson-1/The-Law-of-Reflection
+// nie zesraj sie krzysztof z przeszlosci oki?
 #define max_draw_lines 100
-#define draw_single_light(source, start, s_targ) \
-  _draw_single_light(source, start, s_targ, max_draw_lines)
-static void _draw_single_light(source_t *source, Vector2 start, Vector2 s_target,
-                        int max_depth)
+#define draw_single_light(source, start, s_targ) _draw_single_light(source, start, s_targ, max_draw_lines)
+void _draw_single_light(source_t *source, Vector2 start, Vector2 s_target, int max_depth)
 {
   int i;
   Vector2 next, cur = {
@@ -228,15 +240,22 @@ static void _draw_single_light(source_t *source, Vector2 start, Vector2 s_target
   }, cur_target = s_target;
   bounceable_t hit_bounceable = {0};
   bool bounced = true;
+  struct _teleport tp = {0};
 
   for (i = 0; i < max_depth && bounced; ++i) {
     bounced = cast_light(cur_target, cur, &next, &hit_bounceable);
     DrawLineEx(cur, next, source->thickness, source->color);
 
     if (bounced) {
-      cur_target = create_target_by_hit(&hit_bounceable, cur, next);
+      cur_target = create_target_by_hit(&hit_bounceable, cur, next, &tp);
       //cur_target = create_target(next, cur_angle);
       cur = Vector2MoveTowards(next, cur_target, 1);
+    }
+
+    // ja nawet nie próbuję udawać że ten kodzik robi sens
+    // będę się starał pisząc scheme a nie to
+    if (tp.serio) {
+      cur = tp.luzik;
     }
   }
 }
@@ -272,6 +291,18 @@ void add_mirror(Vector2 p1, Vector2 p2)
   md->p2 = (Vector2){p2.x,p2.y};
 
   add_bounceable(B_MIRROR, md);
+}
+
+void add_prism(Vector2 center, int vert_len)
+{
+  prism_data_t *pd = malloc(sizeof(prism_data_t));
+
+  pd->center = center;
+  pd->vert_len = vert_len;
+
+  calc_prism_pts(pd);
+
+  add_bounceable(B_PRISM, pd);
 }
 
 void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, float opacity)
@@ -417,6 +448,7 @@ int main(int argc, char **argv)
   load_rc();
 
   /* add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f); */
+  add_prism(vec(200, 200), 100);
 
   time_prev = time_cur = time(NULL);
   while (!WindowShouldClose()) {

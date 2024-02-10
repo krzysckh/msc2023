@@ -5,6 +5,9 @@
     (mapcar #'find-file-noselect (file-expand-wildcards "scm/*.scm"))
     (mapcar #'find-file-noselect (file-expand-wildcards "src/*.[ch]"))
 
+    (setq buffer-menu #'switch-to-buffer) ; TODO: przeniose to do .emacs
+    (setq list-buffers #'switch-to-buffer) ; TODO: przeniose to do .emacs
+
     (setq conf/make "make")
     (if (string= (system-name) "openchad") (setq conf/make "gmake"))
 
