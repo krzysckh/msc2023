@@ -100,3 +100,5 @@
          (% (random-next) *SCREEN-HEIGHT*))
    (cons (% (random-next) *SCREEN-WIDTH*)
          (% (random-next) *SCREEN-HEIGHT*))))
+
+(create-source '((pos . (20 . 200))))
