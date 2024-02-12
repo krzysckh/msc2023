@@ -30,6 +30,7 @@
 #define MKI(n) mk_integer(sc, (n))
 #define MR(f) mk_real(sc, (f))
 #define vec2cons(v) Cons(MKI((v).x), MKI((v).y))
+#define cons2vec(s) ((Vector2){rvalue(car(s)), rvalue(cdr(s))})
 
 #define ctg(x) (pow(tan((x)),-1))
 
@@ -192,6 +193,7 @@ void add_source(source_t s);
 Font get_font_with_size(int size);
 Vector2 create_target(Vector2 a, float angle);
 bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_bounceable);
+bool collision_point_poly(Vector2 point, Vector2 *points, int pointCount);
 
 // scheme-interop.c
 void initialize_scheme(void);

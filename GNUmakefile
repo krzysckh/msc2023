@@ -64,6 +64,7 @@ doc: all
 	$(TARGET) -F ./generate-docs.scm > doc/scheme.md
 	cat doc/prelude.md doc/scheme.md \
 		| pandoc --toc --toc-depth=2 \
+		-H doc/doc.css \
                 --metadata title="msc2023" -f gfm -t html \
 		--standalone -o doc/msc2023.html
 pubcpy:

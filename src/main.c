@@ -63,6 +63,21 @@ float normalize_angle(float f)
   return f;
 }
 
+// bo CheckCollisionPointPoly z raylib 4.5 nie działa poprawnie
+// naprawione w raylib 5, C-c C-v tutaj
+bool collision_point_poly(Vector2 point, Vector2 *points, int pointCount)
+{
+  bool inside = false;
+
+  if (pointCount > 2)
+    for (int i = 0, j = pointCount - 1; i < pointCount; j = i++)
+      if ((points[i].y > point.y) != (points[j].y > point.y) &&
+          (point.x < (points[j].x - points[i].x) * (point.y - points[i].y) / (points[j].y - points[i].y) + points[i].x))
+        inside = !inside;
+
+  return inside;
+}
+
 // via ./notatki.ora
 Vector2 create_target(Vector2 a, float angle)
 {
@@ -181,11 +196,15 @@ bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_
           break;
         case B_CUSTOM: {
           customb_data_t *cd = bounceables.v[i].data.custom;
+          /* for (int i = 0; i < cd->poly_pts; ++i) { */
+          /*   DrawLineV(cd->poly[i], cd->poly[(i+1) % cd->poly_pts], WHITE); */
+          /* } */
           if (cd->poly_pts == 2) {
             if (CheckCollisionPointLine(source, cd->poly[0], cd->poly[1], CAST_LIGHT_STEP_SIZE))
               goto hit;
-          } else if (CheckCollisionPointPoly(source, cd->poly, cd->poly_pts))
+          } else if (collision_point_poly(source, cd->poly, cd->poly_pts)) {
             goto hit;
+          }
         } break;
         default:
           panic("unreachable");
@@ -211,10 +230,8 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct 
   tp->serio = 0;
   switch (b->t) {
   case B_MIRROR:
-    hit_angle = normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2)
-                                * 180 / PI);
-    rel_angle = normalize_angle(hit_angle -
-                                normalize_angle(Vector2Angle(cur, next) * 180 / PI));
+    hit_angle = normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2) * 180 / PI);
+    rel_angle = normalize_angle(hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
     cur_angle = normalize_angle(hit_angle + rel_angle);
     return create_target(next, cur_angle);
     break;
@@ -239,7 +256,10 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct 
   case B_CUSTOM: {
     float ang;
     custom_get_light_remap(b->data.custom, next, normalize_angle(Vector2Angle(cur, next) * RAD2DEG), tp, &ang);
-    return create_target(tp->luzik, ang);
+    Vector2 targ = create_target(tp->luzik, normalize_angle(ang));
+    tp->luzik = Vector2MoveTowards(tp->luzik, targ, 2);
+
+    return targ;
   } break;
   default:
     panic("unreachable");

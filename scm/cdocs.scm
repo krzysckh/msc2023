@@ -97,3 +97,31 @@
 (document-function
  (register-custom poly-points draw-function light-remap-function)
  "tworzy nowy obiekt w obrębie `poly-points` rysowany co klatkę przez `draw-function`, jeśli wiązka światła napotka obiekt, przemieniana jest wg. `light-remap-function`. więcej doc TBD")
+
+(document-function
+ (create-prism pt vert-len n)
+ "tworzy pryzmat ze środkiem `pt`, długością boku `vert-len` i magicznym numerkiem `n` (wyleciało mi teraz z głowy jak to się nazywa lol)")
+
+(document-function
+ (normalize-rectangle rect)
+ "zwraca *unormalniony* prostokąt"
+ (example
+  '((normalize-rectangle '(10 10 -10 -10)) '(0 0 10 10))))
+
+(document-function
+ (point-in-line? pt lp1 lp2 thr)
+ "robi raylibowe CheckCollisionPointLine(pt, lp1, lp2, thr)")
+
+(document-function
+ (angle-between p1 p2)
+ "zwraca kąt pomiędzy `p1` a `p2` (w stopniach)")
+
+(document-function
+ (normalize-angle ang)
+ "zwraca *unormalniony* kąt"
+ (example
+  '((normalize-angle 380) 20)))
+
+(document-function
+ (vec-move-towards vec target maxlen)
+ "Vector2MoveTowards(vec, target, maxlen)")

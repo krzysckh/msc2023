@@ -1,5 +1,6 @@
 #include "optyka.h"
 #include "raylib.h"
+#include "raymath.h"
 #include "tinyscheme/scheme-private.h"
 #include "tinyscheme/scheme.h"
 
@@ -15,6 +16,7 @@ extern struct window_conf_t winconf;
 
 pointer mk_port(scheme *sc, port *p);
 pointer port_from_file(scheme *sc, FILE *f, int prop);
+static void load_scheme_cfunctions(void);
 
 scheme scm;
 bool scheme_is_initialized = false;
@@ -209,6 +211,60 @@ pointer poly2list(customb_data_t *cd)
 }
 
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
+
+// (vec-move-towards vec target max)
+static pointer scm_vec_move_towards(scheme *sc, pointer args)
+{
+  Vector2 vec, targ;
+  float max;
+
+  expect_args("vec-move-towards", 3);
+
+  vec  = cons2vec(car(args));
+  targ = cons2vec(cadr(args));
+  max  = rvalue(cadr(args));
+
+  return vec2cons(Vector2MoveTowards(vec, targ, max));
+}
+
+// (normalize-angle a)
+static pointer scm_normalize_angle(scheme *sc, pointer args)
+{
+  float a;
+  expect_args("normalize-angle", 1);
+
+  a = rvalue(car(args));
+  return MR(normalize_angle(a));
+}
+
+// (point-in-line? pt p1 p2 threshold)
+static pointer scm_point_in_line(scheme *sc, pointer args)
+{
+  Vector2 pt, p1, p2;
+  int thr;
+
+  expect_args("point-in-line?", 4);
+
+  pt = cons2vec(car(args));
+  p1 = cons2vec(cadr(args));
+  p2 = cons2vec(caddr(args));
+  thr = rvalue(cadddr(args));
+
+  return CheckCollisionPointLine(pt, p1, p2, thr) ? sc->T : sc->F;
+}
+
+// (angle-between p1 p2)
+static pointer scm_angle_between(scheme *sc, pointer args)
+{
+  Vector2 p1, p2;
+
+  expect_args("angle-between", 2);
+
+  p1 = cons2vec(car(args));
+  p2 = cons2vec(cadr(args));
+
+  return MR(Vector2Angle(p1, p2) * RAD2DEG);
+}
 
 // (normalize-rectangle rect)
 static pointer scm_normalize_rectangle(scheme *sc, pointer args)
@@ -969,46 +1025,6 @@ static pointer scm_create_source(scheme *sc, pointer args)
   return sc->NIL;
 }
 
-static void load_scheme_cfunctions(void)
-{
-  //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
-  SCHEME_FF(scm_normalize_rectangle, "normalize-rectangle");
-  SCHEME_FF(scm_create_prism,        "create-prism");
-  SCHEME_FF(scm_register_custom,     "register-custom");
-  SCHEME_FF(scm_delete_bounceable,   "delete-bounceable");
-  SCHEME_FF(scm_get_all_hooks,       "get-all-hooks");
-  SCHEME_FF(scm_get_hook,            "get-hook");
-  SCHEME_FF(scm_set_mirror,          "set-mirror!");
-  SCHEME_FF(scm_set_prism,           "set-prism!");
-  SCHEME_FF(scm_set_cursor,          "set-cursor");
-  SCHEME_FF(scm_rect_collision,      "rect-collision");
-  SCHEME_FF(scm_get_all_bounceables, "get-all-bounceables");
-  SCHEME_FF(scm_get_bounceable,      "get-bounceable");
-  SCHEME_FF(scm_get_window_flag,     "get-window-flag");
-  SCHEME_FF(scm_set_window_flag,     "set-window-flag");
-  SCHEME_FF(scm_fill_rect,           "real-fill-rect");
-  SCHEME_FF(scm_tracelog,            "real-tracelog");
-  SCHEME_FF(scm_set_winconf,         "set-winconf");
-  SCHEME_FF(scm_get_winconf,         "get-winconf");
-  SCHEME_FF(scm_get_screen_size,     "get-screen-size");
-  SCHEME_FF(scm_time_since_init,     "time-since-init");
-  SCHEME_FF(scm_time,                "time");
-  SCHEME_FF(scm_system,              "system");
-  SCHEME_FF(scm_exit,                "exit");
-  SCHEME_FF(scm_loads,               "loads");
-  SCHEME_FF(scm_delete_hook,         "delete-hook");
-  SCHEME_FF(scm_measure_text,        "real-measure-text");
-  SCHEME_FF(scm_draw_text,           "real-draw-text");
-  SCHEME_FF(scm_set_source,          "real-set-source!");
-  SCHEME_FF(scm_get_source,          "get-source");
-  SCHEME_FF(scm_get_all_sources,     "get-all-sources");
-  SCHEME_FF(scm_create_mirror,       "create-mirror");
-  SCHEME_FF(scm_create_source,       "real-create-source");
-  SCHEME_FF(scm_add_hook,            "real-add-hook");
-  SCHEME_FF(scm_get_mouse_position,  "get-mouse-position");
-  SCHEME_FF(scm_draw_line,           "real-draw-line");
-}
-
 void initialize_scheme(void)
 {
   extern char tinyscheme_r5rs_scm[];
@@ -1046,4 +1062,50 @@ pointer scheme_click_info(struct mouse_information_t *mi)
   return cons(&scm, mi->first_click ? scm.T : scm.F,
       cons(&scm, mi->left ? scm.T : scm.F,
         cons(&scm, mi->right ? scm.T : scm.F, scm.NIL)));
+}
+
+// --------- definicje eksportowanych FFI-funkcji ---------
+
+static void load_scheme_cfunctions(void)
+{
+  //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_vec_move_towards,    "vec-move-towards");
+  SCHEME_FF(scm_normalize_angle,     "normalize-angle");
+  SCHEME_FF(scm_angle_between,       "angle-between");
+  SCHEME_FF(scm_point_in_line,       "point-in-line?");
+  SCHEME_FF(scm_normalize_rectangle, "normalize-rectangle");
+  SCHEME_FF(scm_create_prism,        "create-prism");
+  SCHEME_FF(scm_register_custom,     "register-custom");
+  SCHEME_FF(scm_delete_bounceable,   "delete-bounceable");
+  SCHEME_FF(scm_get_all_hooks,       "get-all-hooks");
+  SCHEME_FF(scm_get_hook,            "get-hook");
+  SCHEME_FF(scm_set_mirror,          "set-mirror!");
+  SCHEME_FF(scm_set_prism,           "set-prism!");
+  SCHEME_FF(scm_set_cursor,          "set-cursor");
+  SCHEME_FF(scm_rect_collision,      "rect-collision");
+  SCHEME_FF(scm_get_all_bounceables, "get-all-bounceables");
+  SCHEME_FF(scm_get_bounceable,      "get-bounceable");
+  SCHEME_FF(scm_get_window_flag,     "get-window-flag");
+  SCHEME_FF(scm_set_window_flag,     "set-window-flag");
+  SCHEME_FF(scm_fill_rect,           "real-fill-rect");
+  SCHEME_FF(scm_tracelog,            "real-tracelog");
+  SCHEME_FF(scm_set_winconf,         "set-winconf");
+  SCHEME_FF(scm_get_winconf,         "get-winconf");
+  SCHEME_FF(scm_get_screen_size,     "get-screen-size");
+  SCHEME_FF(scm_time_since_init,     "time-since-init");
+  SCHEME_FF(scm_time,                "time");
+  SCHEME_FF(scm_system,              "system");
+  SCHEME_FF(scm_exit,                "exit");
+  SCHEME_FF(scm_loads,               "loads");
+  SCHEME_FF(scm_delete_hook,         "delete-hook");
+  SCHEME_FF(scm_measure_text,        "real-measure-text");
+  SCHEME_FF(scm_draw_text,           "real-draw-text");
+  SCHEME_FF(scm_set_source,          "real-set-source!");
+  SCHEME_FF(scm_get_source,          "get-source");
+  SCHEME_FF(scm_get_all_sources,     "get-all-sources");
+  SCHEME_FF(scm_create_mirror,       "create-mirror");
+  SCHEME_FF(scm_create_source,       "real-create-source");
+  SCHEME_FF(scm_add_hook,            "real-add-hook");
+  SCHEME_FF(scm_get_mouse_position,  "get-mouse-position");
+  SCHEME_FF(scm_draw_line,           "real-draw-line");
 }

@@ -202,6 +202,7 @@
    (- (cdr p2) (cdr p1))))
 
 (define (rect->poly rect)
+  "zamienia prostokąt na listę punktów"
   (let ((x (list-ref rect 0))
         (y (list-ref rect 1))
         (w (list-ref rect 2))
