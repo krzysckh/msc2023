@@ -6,8 +6,9 @@ CSTD=-std=gnu11
 
 # do przemyślenia
 FEATURES=-DRCFILE
-# ANTIALIAS - włącza anti-aliasing
-# RCFILE    - uruchamia rc.scm na początku
+# ANTIALIAS		- włącza anti-aliasing
+# RCFILE		- uruchamia rc.scm na początku
+# COLOR_HIT_PRISM_LINE	- koloruje uderzoną część pryzmatu (idk czy zostawić czy nie lol)
 
 CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) $(FEATURES) $(ACFLAGS) -g
 LDFLAGS=-lm -L/usr/local/lib -lraylib $(ALDFLAGS)

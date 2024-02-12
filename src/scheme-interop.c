@@ -188,7 +188,50 @@ Vector2 *list2poly(pointer l, int *n)
   return ret;
 }
 
+pointer poly2list(customb_data_t *cd)
+{
+  scheme *sc = &scm;
+  pointer ret, cur;
+  int i;
+
+  if (cd->poly_pts < 1)
+    return sc->NIL;
+
+  ret = Cons(vec2cons(cd->poly[0]), sc->NIL);
+  cur = ret;
+
+  for (i = 1; i < cd->poly_pts; ++i) {
+    set_cdr(cur, Cons(vec2cons(cd->poly[1]), sc->NIL));
+    cur = cdr(cur);
+  }
+
+  return ret;
+}
+
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
+
+// (create-prism '(x . y) vert-len n)
+static pointer scm_create_prism(scheme *sc, pointer args)
+{
+  extern Bounceables bounceables;
+  float n;
+  int vert_len;
+  Vector2 center;
+  pointer center_s;
+
+  expect_args("create-prism", 3);
+
+  center_s = car(args);
+  center.x = rvalue(car(center_s));
+  center.y = rvalue(cdr(center_s));
+  vert_len = rvalue(cadr(args));
+  n        = rvalue(caddr(args));
+
+  add_prism(center, vert_len, n);
+
+  do_hooks(&new, Cons(mk_symbol(sc, "prism"), Cons(MKI(bounceables.n-1), sc->NIL)));
+  return sc->T;
+}
 
 static pointer scm_register_custom(scheme *sc, pointer args)
 {
@@ -199,6 +242,18 @@ static pointer scm_register_custom(scheme *sc, pointer args)
   add_bounceable(B_CUSTOM, cd);
 
   return sc->T;
+}
+
+static pointer tB2sym(scheme *sc, bounceable_type_t t)
+{
+  switch (t) {
+  case B_MIRROR: return mk_symbol(sc, "mirror");
+  case B_PRISM: return mk_symbol(sc, "prism");
+  case B_CUSTOM: return mk_symbol(sc, "custom");
+  case B_LENS: return mk_symbol(sc, "lens");
+  }
+
+  return mk_symbol(sc, "INVALID");
 }
 
 // (delete-bounceable id)
@@ -212,7 +267,7 @@ static pointer scm_delete_bounceable(scheme *sc, pointer args)
 
   if (id >= 0 && id < bounceables.n) {
     bounceables.v[id].removed = 1;
-    do_hooks(&delete, Cons(mk_symbol(sc, "mirror"), Cons(MKI(id), sc->NIL)));
+    do_hooks(&delete, Cons(tB2sym(sc, bounceables.v[id].t), Cons(MKI(id), sc->NIL)));
     return sc->T;
   }
 
@@ -386,23 +441,26 @@ static pointer scm_get_winconf(scheme *sc, pointer args)
 
   return Cons(color2list(sc, winconf.bgcolor),
               Cons(color2list(sc, winconf.mirror_color),
-                   Cons(mk_integer(sc, winconf.state), sc->NIL)));
+                   Cons(mk_integer(sc, winconf.state),
+                        Cons(color2list(sc, winconf.prism_outline_color), sc->NIL))));
 }
 
-// (set-winconf bgcolor mirror-color state) + wiecej w przyszlosci
+// (set-winconf bgcolor mirror-color state prism-outline-color) + wiecej w przyszlosci
 static pointer scm_set_winconf(scheme *sc, pointer args)
 {
-  Color bg, mirrorc;
+  Color bg, mirrorc, prismc;
   sim_state_t state;
 
-  expect_args("set-winconf", 3);
-  bg = list2color(sc, car(args));
+  expect_args("set-winconf", 4);
+  bg      = list2color(sc, car(args));
   mirrorc = list2color(sc, cadr(args));
-  state = rvalue(caddr(args));
+  state   = rvalue(caddr(args));
+  prismc  = list2color(sc, cadddr(args));
 
   winconf.bgcolor = bg;
   winconf.mirror_color = mirrorc;
   winconf.state = state;
+  winconf.prism_outline_color = prismc;
 
   return sc->NIL;
 }
@@ -721,8 +779,9 @@ static pointer scm_create_mirror(scheme *sc, pointer args)
   add_mirror((Vector2){x1,y1}, (Vector2){x2,y2});
   do_hooks(&new, Cons(mk_symbol(sc, "mirror"), Cons(MKI(bounceables.n-1), sc->NIL)));
 
-  return sc->NIL;
+  return sc->T;
 }
+
 
 // (get-bounceable id) → TYPE_data_t
 static pointer scm_get_bounceable(scheme *sc, pointer args)
@@ -734,7 +793,7 @@ static pointer scm_get_bounceable(scheme *sc, pointer args)
   expect_args("get-bounceable", 1);
 
   id = rvalue(car(args));
-  if (id >= 0 && id <= bounceables.n) {
+  if (id >= 0 && id < bounceables.n) {
     cur = &bounceables.v[id];
     switch (cur->t) {
     case B_MIRROR: {
@@ -744,8 +803,30 @@ static pointer scm_get_bounceable(scheme *sc, pointer args)
                   Cons(Cons(MKI(p1.x), MKI(p1.y)),
                        Cons(Cons(MKI(p2.x), MKI(p2.y)), sc->NIL)));
     } break;
+    case B_PRISM: {
+      prism_data_t *pd = cur->data.prism;
+      Vector2 center = pd->center;
+
+      // ('prism (center-x . center-y) (p1-x . p1-y) (p2-x . p2-y) (p3-x . p3-y) phi n)
+      return Cons(mk_symbol(sc, "prism"),
+                  Cons(vec2cons(center),
+                       Cons(vec2cons(pd->p1),
+                            Cons(vec2cons(pd->p2),
+                                 Cons(vec2cons(pd->p3),
+                                      Cons(MR(pd->phi),
+                                           Cons(MR(pd->n), sc->NIL)))))));
+    } break;
+    case B_CUSTOM: {
+      customb_data_t *cd = cur->data.custom;
+      // ('custom (poly-pts) draw-function remap-function)
+      return Cons(mk_symbol(sc, "custom"),
+                  Cons(poly2list(cd),
+                       Cons(cd->draw,
+                            Cons(cd->remap, sc->NIL))));
+    } break;
     default: {
-      warnx("%s: only B_MIRROR implemented for get-bounceable", __func__);
+      abort();
+      warnx("%s: %d not implemented for get-bounceable", __func__, cur->t);
     }
     }
   } else {
@@ -784,6 +865,42 @@ static pointer scm_set_mirror(scheme *sc, pointer args)
     }
   } else {
     TraceLog(LOG_ERROR, "couldn't set-mirror! with id %d: no such bounceable", id);
+  }
+
+  return sc->F;
+}
+
+// (set-prism! id pt vert-len n)
+static pointer scm_set_prism(scheme *sc, pointer args)
+{
+  extern Bounceables bounceables;
+  int id;
+  int vert_len;
+  float n;
+  Vector2 center;
+  pointer scenter;
+
+  id       = rvalue(car(args));
+  scenter  = cadr(args);
+  center.x = rvalue(car(scenter));
+  center.y = rvalue(cdr(scenter));
+  vert_len = rvalue(caddr(args));
+  n        = rvalue(cadddr(args));
+
+  if (id >= 0 && id < bounceables.n) {
+    if (bounceables.v[id].t == B_PRISM) {
+      bounceables.v[id].data.prism->center = center;
+      bounceables.v[id].data.prism->vert_len = vert_len;
+      bounceables.v[id].data.prism->n = n;
+      calc_prism_pts(bounceables.v[id].data.prism);
+
+      do_hooks(&update, Cons(mk_symbol(sc, "prism"), Cons(MKI(id), sc->NIL)));
+      return sc->T;
+    } else {
+      TraceLog(LOG_ERROR, "couldn't set-prism! with id %d: not a prism", id);
+    }
+  } else {
+    TraceLog(LOG_ERROR, "couldn't set-prism! with id %d: no such bounceable", id);
   }
 
   return sc->F;
@@ -834,11 +951,13 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_create_prism,        "create-prism");
   SCHEME_FF(scm_register_custom,     "register-custom");
   SCHEME_FF(scm_delete_bounceable,   "delete-bounceable");
   SCHEME_FF(scm_get_all_hooks,       "get-all-hooks");
   SCHEME_FF(scm_get_hook,            "get-hook");
   SCHEME_FF(scm_set_mirror,          "set-mirror!");
+  SCHEME_FF(scm_set_prism,           "set-prism!");
   SCHEME_FF(scm_set_cursor,          "set-cursor");
   SCHEME_FF(scm_rect_collision,      "rect-collision");
   SCHEME_FF(scm_get_all_bounceables, "get-all-bounceables");

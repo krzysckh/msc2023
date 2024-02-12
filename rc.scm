@@ -101,24 +101,37 @@
    (cons (% (random-next) *SCREEN-WIDTH*)
          (% (random-next) *SCREEN-HEIGHT*))))
 
-(create-source '((pos . (20 . 200))))
+;; (create-source '((pos . (20 . 200))))
+;; (define portal-start '((500 . 500) (500 . 700)))
+;; (define portal-end   '((400 . 100) (400 . 200)))
 
-(define portal-start '((500 . 500) (500 . 700)))
-(define portal-end   '((400 . 100) (400 . 200)))
-
-(define (draw-function)
-  (draw-line (car portal-start) (cadr portal-start) 1 green)
-  (draw-line (car portal-end) (cadr portal-end) 1 red))
+;; (define (draw-function)
+;;   (draw-line (car portal-start) (cadr portal-start) 1 green)
+;;   (draw-line (car portal-end) (cadr portal-end) 1 red))
 
 ;; angle do osi OX
 ;; zwraca '((nowe-x . nowe-y) nowe-angle ...?)
-(define (light-remap-function hit-point angle)
-  (let* ((hit-y (cdr hit-point))
-         (diff-y (- hit-y (cdr (car portal-start))))
-         (end-y (+ (cdr (car portal-end)) diff-y)))
-    (list (cons (caar portal-end) end-y) angle)))
+;; (define (light-remap-function hit-point angle)
+;;   (let* ((hit-y (cdr hit-point))
+;;          (diff-y (- hit-y (cdr (car portal-start))))
+;;          (end-y (+ (cdr (car portal-end)) diff-y)))
+;;     (list (cons (caar portal-end) end-y) angle)))
 
-(register-custom
- portal-start
- draw-function
- light-remap-function)
+;; (register-custom
+;;  portal-start
+;;  draw-function
+;;  light-remap-function)
+
+(create-prism '(200 . 200) 100 1.31)
+
+;; (rand-mirror)
+
+;; (add-hook
+;;  'frame
+;;  (→ (let* ((vs (cdr (get-bounceable 1)))
+;;            (_ (print vs))
+;;            (pos (car vs))
+;;            (new-pos (cons (car pos) (+ 1 (cdr pos)))))
+;;       (set-prism! 1 new-pos 100 1.31))))
+
+;; (wait 2 (→ (delete-bounceable 0)))

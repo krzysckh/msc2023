@@ -26,10 +26,10 @@
 #define _vec_dispatch(_1, _2, _3, nam, ...) nam
 #define vec(...) _vec_dispatch(__VA_ARGS__, _vec3, _vec2, _vec1)(__VA_ARGS__)
 
-// lol
 #define Cons(a,b) cons(sc, (a), (b))
 #define MKI(n) mk_integer(sc, (n))
 #define MR(f) mk_real(sc, (f))
+#define vec2cons(v) Cons(MKI((v).x), MKI((v).y))
 
 #define ctg(x) (pow(tan((x)),-1))
 
@@ -77,6 +77,7 @@ typedef enum {
 struct window_conf_t {
   Color bgcolor;
   Color mirror_color;
+  Color prism_outline_color;
 
   sim_state_t state;
 };
@@ -111,6 +112,7 @@ typedef struct {
   Vector2 center;
   int vert_len;
   float phi;
+  float n;
 
   /* obliczane przez program */
   Vector2 p1, p2, p3;
@@ -185,6 +187,7 @@ float normalize_angle(float f);
 void add_bounceable(bounceable_type_t t, void *data);
 void add_mirror(Vector2 p1, Vector2 p2);
 void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, float opacity);
+void add_prism(Vector2 center, int vert_len, float n);
 void add_source(source_t s);
 Font get_font_with_size(int size);
 Vector2 create_target(Vector2 a, float angle);

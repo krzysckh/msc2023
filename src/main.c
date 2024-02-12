@@ -30,8 +30,9 @@ Font fontset[MAX_FONT_SIZE] = {0};
 /* to jest nieco niespójne ze scheme podejście, ale co klatkę wykonywane jest
    ClearBackground(), i robienie tego w scheme było by po prostu zbyt powolne */
 struct window_conf_t winconf = {
-  .bgcolor = (Color) { 0x2b, 0x33, 0x39, 0xff },
-  .mirror_color = (Color) { 0x7f, 0xbb, 0xb3, 0xff },
+  .bgcolor             = (Color) { 0x2b, 0x33, 0x39, 0xff },
+  .mirror_color        = (Color) { 0x7f, 0xbb, 0xb3, 0xff },
+  .prism_outline_color = (Color) { 0xff, 0x00, 0xff, 0xff },
 };
 
 #define MIRROR_THICKNESS 1
@@ -293,13 +294,29 @@ static void draw_light(source_t *src)
   }
 }
 
+char *strBtype(bounceable_type_t t)
+{
+  switch (t) {
+  case B_PRISM: return "B_PRISM";
+  case B_MIRROR: return "B_MIRROR";
+  case B_LENS: return "B_LENS";
+  case B_CUSTOM: return "B_CUSTOM";
+  }
+
+  return "INVALID";
+}
+
 
 void add_bounceable(bounceable_type_t t, void *data)
 {
-  bounceable_t b = (bounceable_t){.t = t, .data.p = data, .removed = 0};
-  dyn_add(bounceables, b);
+  bounceable_t *b = malloc(sizeof(bounceable_t));
+  b->t = t;
+  b->data.p = data;
+  b->removed = 0;
 
-  TraceLog(LOG_INFO, "new bounceable with T = %02x", t);
+  dyn_add_ptr_sized((&bounceables), (*b), sizeof(bounceable_t));
+
+  TraceLog(LOG_INFO, "new bounceable with T = %s", strBtype(t));
 }
 
 void add_mirror(Vector2 p1, Vector2 p2)
@@ -311,12 +328,15 @@ void add_mirror(Vector2 p1, Vector2 p2)
   add_bounceable(B_MIRROR, md);
 }
 
-void add_prism(Vector2 center, int vert_len)
+#define φ 60
+void add_prism(Vector2 center, int vert_len, float n)
 {
   prism_data_t *pd = malloc(sizeof(prism_data_t));
 
   pd->center = center;
   pd->vert_len = vert_len;
+  pd->phi = φ;
+  pd->n = n;
 
   calc_prism_pts(pd);
 
@@ -465,8 +485,8 @@ int main(int argc, char **argv)
   SetExitKey(-1);
   load_rc();
 
+  /* add_prism(vec(200, 200), 100, 1.31); */
   /* add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f); */
-  add_prism(vec(200, 200), 100);
 
   time_prev = time_cur = time(NULL);
   while (!WindowShouldClose()) {

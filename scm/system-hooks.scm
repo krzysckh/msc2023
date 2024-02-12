@@ -180,14 +180,44 @@
  (→2 (set! *SCREEN-WIDTH* x)
      (set! *SCREEN-HEIGHT* y)))
 
+;; TODO: przenieś do util.scm
+(define (rect-collision? r1 r2)
+  "sprawdza czy dwa `r1` i `r2` mają punkty wspólne. zwraca `#f | #t`"
+  (not (eqv? (sum (rect-collision r1 r2)) 0.0)))
+
+;; przyjmuję trójkąt równoboczny
+;; :3333
+(define (triangle->rect p1 p2 p3)
+  (let* ((x1 (car p1))
+         (y1 (cdr p1))
+         (x2 (car p2))
+         (y2 (cdr p2))
+         (x3 (car p3))
+         (y3 (cdr p3))
+         (a (- (max x1 x2 x3) (min x1 x2 x3)))
+         (h (* a (sqrt 3) 0.5)))
+    (list (min x1 x2 x3) (min y1 y2 y3) a h)))
+
+(define (prism->ptlist p)
+  (list (list-ref p 2) (list-ref p 3) (list-ref p 4)))
+
 ;;; selection-mode
 (define sel-mode:start-position nil)
 (define sel-mode:mirror-rects nil)
-(define sel-mode:selected-mirror-ids nil)
+(define sel-mode:prism-rects nil)
 (define sel-mode:last-time 0)
 
-(define (rect-collision? r1 r2)
-  (not (eqv? (sum (rect-collision r1 r2)) 0.0)))
+(define sel-mode:selected-mirror-ids nil)
+(define sel-mode:selected-prism-ids nil)
+
+(define (sel-mode:highlight-rects rects sel-map)
+  (for-each
+   (→1 (gui/rect
+        (list-ref rects x)
+        (if (list-ref sel-map x)
+            (aq 'green *colorscheme*)
+            (aq 'red *colorscheme*))))
+   (⍳ 0 1 (length rects))))
 
 (add-hook
  'click
@@ -201,6 +231,7 @@
              (set! *click-can-be-handled* #f)
              (set! sel-mode:start-position (get-mouse-position))
              (set! *current-mode* 'selection)
+             (set! sel-mode:prism-rects (map (→1 (apply triangle->rect x)) (map prism->ptlist *prisms*)))
              (set! sel-mode:mirror-rects (map (→1 (apply pts->rect x)) (map cdr *mirrors*))))
            (begin
              (let* ((mp (get-mouse-position))
@@ -209,39 +240,47 @@
                            (cdr sel-mode:start-position)
                            (- (car mp) (car sel-mode:start-position))
                            (- (cdr mp) (cdr sel-mode:start-position))))
-                    (selected-mirror-map
-                     (map (→1 (rect-collision? rect x)) sel-mode:mirror-rects)))
-               (for-each
-                (→1 (gui/rect
-                     (list-ref sel-mode:mirror-rects x)
-                     (if (list-ref selected-mirror-map x)
-                         (aq 'green *colorscheme*)
-                         (aq 'red *colorscheme*))))
-                (⍳ 0 1 (length sel-mode:mirror-rects)))
+                    (selected-mirror-map (map (→1 (rect-collision? rect x)) sel-mode:mirror-rects))
+                    (selected-prism-map (map (→1 (rect-collision? rect x)) sel-mode:prism-rects)))
+               (sel-mode:highlight-rects sel-mode:mirror-rects selected-mirror-map)
+               (sel-mode:highlight-rects sel-mode:prism-rects selected-prism-map)
+
                (gui/rect rect (aq 'selection *colorscheme*)))))))))
 
 (add-hook
  'unclick
  (→3 (when (and y (eqv? *current-mode* 'selection))
-       (set! *current-mode* 'selected)
-       (set!
-        sel-mode:selected-mirror-ids
-        (map car
-             (filter
-              (→1 (let ((mp (get-mouse-position)))
-                    (rect-collision?
+       (let* ((mp (get-mouse-position))
+              (sel-rect (list
+                         (car sel-mode:start-position)
+                         (cdr sel-mode:start-position)
+                         (- (car mp) (car sel-mode:start-position))
+                         (- (cdr mp) (cdr sel-mode:start-position)))))
+         (set! *current-mode* 'selected)
+         (set!
+          sel-mode:selected-mirror-ids
+          (map car
+               (filter
+                (→1 (rect-collision?
                      (pts->rect (cadr x) (caddr x))
-                     (list
-                      (car sel-mode:start-position)
-                      (cdr sel-mode:start-position)
-                      (- (car mp) (car sel-mode:start-position))
-                      (- (cdr mp) (cdr sel-mode:start-position))))))
-              *mirrors*)))
+                     sel-rect))
+                *mirrors*)))
+         (set!
+          sel-mode:selected-prism-ids
+          (map
+           car
+           (filter
+            (→1 (rect-collision?
+                 (apply triangle->rect (prism->ptlist x))
+                 sel-rect))
+            *prisms*)))
+         (start-selected-mode)))))
 
-       (start-selected-mode))))
-
+;; TODO: sel prism + sel custom
 (define (start-selected-mode)
   (stop-simulation)
+  ;; (if (> (+ (length sel-mode:selected-mirror-ids)
+  ;;           (length sel-mode:selected-prism-ids)) 0)
   (if (> (length sel-mode:selected-mirror-ids) 0)
       (let* ((mp (get-mouse-position))
              (menu-open #f)
@@ -345,60 +384,42 @@
 
   (start-simulation))
 
-;;; mirror data
+;;; "toplist"y - listy z przedmiotami
 (define *mirrors* nil)
-(define (reload-*mirrors*)
-  (let ((bbs (get-all-bounceables)))
-    (set!
-     *mirrors*
-     (map
-      (→1 (cons (car x) (cdr (cdr x))))
-      (filter
-       (→1 (if (not (eqv? (cdr x) #f))
-               (if (eqv? (cadr x) 'mirror)
-                   #t
-                   #f)
-               #f))
-       (map
-        (→1 (append (list x) (list-ref bbs x)))
-        (⍳ 0 1 (length bbs))))))))
+(define *prisms* nil)
+(define *customs* nil)
 
-(define (update-*mirrors* id)
-  (set!
-   *mirrors*
-   (map
-    (→1 (if (eqv? (car x) id)
-            (append (list id) (cdr (get-bounceable id)))
-            x))
-    *mirrors*)))
+(define (update-toplist l id)
+  (eval `(set! ,l (map (→1 (if (eqv? (car x) ,id)
+                               (append (list ,id) (cdr (get-bounceable ,id)))
+                               x))
+                       ,l))))
 
-(define (new-mirror-update-*mirrors* id)
-  (set!
-   *mirrors*
-   (append *mirrors* (list (append (list id) (cdr (get-bounceable id)))))))
+(define (add-bounceable-to-toplist l id)
+  (eval `(set! ,l (append ,l (list (append (list ,id) (cdr (get-bounceable ,id))))))))
+
+(define (delete-from-toplist l id)
+  (eval `(set! ,l (filter (→1 (not (eqv? (car x) ,id))) ,l))))
+
+;;;----- HOOKI dla bounceable_t i *mirrors*, *prisms* etc.
+;; hooki wykonywane z argumentami 'TYP ..dane
+;; jako że toplisty nazywają się *TYPs*, dodaję po prostu do typu gwiazdki po obu stronach i -s na koniec
+;; i mam nazwę zmiennej
+;; z tąd właśnie (string->symbol (string-append "*" (symbol->string x) "s*"))
+;; XDDD
+;; ~ kpm
 
 (add-hook
  'new
- (→2 (cond
-      ((eqv? x 'mirror) (new-mirror-update-*mirrors* y)) ; TODO: wymysl lepsza nazwe + idk czy reload-*mirrors* bedzie kiedykolwiek potrzebne
-      (else (error "not implemented: " x)))))
+ (→2 (add-bounceable-to-toplist (string->symbol (string-append "*" (symbol->string x) "s*")) y)))
 
 (add-hook
  'update
- (→2 (cond
-      ((eqv? x 'mirror) (update-*mirrors* y))
-      (else (error "not implemented: " x)))))
+ (→2 (update-toplist (string->symbol (string-append "*" (symbol->string x) "s*")) y)))
 
 (add-hook
  'delete
- (→2 (cond
-      ((eqv? x 'mirror)
-       (set!
-        *mirrors*
-        (filter
-         (→1 (not (eqv? (car x) y)))
-         *mirrors*)))
-      (else (error "not implemented: " x)))))
+ (→2 (delete-from-toplist (string->symbol (string-append "*" (symbol->string x) "s*")) y)))
 
 (add-hook
  'frame
