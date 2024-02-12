@@ -201,6 +201,42 @@
 (define (prism->ptlist p)
   (list (list-ref p 2) (list-ref p 3) (list-ref p 4)))
 
+(define (reposition-mirror-by-delta id ∆)
+  (let* ((mirror (get-bounceable id))
+         (p1 (cadr mirror))
+         (p2 (caddr mirror))
+         (p1-new (cons (+ (car p1) (car ∆))
+                       (+ (cdr p1) (cdr ∆))))
+         (p2-new (cons (+ (car p2) (car ∆))
+                       (+ (cdr p2) (cdr ∆)))))
+    (set-mirror! id p1-new p2-new)))
+
+(define (reposition-prism-by-delta id ∆)
+  (let* ((prism (get-bounceable id))
+         (center (cadr prism))
+         (center-new (cons (+ (car center) (car ∆))
+                           (+ (cdr center) (cdr ∆))))
+         (vert-len (list-ref prism 5))
+         (n (list-ref prism 6)))
+    (set-prism! id center-new vert-len n)))
+
+(define (reposition-thing-by-delta id ∆)
+  (let* ((thing (get-bounceable id))
+         (type (car thing)))
+    (cond
+     ((eqv? type 'mirror) (reposition-mirror-by-delta id ∆))
+     ((eqv? type 'prism) (reposition-prism-by-delta id ∆))
+     (else
+      (error (string-append (->string type) " unsupported"))))))
+
+(define (thing->rect thing)
+  (let ((type (car thing)))
+    (cond
+     ((eqv? type 'mirror) (pts->rect (cadr thing) (caddr thing)))
+     ((eqv? type 'prism) (apply triangle->rect (prism->ptlist thing)))
+     (else
+      (error (string-append "thing->rect: unsupported" (->string thing)))))))
+
 ;;; selection-mode
 (define sel-mode:start-position nil)
 (define sel-mode:mirror-rects nil)
@@ -209,6 +245,7 @@
 
 (define sel-mode:selected-mirror-ids nil)
 (define sel-mode:selected-prism-ids nil)
+(define sel-mode:selected-ids nil)
 
 (define (sel-mode:highlight-rects rects sel-map)
   (for-each
@@ -255,43 +292,31 @@
                          (car sel-mode:start-position)
                          (cdr sel-mode:start-position)
                          (- (car mp) (car sel-mode:start-position))
-                         (- (cdr mp) (cdr sel-mode:start-position)))))
+                         (- (cdr mp) (cdr sel-mode:start-position))))
+              (mirror-ids (map car (filter (→1 (rect-collision?
+                                                (pts->rect (cadr x) (caddr x))
+                                                sel-rect))
+                                           *mirrors*)))
+              (prism-ids (map car (filter (→1 (rect-collision?
+                                               (apply triangle->rect (prism->ptlist x))
+                                               sel-rect))
+                                          *prisms*))))
          (set! *current-mode* 'selected)
-         (set!
-          sel-mode:selected-mirror-ids
-          (map car
-               (filter
-                (→1 (rect-collision?
-                     (pts->rect (cadr x) (caddr x))
-                     sel-rect))
-                *mirrors*)))
-         (set!
-          sel-mode:selected-prism-ids
-          (map
-           car
-           (filter
-            (→1 (rect-collision?
-                 (apply triangle->rect (prism->ptlist x))
-                 sel-rect))
-            *prisms*)))
+         (set! sel-mode:selected-ids (append mirror-ids prism-ids))
          (start-selected-mode)))))
 
-;; TODO: sel prism + sel custom
+;; TODO: sel custom
+;; stary sposób był (chyba) trochę szybszy chociaż pewności nie mam.
+;; teraz po prostu co klatkę, jeśli coś się zmieniło robię set-rzecz! bez zatrzymywania symulacji
 (define (start-selected-mode)
-  (stop-simulation)
-  ;; (if (> (+ (length sel-mode:selected-mirror-ids)
-  ;;           (length sel-mode:selected-prism-ids)) 0)
-  (if (> (length sel-mode:selected-mirror-ids) 0)
+  (if (> (length sel-mode:selected-ids) 0)
       (let* ((mp (get-mouse-position))
              (menu-open #f)
-             (real-sel-mirrors (map (→1 (assq x *mirrors*)) sel-mode:selected-mirror-ids))
-             (sel-mirrors (map cdr real-sel-mirrors))
-             (p1s (map car sel-mirrors))
-             (p2s (map cadr sel-mirrors))
-             (minx (minl (append (map car p1s) (map car p2s))))
-             (miny (minl (append (map cdr p1s) (map cdr p2s))))
-             (maxx (maxl (append (map car p1s) (map car p2s))))
-             (maxy (maxl (append (map cdr p1s) (map cdr p2s))))
+             (rects (map normalize-rectangle (map thing->rect (map get-bounceable sel-mode:selected-ids))))
+             (minx (minl (map car rects)))
+             (miny (minl (map cadr rects)))
+             (maxx (maxl (map (→1 (+ (car x) (caddr x))) rects)))
+             (maxy (maxl (map (→1 (+ (cadr x) (cadddr x))) rects)))
              (∆x 0)
              (∆y 0)
              (∆mouse nil)
@@ -302,15 +327,6 @@
                                            (- maxx minx)
                                            (- maxy miny)))))
              (_ (update-bounding-rect))
-             (selected-id
-              (add-hook
-               'frame
-               (→ (for-each
-                   (→1 (draw-line
-                        (cons (+ ∆x (caar x)) (+ ∆y (cdar x)))
-                        (cons (+ ∆x (car (cadr x))) (+ ∆y (cdr (cadr x))))
-                        2 (aq 'selected *colorscheme*)))
-                   sel-mirrors))))
              (b-rect-id (add-hook 'frame (→ (gui/rect bounding-rect (aq 'red *colorscheme*)))))
              (cursor-handler-id
               (add-hook
@@ -328,8 +344,13 @@
                        (when first
                          (set! ∆mouse (cons (- (car mp) minx ∆x)
                                             (- (cdr mp) miny ∆y))))
-                       (set! ∆x (- (car mp) minx (car ∆mouse)))
-                       (set! ∆y (- (cdr mp) miny (cdr ∆mouse)))
+                       (let ((∆last (cons ∆x ∆y)))
+                         (set! ∆x (- (car mp) minx (car ∆mouse)))
+                         (set! ∆y (- (cdr mp) miny (cdr ∆mouse)))
+                         (for-each
+                          (→1 (reposition-thing-by-delta x (cons (- ∆x (car ∆last))
+                                                                 (- ∆y (cdr ∆last)))))
+                          sel-mode:selected-ids))
                        (update-bounding-rect)))))))
              (menu-handler-id
               (add-hook
@@ -343,12 +364,11 @@
                     `(("usuń" . ,(→ (set! menu-open #f)
                                     (for-each
                                      delete-bounceable
-                                     sel-mode:selected-mirror-ids)
+                                     sel-mode:selected-ids)
                                     (end-selected-mode))))
                     (→ (set! menu-open #f)))))))
              (end-selected-mode
-              (→(delete-hook 'frame selected-id)
-                 (delete-hook 'frame b-rect-id)
+              (→ (delete-hook 'frame b-rect-id)
                  (delete-hook 'frame cursor-handler-id)
                  (delete-hook 'click move-handler-id)
                  (delete-hook 'click menu-handler-id)
@@ -360,15 +380,6 @@
                (lambda (first l r)
                  (when (not menu-open)
                    (when (and first l (not (point-in-rect? (get-mouse-position) bounding-rect)))
-                     (for-each
-                      (→1 (let ((p1 (list-ref x 1))
-                                (p2 (list-ref x 2)))
-                            (set-mirror!
-                             (car x)
-                             (cons (+ ∆x (car p1)) (+ ∆y (cdr p1)))
-                             (cons (+ ∆x (car p2)) (+ ∆y (cdr p2))))))
-                      real-sel-mirrors)
-
                      (end-selected-mode)))))))
              0)
         (really-end-selected-mode)))
@@ -376,13 +387,11 @@
 (define (really-end-selected-mode)
   (set! *gui/option-menu-force-can-be-handled* #f)
   (set! sel-mode:last-time
-        (if (> (length sel-mode:selected-mirror-ids) 0)
+        (if (> (length sel-mode:selected-ids) 0)
             (time)
             0))
   (set! *click-can-be-handled* #t)
-  (set! *current-mode* nil)
-
-  (start-simulation))
+  (set! *current-mode* nil))
 
 ;;; "toplist"y - listy z przedmiotami
 (define *mirrors* nil)

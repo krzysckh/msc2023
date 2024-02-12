@@ -210,6 +210,27 @@ pointer poly2list(customb_data_t *cd)
 
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
 
+// (normalize-rectangle rect)
+static pointer scm_normalize_rectangle(scheme *sc, pointer args)
+{
+  float x, y, w, h;
+  pointer l;
+  Rectangle r;
+  expect_args("normalize-rectangle", 1);
+
+  l = car(args);
+  x = rvalue(car(l));
+  y = rvalue(cadr(l));
+  w = rvalue(caddr(l));
+  h = rvalue(cadddr(l));
+
+  r = normalize_rectangle((Rectangle){x, y, w, h});
+  return Cons(MR(r.x),
+              Cons(MR(r.y),
+                   Cons(MR(r.width),
+                        Cons(MR(r.height), sc->NIL))));
+}
+
 // (create-prism '(x . y) vert-len n)
 static pointer scm_create_prism(scheme *sc, pointer args)
 {
@@ -807,13 +828,13 @@ static pointer scm_get_bounceable(scheme *sc, pointer args)
       prism_data_t *pd = cur->data.prism;
       Vector2 center = pd->center;
 
-      // ('prism (center-x . center-y) (p1-x . p1-y) (p2-x . p2-y) (p3-x . p3-y) phi n)
+      // ('prism (center-x . center-y) (p1-x . p1-y) (p2-x . p2-y) (p3-x . p3-y) vert_len n)
       return Cons(mk_symbol(sc, "prism"),
                   Cons(vec2cons(center),
                        Cons(vec2cons(pd->p1),
                             Cons(vec2cons(pd->p2),
                                  Cons(vec2cons(pd->p3),
-                                      Cons(MR(pd->phi),
+                                      Cons(MR(pd->vert_len),
                                            Cons(MR(pd->n), sc->NIL)))))));
     } break;
     case B_CUSTOM: {
@@ -951,6 +972,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_normalize_rectangle, "normalize-rectangle");
   SCHEME_FF(scm_create_prism,        "create-prism");
   SCHEME_FF(scm_register_custom,     "register-custom");
   SCHEME_FF(scm_delete_bounceable,   "delete-bounceable");
