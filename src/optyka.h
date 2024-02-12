@@ -96,7 +96,16 @@ typedef enum {
   B_MIRROR,
   B_LENS,
   B_PRISM,
+  B_CUSTOM,
 } bounceable_type_t;
+
+typedef struct {
+  pointer draw;
+  pointer remap;
+
+  Vector2 *poly;
+  int poly_pts;
+} customb_data_t;
 
 typedef struct {
   Vector2 center;
@@ -124,9 +133,10 @@ typedef struct {
   bounceable_type_t t;
   bool removed;
   union {
-    mirror_data_t *mirror;
-    lens_data_t   *lens;
-    prism_data_t  *prism;
+    mirror_data_t  *mirror;
+    lens_data_t    *lens;
+    prism_data_t   *prism;
+    customb_data_t *custom;
 
     void          *p;
     // p dla jakiegokolwiek wskaźnika, żeby nie było mi źle na duszy
@@ -170,6 +180,7 @@ typedef struct {
   int size;
 } hookable_event_t;
 
+// main.c
 float normalize_angle(float f);
 void add_bounceable(bounceable_type_t t, void *data);
 void add_mirror(Vector2 p1, Vector2 p2);
@@ -179,7 +190,7 @@ Font get_font_with_size(int size);
 Vector2 create_target(Vector2 a, float angle);
 bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_bounceable);
 
-
+// scheme-interop.c
 void initialize_scheme(void);
 void load_rc(void);
 pointer scheme_click_info(struct mouse_information_t *mi);
@@ -189,6 +200,11 @@ void update_screen_size_variables(void);
 
 void load_compiled_scripts(void);
 
+// prism.c
 void draw_prism(bounceable_t *b);
 void calc_prism_pts(prism_data_t *pd);
 Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp);
+
+// custom.c
+void draw_custom(bounceable_t *b);
+void custom_get_light_remap(customb_data_t *cd, Vector2 pt, float ang, struct _teleport *tp, float *ret_ang);

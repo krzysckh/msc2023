@@ -135,6 +135,9 @@ static void draw_all_bounceables(void)
       case B_PRISM:
         draw_prism(&bounceables.v[i]);
         break;
+      case B_CUSTOM:
+        draw_custom(&bounceables.v[i]);
+        break;
       default:
         panic("unreachable");
       }
@@ -175,6 +178,14 @@ bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_
                                           bounceables.v[i].data.prism->p3))
             goto hit;
           break;
+        case B_CUSTOM: {
+          customb_data_t *cd = bounceables.v[i].data.custom;
+          if (cd->poly_pts == 2) {
+            if (CheckCollisionPointLine(source, cd->poly[0], cd->poly[1], CAST_LIGHT_STEP_SIZE))
+              goto hit;
+          } else if (CheckCollisionPointPoly(source, cd->poly, cd->poly_pts))
+            goto hit;
+        } break;
         default:
           panic("unreachable");
         }
@@ -223,7 +234,14 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct 
   } break;
   case B_PRISM: {
     return prism_create_target(b, cur, next, tp);
-  };
+  } break;
+  case B_CUSTOM: {
+    float ang;
+    custom_get_light_remap(b->data.custom, next, normalize_angle(Vector2Angle(cur, next) * RAD2DEG), tp, &ang);
+    return create_target(tp->luzik, ang);
+  } break;
+  default:
+    panic("unreachable");
   }
 }
 

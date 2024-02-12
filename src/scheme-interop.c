@@ -171,7 +171,35 @@ static int get_real_n_hooks(hookable_event_t *he)
   return n;
 }
 
+Vector2 *list2poly(pointer l, int *n)
+{
+  *n = list_length(&scm, l);
+  Vector2 *ret = malloc(sizeof(Vector2) * *n);
+  int i;
+  pointer cur = l, vec;
+
+  for (i = 0; i < *n; ++i) {
+    vec = car(cur);
+    ret[i].x = rvalue(car(vec));
+    ret[i].y = rvalue(cdr(vec));
+    cur = cdr(cur);
+  }
+
+  return ret;
+}
+
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
+
+static pointer scm_register_custom(scheme *sc, pointer args)
+{
+  customb_data_t *cd = malloc(sizeof(customb_data_t));
+  expect_args("register-custom", 3);
+
+  cd->poly = list2poly(car(args), &cd->poly_pts), cd->draw = cadr(args), cd->remap = caddr(args);
+  add_bounceable(B_CUSTOM, cd);
+
+  return sc->T;
+}
 
 // (delete-bounceable id)
 static pointer scm_delete_bounceable(scheme *sc, pointer args)
@@ -806,6 +834,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_register_custom,     "register-custom");
   SCHEME_FF(scm_delete_bounceable,   "delete-bounceable");
   SCHEME_FF(scm_get_all_hooks,       "get-all-hooks");
   SCHEME_FF(scm_get_hook,            "get-hook");

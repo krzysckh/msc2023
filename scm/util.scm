@@ -200,3 +200,13 @@
    (cdr p1)
    (- (car p2) (car p1))
    (- (cdr p2) (cdr p1))))
+
+(define (rect->poly rect)
+  (let ((x (list-ref rect 0))
+        (y (list-ref rect 1))
+        (w (list-ref rect 2))
+        (h (list-ref rect 3)))
+    (list (cons x y)
+          (cons (+ x w) y)
+          (cons (+ x w) (+ y h))
+          (cons x (+ y h)))))

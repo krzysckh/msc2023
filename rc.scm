@@ -102,3 +102,23 @@
          (% (random-next) *SCREEN-HEIGHT*))))
 
 (create-source '((pos . (20 . 200))))
+
+(define portal-start '((500 . 500) (500 . 700)))
+(define portal-end   '((400 . 100) (400 . 200)))
+
+(define (draw-function)
+  (draw-line (car portal-start) (cadr portal-start) 1 green)
+  (draw-line (car portal-end) (cadr portal-end) 1 red))
+
+;; angle do osi OX
+;; zwraca '((nowe-x . nowe-y) nowe-angle ...?)
+(define (light-remap-function hit-point angle)
+  (let* ((hit-y (cdr hit-point))
+         (diff-y (- hit-y (cdr (car portal-start))))
+         (end-y (+ (cdr (car portal-end)) diff-y)))
+    (list (cons (caar portal-end) end-y) angle)))
+
+(register-custom
+ portal-start
+ draw-function
+ light-remap-function)
