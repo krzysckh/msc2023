@@ -5,6 +5,8 @@
 (define *SCREEN-WIDTH* (car *SCREEN-SIZE*))
 (define *SCREEN-HEIGHT* (cdr *SCREEN-SIZE*))
 
+(define *default-spacing* 0)
+
 ;; prosto z raylib.h
 ;; (4.5)
 (define FLAG-VSYNC-HINT #x00000040)
@@ -123,7 +125,16 @@
       (set-source! n x y ang thickness mouse-reactive n-beams color)))
   (update-sources))
 
-(define *default-spacing* 1)
+(define (set-prism-e! id t v)
+  (args
+   '((t . "`'pt` | `'vert-len` | `'n`")
+     (v . "wartość dla `t`")))
+
+  (let* ((prism (cdr (assv id *prisms*)))
+         (pt (if (eqv? t 'pt) v (list-ref prism 0)))
+         (vert-len (if (eqv? t 'vert-len) v (list-ref prism 4)))
+         (n (if (eqv? t 'n) v (list-ref prism 5))))
+    (set-prism! id pt vert-len n)))
 
 ; (measure-text text size . spacing) → (w . h)
 (define (measure-text text size . spacing)

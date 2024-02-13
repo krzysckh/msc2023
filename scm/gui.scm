@@ -188,7 +188,7 @@
 ;; TODO: zmienic to na cos co oblicza gdzie jest srodek przycisku
 (define gui/button:padding 2)
 (define gui/button:text-size 16)
-(define gui/button:text-spacing 1)
+(define gui/button:text-spacing *default-spacing*)
 (define *gui/button-force-can-be-handled* #f)
 
 (define (gui/button-textfn rect text-fn cb)
@@ -204,7 +204,7 @@ zwraca **destruktor** - funkcję usuwającą go"
               (cons
                (+ (list-ref rect 0) gui/button:padding)
                (+ (list-ref rect 1) gui/button:padding))
-              16 (aq 'font *colorscheme*) 1))))
+              gui/button:text-size (aq 'font *colorscheme*) gui/button:text-spacing))))
         (click-id
          (add-hook
           'unclick
@@ -479,10 +479,15 @@ zwraca **destruktor** - funkcję usuwającą go"
          y)
      w h)))
 
+(define gui/mp-slider+ok:ident 'mp-slider+ok)
 (define (gui/mp-slider+ok from to cb n-after-comma)
   (set! *click-can-be-handled* #f)
   (set! *gui/button-force-can-be-handled* #t)
   (set! *gui/slider-force-can-be-handled* #t)
+
+  (when (eqv? *current-mode* nil)
+    (set! *current-mode* gui/mp-slider+ok:ident))
+
   (define V from)
   (let* ((mp (get-mouse-position))
          (start-time (time))
@@ -504,6 +509,8 @@ zwraca **destruktor** - funkcję usuwającą go"
                     (set! *click-can-be-handled* #t)
                     (set! *gui/button-force-can-be-handled* #f)
                     (set! *gui/slider-force-can-be-handled* #f)
+                    (when (eqv? *current-mode* gui/mp-slider+ok:ident)
+                      (set! *current-mode* nil))
                     (slider-dest)
                     (btn-dest))))))
       nil)))
