@@ -494,7 +494,7 @@ int main(int argc, char **argv)
   // czy Camera2D + [wasd] + malo nowego kodu
   /* SetConfigFlags(FLAG_WINDOW_RESIZABLE); */
 
-  SetTargetFPS(30);
+  SetTargetFPS(60);
 
 #ifdef ANTIALIAS
   SetConfigFlags(FLAG_MSAA_4X_HINT);
