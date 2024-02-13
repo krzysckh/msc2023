@@ -93,12 +93,32 @@
   (create-source `((pos . ,(get-mouse-position)) (reactive . #f))))
 
 ;; DOMYŚLNE KEYBINDINGI
+(define hook-status-dest nil)
+(define window-opts-dest nil)
+(define fps-dest nil)
+
 (define (keypress-default-hook c _)
   (when *keypress-can-be-handled*
     (let* ((mp (get-mouse-position)))
       (cond
         ((eqv? c #\A) (create-source-at-mouse-position))
         ((eqv? c #\e) (gui/input-popup "eval scheme" loads))
+        ((eqv? c #\`)
+         (if (null? fps-dest)
+             (begin
+               (set! fps-dest (gui/show-fps '(16 . 16)))
+               (set! hook-status-dest (gui/show-hook-status)))
+             (begin
+               (hook-status-dest)
+               (fps-dest)
+               (set! hook-status-dest nil)
+               (set! fps-dest nil))))
+        ((eqv? c #\~)
+         (if (null? window-opts-dest)
+             (set! window-opts-dest (gui/show-window-opts))
+             (begin
+               (window-opts-dest)
+               (set! window-opts-dest nil))))
         ((eqv? c #\q) (exit 0))))))
 
 (add-system-hook 'keypress keypress-default-hook)

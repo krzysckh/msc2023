@@ -559,3 +559,31 @@ zwraca **destruktor** - funkcję usuwającą go"
 
     (→ (for-each (→1 (x)) cb-dests)
        (delete-hook 'frame frame-id))))
+
+(define *hookable* '(keypress click unclick resize clock log new update delete frame))
+(define (gui/show-hook-status)
+  (let ((id (add-hook
+             'frame
+             (→ (for-each
+                 (→1 (let* ((sym (list-ref *hookable* x))
+                            (n (length (get-all-hooks sym))))
+                       (draw-text (string-append (symbol->string sym) " " (number->string n))
+                                  (cons 16 (- *SCREEN-HEIGHT* 64 (+ 10 (* x 20))))
+                                  16
+                                  white)))
+                 (⍳ 0 1 (length *hookable*)))))))
+    (→ (delete-hook 'frame id))))
+
+(define (gui/show-fps pos)
+  (let* ((cur-fps 0)
+         (fps 0)
+         (frame-id
+          (add-hook 'frame (→ (draw-text
+                               (string-append "fps: " (number->string cur-fps))
+                               pos 21 (aq 'font *colorscheme*))
+                              (++ fps))))
+         (clock-id
+          (add-hook 'clock (→ (set! cur-fps fps)
+                              (set! fps 0)))))
+    (→ (delete-hook 'frame frame-id)
+       (delete-hook 'clock clock-id))))
