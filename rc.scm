@@ -68,3 +68,6 @@
 ;;       (set-prism! 1 new-pos 100 1.31))))
 
 ;; (wait 2 (→ (delete-bounceable 0)))
+
+
+(create-prism '(300 . 300) 200 1.32)

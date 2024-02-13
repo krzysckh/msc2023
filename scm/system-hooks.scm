@@ -186,7 +186,7 @@
 (add-hook
  'unclick
  (lambda (first l r)
-   (when (and *click-can-be-handled* r)
+   (when (and *click-can-be-handled* r (eqv? *current-mode* nil))
      (gui/option-menu (get-mouse-position) mouse-menu))))
 
 ;;;; tracelog

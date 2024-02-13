@@ -37,6 +37,12 @@
        (interactive)
        (conf/run-in-default-dir (concat conf/make " pubcpy") t)))
 
+    (global-set-key
+     (kbd "C-c C-r")
+     (lambda ()
+       (interactive)
+       (switch-to-buffer "rc.scm")))
+
     (setq compile-command
           (concat
            "cd ~/programowanko/science-cup-2023/ ; "

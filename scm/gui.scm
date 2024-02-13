@@ -125,71 +125,70 @@
   (gui/message "" text 5))
 
 ;; option-menu
-;; TODO: uzyj gui/button zamiast ad-hoc sztynksów
-(define *gui/option-menu-text-size* 16)
-(define gui/option-menu:ident 'GUI-option-menu)
 (define *gui/option-menu-force-can-be-handled* #f)
-(define (gui/option-menu pos opts . exit-handler)
-  (args
-   '((pos . "pozycja lewego-górnego punktu opcji w formie `(x . y)`")
-     (opts . "opcje w formie ((tekst . funkcja) (tekst . funkcja) ...)")))
 
+(define gui/option-menu:ident 'GUI-option-menu)
+(define gui/option-menu:text-size 16)
+
+(define (gui/option-menu user-pos opts . exit-handler)
+  (args
+   '((user-pos . "pozycja lewego-górnego punktu opcji w formie `(x . y)`")
+     (opts . "opcje w formie ((tekst . funkcja) (tekst . funkcja) ...)")))
   (when (or (and *click-can-be-handled* (eqv? *current-mode* nil))
             *gui/option-menu-force-can-be-handled*)
-    (when (not *gui/option-menu-force-can-be-handled*)
-      (set! *click-can-be-handled* #f)
-      (set! *current-click-handler* gui/option-menu:ident))
-    (let* ((measures (map (→1 (measure-text x *gui/option-menu-text-size*)) (map car opts)))
-           (onexit (if (null? exit-handler)
+
+    (set! *gui/button:skip-unclick* #t)
+    (set! *gui/button-force-can-be-handled* #t)
+    (let* ((onexit (if (null? exit-handler)
                        (→ 0)
                        (car exit-handler)))
-           (w (maxl (map car measures)))
-           (h (+ (sum (map cdr measures)) (* 4 (length opts))))
-           (x (if (> (+ w (car pos)) *SCREEN-WIDTH*) (- *SCREEN-WIDTH* w) (car pos)))
-           (y (if (> (+ h (cdr pos)) *SCREEN-HEIGHT*) (- *SCREEN-HEIGHT* h) (cdr pos)))
-           (single-h (avg (map cdr measures)))
-           (real-rect (list x y w h))
-           (rects (map (lambda (n) (list x (+ y (* n single-h)) w single-h))
-                       (iota 0 1 (length opts))))
-           (frame-id
+           (messages (map car opts))
+           (measures (map (→1 (measure-text x gui/option-menu:text-size)) messages))
+           (full-w (+ (* 2 gui/button:padding) (maxl (map car measures))))
+           (avg-h (avg (map cdr measures)))
+           (full-h (+ (* avg-h (length opts))
+                      (* gui/button:padding (length opts))))
+           (full-rect (gui/rect-fit-into-screen (list (car user-pos) (cdr user-pos) full-w full-h)))
+           (pos (cons (car full-rect) (cadr full-rect)))
+           (rects (map
+                   (→1 (list (car pos) (- (+ (cdr pos) x (* x avg-h) (* x gui/button:padding)) x)
+                             full-w (+ avg-h gui/button:padding)))
+                   (⍳ 0 1 (length opts))))
+           (destroy-all
+            (→ (for-each (→1 (x)) buttons)
+               (delete-hook 'frame cursor-handler-id)
+               (delete-hook 'click c-id)))
+           (mk-cb (→1 (→ (destroy-all)
+                         (x)
+                         (onexit)))) ;; WOW
+           (cursor-handler-id
             (add-hook
              'frame
-             (→ (for-each
-                 (lambda (n)
-                   (fill-rect (list-ref rects n) (aq 'background *colorscheme*))
-                   (gui/rect (list-ref rects n) (aq 'frame *colorscheme*))
-                   (draw-text
-                    (car (list-ref opts n))
-                    (cons x (+ y (* n single-h)))
-                    *gui/option-menu-text-size* (aq 'font *colorscheme*)))
-                 (iota 0 1 (length opts))))))
-           (click-id
+             (→ (if (point-in-rect? (get-mouse-position) full-rect)
+                    (set-cursor MOUSE-CURSOR-POINTING-HAND)
+                    (set-cursor MOUSE-CURSOR-DEFAULT)))))
+           (buttons (map
+                     (→1 (let ((opt (list-ref opts x)))
+                           (gui/button (list-ref rects x) (car opt) (mk-cb (cdr opt)))))
+                     (⍳ 0 1 (length opts))))
+           (c-id
             (add-hook
-             'unclick
-             (lambda (first l r)
-               (when l
-                 (let ((mp (get-mouse-position)))
-                   (when (not *gui/option-menu-force-can-be-handled*)
-                     (set! *click-can-be-handled* #t)
-                     (set! *current-click-handler* nil))
-                   (delete-hook 'unclick click-id)
-                   (delete-hook 'frame frame-id)
-                   (if (point-in-rect? mp real-rect)
-                       (for-each
-                        (→1 (when (point-in-rect? mp (list-ref rects x))
-                              ((cdr (list-ref opts x)))))
-                        (iota 0 1 (length opts)))
-                       (onexit)))))))))))
+             'click
+             (→3 (when (and (or (not (point-in-rect? (get-mouse-position) full-rect)) z)
+                            (not *gui/button:skip-unclick*))
+                   (destroy-all)))))))))
+
 
 ;;; gui/button
 ;; to troche posrana i skomplikowana sprawa, ale że nie mam innego pomysłu to cusz
 ;; ~ kpm
 
-;; TODO: zmienic to na cos co oblicza gdzie jest srodek przycisku
 (define gui/button:padding 2)
 (define gui/button:text-size 16)
 (define gui/button:text-spacing *default-spacing*)
 (define *gui/button-force-can-be-handled* #f)
+
+(define *gui/button:skip-unclick* #f)
 
 (define (gui/button-textfn rect text-fn cb)
   "tworzy przycisk w `rect` z tekstem zwróconym przez `text-fn`. po przyciśnięciu wykonuje `cb`.
@@ -209,9 +208,12 @@ zwraca **destruktor** - funkcję usuwającą go"
          (add-hook
           'unclick
           (→3
-           (when (and (or *click-can-be-handled* *gui/button-force-can-be-handled*)
-                      (point-in-rect? (get-mouse-position) rect))
-             (cb))))))
+           (print "in unclick cb" *gui/button:skip-unclick* x y z)
+           (if *gui/button:skip-unclick*
+               (set! *gui/button:skip-unclick* #f)
+               (when (and y (or *click-can-be-handled* *gui/button-force-can-be-handled*)
+                          (point-in-rect? (get-mouse-position) rect))
+                 (cb)))))))
     (→ (delete-hook 'frame frame-id)
        (delete-hook 'unclick click-id))))
 
@@ -475,7 +477,7 @@ zwraca **destruktor** - funkcję usuwającą go"
          (- x (abs (- *SCREEN-WIDTH* (+ x w))))
          x)
      (if (> (+ y w) *SCREEN-HEIGHT*)
-         (- y (abs (- *SCREEN-HEIGHT* (+ y w))))
+         (- y (abs (- *SCREEN-HEIGHT* (+ y h))))
          y)
      w h)))
 
