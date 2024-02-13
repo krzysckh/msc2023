@@ -125,3 +125,7 @@
 (document-function
  (vec-move-towards vec target maxlen)
  "Vector2MoveTowards(vec, target, maxlen)")
+
+(document-function
+ (real-delete-all-sources)
+ nil)

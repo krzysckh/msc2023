@@ -22,15 +22,16 @@ scheme scm;
 bool scheme_is_initialized = false;
 static int last_screen_width = 0, last_screen_height = 0;
 
-hookable_event_t keypress = {0};
-hookable_event_t click    = {0};
-hookable_event_t unclick  = {0};
-hookable_event_t resize   = {0};
-hookable_event_t clocke   = {0}; // co sekundę
-hookable_event_t loge     = {0}; // na każdy TraceLog()
-hookable_event_t new      = {0}; // add_{mirror,lens}()
-hookable_event_t update   = {0}; // set_{mirror,lens}()
-hookable_event_t delete   = {0}; // {mirror,lens}...removed = 1
+hookable_event_t keypress     = {0};
+hookable_event_t click        = {0};
+hookable_event_t unclick      = {0};
+hookable_event_t resize       = {0};
+hookable_event_t clocke       = {0}; // co sekundę
+hookable_event_t loge         = {0}; // na każdy TraceLog()
+hookable_event_t new          = {0}; // add_{mirror,lens}()
+hookable_event_t update       = {0}; // set_{mirror,lens}()
+hookable_event_t delete       = {0}; // {mirror,lens}...removed = 1
+hookable_event_t filesdropped = {0}; // LoadDroppedFiles()
 
 hookable_event_t frame    = {0};
 /* uwaga uwaga: należy pamiętać o tym, żeby usuwać niepotrzebne hooki
@@ -53,16 +54,17 @@ struct hlist_el {
 };
 
 static struct hlist_el hookable_events_list[] = {
-  {"keypress", &keypress},
-  {"click",    &click},
-  {"unclick",  &unclick},
-  {"frame",    &frame},
-  {"clock",    &clocke},
-  {"log",      &loge},
-  {"resize",   &resize},
-  {"new",      &new},
-  {"update",   &update},
-  {"delete",   &delete},
+  {"keypress",       &keypress},
+  {"click",          &click},
+  {"unclick",        &unclick},
+  {"frame",          &frame},
+  {"clock",          &clocke},
+  {"log",            &loge},
+  {"resize",         &resize},
+  {"new",            &new},
+  {"update",         &update},
+  {"delete",         &delete},
+  {"files-dropped",  &filesdropped},
 };
 static int n_hookable_events = sizeof(hookable_events_list)/
   sizeof(*hookable_events_list);
@@ -203,7 +205,27 @@ pointer poly2list(customb_data_t *cd)
   cur = ret;
 
   for (i = 1; i < cd->poly_pts; ++i) {
-    set_cdr(cur, Cons(vec2cons(cd->poly[1]), sc->NIL));
+    set_cdr(cur, Cons(vec2cons(cd->poly[i]), sc->NIL));
+    cur = cdr(cur);
+  }
+
+  return ret;
+}
+
+pointer fpl2list(FilePathList fpl)
+{
+  scheme *sc = &scm;
+  pointer ret, cur;
+  size_t i;
+
+  if (fpl.count < 1)
+    return sc->NIL;
+
+  ret = Cons(mk_string(sc, fpl.paths[0]), sc->NIL);
+  cur = ret;
+
+  for (i = 1; i < fpl.count; ++i) {
+    set_cdr(cur, Cons(mk_string(sc, fpl.paths[i]), sc->NIL));
     cur = cdr(cur);
   }
 

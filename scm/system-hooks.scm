@@ -500,3 +500,9 @@
           (symbol->string *current-mode*))
       "-mode")
      (cons 16 (- *SCREEN-HEIGHT* 32)) 16 (aq 'font *colorscheme*))))
+
+;; ładowanie wrzuconych plików
+(define (load-files-handler . vs)
+  (for-each load vs))
+
+(add-hook 'files-dropped load-files-handler)

@@ -208,6 +208,7 @@ pointer scheme_click_info(struct mouse_information_t *mi);
 void do_hooks(hookable_event_t *he, pointer args);
 pointer ncdr(int n, pointer x);
 void update_screen_size_variables(void);
+pointer fpl2list(FilePathList fpl);
 
 void load_compiled_scripts(void);
 

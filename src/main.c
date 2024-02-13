@@ -18,7 +18,7 @@
 
 extern bool scheme_is_initialized;
 extern scheme scm;
-extern hookable_event_t keypress, click, unclick, frame, clocke, loge, resize;
+extern hookable_event_t keypress, click, unclick, frame, clocke, loge, resize, filesdropped;
 
 #define MAX_INPUT_BUFFER_SIZE 4096
 /* static void (*input_func)(void) = NULL; */
@@ -567,6 +567,13 @@ int main(int argc, char **argv)
       do_hooks(&clocke, cons(&scm, mk_integer(&scm, time_cur),
                              scm.NIL));
     }
+
+    if (IsFileDropped()) {
+      FilePathList fpl = LoadDroppedFiles();
+      do_hooks(&filesdropped, fpl2list(fpl));
+      UnloadDroppedFiles(fpl);
+    }
+
     EndDrawing();
 
     mi.first_click = false;
