@@ -137,6 +137,7 @@
         (→1 (let ((pos (car (list-ref *sources* x)))
                   (cur (list-ref *sources* x)))
               (when (point-in-rect? mp (src->rect pos))
+                (set! *current-mode* 'r-click-source)
                 (let ((source-settings
                        `(("zmień kąt" . ,(→ (gui/mp-slider+ok
                                              0 359
@@ -145,7 +146,11 @@
                          ("zmień ilość wiązek" . ,(→ (gui/mp-slider+ok
                                                       0 *source-size*
                                                       (lambda (v) (set-source-e! x 'n-beams v)) 0))))))
-                  (gui/option-menu (get-mouse-position) source-settings)))))
+                  (set! *gui/option-menu-force-can-be-handled* #t)
+                  (gui/option-menu
+                   (get-mouse-position)
+                   source-settings
+                   (→ (set! *current-mode* nil)))))))
         (⍳ 0 1 (length *sources*)))))))
 
 ;; r-click dla pryzmatów

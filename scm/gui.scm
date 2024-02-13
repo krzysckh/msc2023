@@ -138,7 +138,6 @@
             *gui/option-menu-force-can-be-handled*)
 
     (set! *gui/button:skip-unclick* #t)
-    (set! *gui/button-force-can-be-handled* #t)
     (let* ((onexit (if (null? exit-handler)
                        (→ 0)
                        (car exit-handler)))
@@ -157,10 +156,12 @@
            (destroy-all
             (→ (for-each (→1 (x)) buttons)
                (delete-hook 'frame cursor-handler-id)
-               (delete-hook 'click c-id)))
-           (mk-cb (→1 (→ (destroy-all)
-                         (x)
-                         (onexit)))) ;; WOW
+               (delete-hook 'click c-id)
+
+               (set! *gui/option-menu-force-can-be-handled* #f)
+               (set-cursor MOUSE-CURSOR-DEFAULT)
+               (onexit)))
+           (mk-cb (→1 (→ (x) (destroy-all)))) ;; WOW
            (cursor-handler-id
             (add-hook
              'frame
@@ -169,7 +170,7 @@
                     (set-cursor MOUSE-CURSOR-DEFAULT)))))
            (buttons (map
                      (→1 (let ((opt (list-ref opts x)))
-                           (gui/button (list-ref rects x) (car opt) (mk-cb (cdr opt)))))
+                           (gui/button (list-ref rects x) (car opt) (mk-cb (cdr opt)) #t)))
                      (⍳ 0 1 (length opts))))
            (c-id
             (add-hook
@@ -190,7 +191,7 @@
 
 (define *gui/button:skip-unclick* #f)
 
-(define (gui/button-textfn rect text-fn cb)
+(define (gui/button-textfn rect text-fn cb . ignore-all)
   "tworzy przycisk w `rect` z tekstem zwróconym przez `text-fn`. po przyciśnięciu wykonuje `cb`.
 zwraca **destruktor** - funkcję usuwającą go"
   (let ((frame-id
@@ -208,10 +209,9 @@ zwraca **destruktor** - funkcję usuwającą go"
          (add-hook
           'unclick
           (→3
-           (print "in unclick cb" *gui/button:skip-unclick* x y z)
            (if *gui/button:skip-unclick*
                (set! *gui/button:skip-unclick* #f)
-               (when (and y (or *click-can-be-handled* *gui/button-force-can-be-handled*)
+               (when (and y (or *click-can-be-handled* *gui/button-force-can-be-handled* ignore-all)
                           (point-in-rect? (get-mouse-position) rect))
                  (cb)))))))
     (→ (delete-hook 'frame frame-id)
