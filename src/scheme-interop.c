@@ -212,6 +212,22 @@ pointer poly2list(customb_data_t *cd)
 
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
 
+// (point-in-triangle? pt center vert-len)
+static pointer scm_point_in_triangle(scheme *sc, pointer args)
+{
+  Vector2 pt;
+  prism_data_t pd = {0};
+
+  expect_args("point-in-triangle?", 3);
+
+  pt          = cons2vec(car(args));
+  pd.center   = cons2vec(cadr(args));
+  pd.vert_len = rvalue(caddr(args));
+  calc_prism_pts(&pd);
+
+  return CheckCollisionPointTriangle(pt, pd.p1, pd.p2, pd.p3) ? sc->T : sc->F;
+}
+
 // (vec-move-towards vec target max)
 static pointer scm_vec_move_towards(scheme *sc, pointer args)
 {
@@ -1069,6 +1085,7 @@ pointer scheme_click_info(struct mouse_information_t *mi)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_point_in_triangle,   "point-in-triangle?");
   SCHEME_FF(scm_vec_move_towards,    "vec-move-towards");
   SCHEME_FF(scm_normalize_angle,     "normalize-angle");
   SCHEME_FF(scm_angle_between,       "angle-between");

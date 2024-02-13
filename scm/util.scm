@@ -211,3 +211,14 @@
           (cons (+ x w) y)
           (cons (+ x w) (+ y h))
           (cons x (+ y h)))))
+
+(define (round-off-zero v)
+  (string->number (car (string-split (number->string v) "."))))
+
+(define (round-off z n)
+  (example
+   '((round-off 10.1234123 2) 10.12))
+  (if (eqv? n 0)
+      (round-off-zero z)
+      (let ((power (expt 10 n)))
+        (/ (round (* power z)) power))))

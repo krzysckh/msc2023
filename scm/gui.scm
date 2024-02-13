@@ -191,8 +191,8 @@
 (define gui/button:text-spacing 1)
 (define *gui/button-force-can-be-handled* #f)
 
-(define (gui/button rect text cb)
-  "tworzy przycisk w `rect` z tekstem text. po przyciśnięciu wykonuje `cb`.
+(define (gui/button-textfn rect text-fn cb)
+  "tworzy przycisk w `rect` z tekstem zwróconym przez `text-fn`. po przyciśnięciu wykonuje `cb`.
 zwraca **destruktor** - funkcję usuwającą go"
   (let ((frame-id
          (add-hook
@@ -200,7 +200,7 @@ zwraca **destruktor** - funkcję usuwającą go"
           (→ (fill-rect rect (aq 'background *colorscheme*))
              (gui/rect rect (aq 'frame *colorscheme*))
              (draw-text
-              text
+              (text-fn)
               (cons
                (+ (list-ref rect 0) gui/button:padding)
                (+ (list-ref rect 1) gui/button:padding))
@@ -214,6 +214,9 @@ zwraca **destruktor** - funkcję usuwającą go"
              (cb))))))
     (→ (delete-hook 'frame frame-id)
        (delete-hook 'unclick click-id))))
+
+(define (gui/button rect text cb)
+  (gui/button-textfn rect (→ text) cb))
 
 (define (gui/btn pos text cb)
   "wykonuje gui/button, tylko sam liczy jak szeroki i wysoki ma być przycisk się zmieścił. zwraca (destruktor szerokosc wysokosc)"
@@ -361,7 +364,7 @@ zwraca **destruktor** - funkcję usuwającą go"
   (set! *current-mode* 'new-source)
 
   (define n-beams 1)
-  (define mouse-reactive #t)
+  (define mouse-reactive #f)
   (define angle 0)
 
   (let* ((window-box-rect
@@ -460,6 +463,7 @@ zwraca **destruktor** - funkcję usuwającą go"
                                   )))))
     nil))
 
+
 (define (gui/rect-fit-into-screen rect)
   "zwraca `rect`, który zmieści się na ekranie"
   (let ((x (list-ref rect 0))
@@ -475,22 +479,34 @@ zwraca **destruktor** - funkcję usuwającą go"
          y)
      w h)))
 
-(define (gui/mp-slider+ok from to cb)
+(define (gui/mp-slider+ok from to cb n-after-comma)
   (set! *click-can-be-handled* #f)
   (set! *gui/button-force-can-be-handled* #t)
   (set! *gui/slider-force-can-be-handled* #t)
+  (define V from)
   (let* ((mp (get-mouse-position))
-         (sl-rect (gui/rect-fit-into-screen (list (car mp) (cdr mp) 180 32))))
-    (letrec ((slider-dest (gui/slider sl-rect from to cb))
+         (start-time (time))
+         (after-comma-dummy (apply string (map (→ #\A) (⍳ 0 1 (if (eqv? 0 n-after-comma) 0 (+ n-after-comma 1))))))
+         (max-text-size (measure-text
+                         (string-append "Ok: " (number->string to) after-comma-dummy)
+                         gui/button:text-size))
+         (sl-rect (gui/rect-fit-into-screen (list (car mp) (cdr mp) 180 32)))
+         (real-cb (→1 (set! V (round-off x n-after-comma))
+                      (cb x))))
+    (letrec ((slider-dest (gui/slider sl-rect from to real-cb))
              (btn-dest
-              (car (gui/btn (cons (car sl-rect) (+ (cadr sl-rect) 48))
-                            "Ok"
-                            (→ (set! *click-can-be-handled* #t)
-                               (set! *gui/button-force-can-be-handled* #f)
-                               (set! *gui/slider-force-can-be-handled* #f)
-                               (slider-dest)
-                               (btn-dest))))))
-      0)))
+              (gui/button-textfn
+               (list (car sl-rect) (+ (cadr sl-rect) 48)
+                     (+ (* 2 gui/button:padding) (car max-text-size))
+                     (+ (* 2 gui/button:padding) (cdr max-text-size)))
+               (→ (string-append "Ok: " (number->string V)))
+               (→ (when (> (time) start-time)
+                    (set! *click-can-be-handled* #t)
+                    (set! *gui/button-force-can-be-handled* #f)
+                    (set! *gui/slider-force-can-be-handled* #f)
+                    (slider-dest)
+                    (btn-dest))))))
+      nil)))
 
 (define winopts-names
   '(FLAG-VSYNC-HINT

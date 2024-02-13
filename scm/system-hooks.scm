@@ -90,7 +90,7 @@
 (add-system-hook 'clock wait-handler)
 
 (define (create-source-at-mouse-position)
-  (create-source `((pos . ,(get-mouse-position)) (reactive . #t))))
+  (create-source `((pos . ,(get-mouse-position)) (reactive . #f))))
 
 ;; DOMYŚLNE KEYBINDINGI
 (define (keypress-default-hook c _)
@@ -107,7 +107,7 @@
   (list (- (car pos) (/ *source-size* 2))
         (- (cdr pos) (/ *source-size* 2)) *source-size* *source-size*))
 
-;; opts per source
+;; r-click dla źródeł
 (add-hook
  'unclick
  (lambda (_ l r)
@@ -120,22 +120,58 @@
                 (let ((source-settings
                        `(("zmień kąt" . ,(→ (gui/mp-slider+ok
                                              0 359
-                                             (lambda (v) (set-source-e! x 'angle v)))))
+                                             (lambda (v) (set-source-e! x 'angle v)) 0)))
                          ("'mouse-reactive" . ,(→ (set-source-e! x 'mouse-reactive (not (list-ref cur 3)))))
                          ("zmień ilość wiązek" . ,(→ (gui/mp-slider+ok
                                                       0 *source-size*
-                                                      (lambda (v) (set-source-e! x 'n-beams v))))))))
+                                                      (lambda (v) (set-source-e! x 'n-beams v)) 0))))))
                   (gui/option-menu (get-mouse-position) source-settings)))))
         (⍳ 0 1 (length *sources*)))))))
 
+(define (set-prism-e! id t v)
+  (args
+   '((t . "`'pt` | `'vert-len` | `'n`")
+     (v . "wartość dla `t`")))
+
+  (let* ((prism (cdr (assv id *prisms*)))
+         (pt (if (eqv? t 'pt) v (list-ref prism 0)))
+         (vert-len (if (eqv? t 'vert-len) v (list-ref prism 4)))
+         (n (if (eqv? t 'n) v (list-ref prism 5))))
+    (set-prism! id pt vert-len n)))
+
+;; r-click dla pryzmatów
+
+(add-hook
+ 'unclick
+ (lambda (_ l r)
+   (when (and *click-can-be-handled* r)
+     (let ((mp (get-mouse-position)))
+       (for-each
+        (→1 (let ((id (list-ref x 0))
+                  (center (list-ref x 1))
+                  (vert-len (list-ref x 5)))
+              (when (point-in-triangle? mp center vert-len)
+                (let ((prism-settings
+                       `(("zmień współczynnik załamania pryzmatu" . ,(→ (gui/mp-slider+ok
+                                                                         1.0 2.0
+                                                                         (→1 (set-prism-e! id 'n x))
+                                                                         3)))
+                         ("zmień wielkość boku" . ,(→ (gui/mp-slider+ok
+                                                       1 500
+                                                       (→1 (set-prism-e! id 'vert-len x))
+                                                       0))))))
+                  (gui/option-menu (get-mouse-position) prism-settings)))))
+        *prisms*)))))
+
 ;; mouse-menu
 (define mouse-menu
-  `(("nowe źródło" . ,(→ (set! gui/new-source-form:pos (get-mouse-position))
+  `(("stwórz nowe źródło" . ,(→ (set! gui/new-source-form:pos (get-mouse-position))
                          (gui/new-source-form)))
     ("narysuj zwierciadło" . ,(→ (when (eqv? *current-mode* nil)
                                    (set-cursor MOUSE-CURSOR-CROSSHAIR)
                                    (tracelog 'info "narysuj nowe zwierciadło...")
                                    (set! *current-mode* 'mirror-drawing))))
+    ("swtórz nowy pryzmat" . ,(→ (create-prism (get-mouse-position) 100 1.31)))
     ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
     ("wyczyść *tracelog-queue*" . ,(→ (set! *tracelog-queue* nil)))))
 

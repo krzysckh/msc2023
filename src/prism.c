@@ -71,13 +71,20 @@ Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _
 
   Vector2 end_targ = create_target(next, normalize_angle(line_ang - alpha + beta));
 
+  int sw = GetScreenWidth();
+  int sh = GetScreenHeight();
+
   /* DrawCircleV(end_targ, 20, PINK); */
   tp->serio = true;
   tp->luzik = next;
   do {
     tp->luzik = Vector2MoveTowards(tp->luzik, end_targ, 2);
-    /* DrawCircleV(tp->luzik, 2, PINK); */
-  } while (CheckCollisionPointTriangle(tp->luzik, pd->p1, pd->p2, pd->p3));
+  } while (CheckCollisionPointTriangle(tp->luzik, pd->p1, pd->p2, pd->p3)
+           && tp->luzik.x > 0.f
+           && tp->luzik.y > 0.f
+           && tp->luzik.x < sw
+           && tp->luzik.y < sh);
+
   tp->luzik = Vector2MoveTowards(tp->luzik, end_targ, 2);
 
   /* DrawLineV(next, create_target(next, line_ang + delta), PINK); */
