@@ -178,6 +178,12 @@ typedef struct {
 } Bounceables;
 
 typedef struct {
+  source_t *v;
+  int n;
+  int size;
+} Sources;
+
+typedef struct {
   pointer *v;
   int n;
   int size;

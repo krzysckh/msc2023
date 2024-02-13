@@ -164,6 +164,7 @@
                   (center (list-ref x 1))
                   (vert-len (list-ref x 5)))
               (when (point-in-triangle? mp center vert-len)
+                (set! *current-mode* 'r-click-prism)
                 (let ((prism-settings
                        `(("zmień współczynnik załamania pryzmatu" . ,(→ (gui/mp-slider+ok
                                                                          1.0 2.0
@@ -173,7 +174,11 @@
                                                        1 500
                                                        (→1 (set-prism-e! id 'vert-len x))
                                                        0))))))
-                  (gui/option-menu (get-mouse-position) prism-settings)))))
+                  (set! *gui/option-menu-force-can-be-handled* #t)
+                  (gui/option-menu
+                   (get-mouse-position)
+                   prism-settings
+                   (→ (set! *current-mode* nil)))))))
         *prisms*)))))
 
 ;; mouse-menu
@@ -186,13 +191,20 @@
                                    (set! *current-mode* 'mirror-drawing))))
     ("swtórz nowy pryzmat" . ,(→ (create-prism (get-mouse-position) 100 1.31)))
     ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
-    ("wyczyść *tracelog-queue*" . ,(→ (set! *tracelog-queue* nil)))))
+    ("wyczyść *tracelog-queue*" . ,(→ (set! *tracelog-queue* nil)))
+    ("zapisz scenę do pliku" . ,(→ (gui/save-current)))
+    ("załaduj przykład" . ,(→ (gui/load-example-menu)))))
 
 (add-hook
  'unclick
  (lambda (first l r)
    (when (and *click-can-be-handled* r (eqv? *current-mode* nil))
-     (gui/option-menu (get-mouse-position) mouse-menu))))
+     (set! *click-can-be-handled* #f)
+     (set! *gui/option-menu-force-can-be-handled*)
+     (gui/option-menu
+      (get-mouse-position)
+      mouse-menu
+      (→ (set! *click-can-be-handled* #t))))))
 
 ;;;; tracelog
 (define *tracelog-queue* '())

@@ -21,13 +21,6 @@
 (define real-filenames
   (append (map (lambda (s) (string-append "scm/" s)) scm-files) '("tinyscheme/r5rs.scm")))
 
-(define (read-sexps f acc)
-  (let ((sexp (read f)))
-    (cond
-     ((eof-object? sexp) acc)
-     (else
-      (read-sexps f (append acc (list sexp)))))))
-
 (define (caar* l)
   (if (pair? l)
       (if (pair? (car l))
@@ -94,7 +87,7 @@
   (print "</details>\n"))
 
 (define (render-file name)
-  (let* ((sexps (call-with-input-file name (lambda (f) (read-sexps f '()))))
+  (let* ((sexps (call-with-input-file name (lambda (f) (serialize:read-sexps f '()))))
          (functions
           (filter
            (lambda (v) (and (or (eqv? (car v) 'define)

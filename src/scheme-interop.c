@@ -125,7 +125,7 @@ static pointer scm_get_all_of_thing(scheme *sc, int max, pointer(*f)(scheme*, po
   int i;
 
   if (max < 1)
-    return sc->F;
+    return sc->NIL;
 
   ret = cons(sc, f(sc, cons(sc, mk_integer(sc, 0), sc->NIL)),
              sc->NIL);
@@ -211,6 +211,42 @@ pointer poly2list(customb_data_t *cd)
 }
 
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
+
+// ups no troche jest to poplątane
+// za późno wpadłem na to, że aktualizowanie listy od nowa przy każdym
+// dodawaniu czegoś nie jest najlepszym pomysłem.
+// więc przez to jest inny mechanizm dzizłania [*mirrors*, *customs*, *prisms*] i *sources*
+// smh, słabo, ale nie mam siły tego naprawiać.
+// to wychodzi od słabego początkowego założenia.
+// jak teraz sobie myślę, to wszystko, co może zostać postawione przez użytkownika powinno być jednym
+// typem jakies idk gowno_dupa_t, i mieć do wszystkiego takie same hooki, a teraz jak jest tak
+// porozrzucane jak gnoj po polu to juz za pozno zeby naprawiac no bez jaj szkoda troche
+//
+// dlatego też NIE DODAM (delete-source) tutaj, tylko idk może kiedyś w scheme.
+// teraz przyda mi się tylko usuwanie wszystkich, więc tylko to zeobie
+// nie miałoby to sensu, bo nie ma żadnych hooków, które działałyby po usunięciu źródła,
+// a dodawanie ich tylko pokomplikowałoby wszystko
+// aaaa szkoda gadać,... szkoda strzępić ryjec
+
+// (delete-all-sources)
+static pointer scm_delete_all_sources(scheme *sc, pointer args)
+{
+  extern Sources sources;
+  expect_args("delete-all-sources", 0);
+
+  free(sources.v);
+  sources = (Sources){0};
+  return sc->T;
+}
+
+
+// (delete-source id)
+/*
+static pointer scm_delete_source(scheme *sc, pointer args)
+{
+  expect_args("delete-source", 1);
+}
+*/
 
 // (point-in-triangle? pt center vert-len)
 static pointer scm_point_in_triangle(scheme *sc, pointer args)
@@ -323,7 +359,7 @@ static pointer scm_create_prism(scheme *sc, pointer args)
   add_prism(center, vert_len, n);
 
   do_hooks(&new, Cons(mk_symbol(sc, "prism"), Cons(MKI(bounceables.n-1), sc->NIL)));
-  return sc->T;
+  return MKI(bounceables.n-1);
 }
 
 static pointer scm_register_custom(scheme *sc, pointer args)
@@ -693,8 +729,7 @@ static pointer scm_measure_text(scheme *sc, pointer args)
 // (real-set-source! n x y angle thickness mouse-reactive n-beams color)
 static pointer scm_set_source(scheme *sc, pointer args)
 {
-  extern int N_SOURCES;
-  extern source_t *sources;
+  extern Sources sources;
   Color color;
   source_t *s;
 
@@ -712,12 +747,12 @@ static pointer scm_set_source(scheme *sc, pointer args)
   n_beams        = rvalue(car(ncdr(6, args)));
   color          = list2color(sc, car(ncdr(7, args)));
 
-  if (n >= N_SOURCES) {
+  if (n >= sources.n) {
     TraceLog(LOG_WARNING, "no such source: %d", n);
     return sc->F;
   }
 
-  s = &sources[n];
+  s = &sources.v[n];
   if (n_beams >= s->size) {
     // i will not tracelog about that :3333
     n_beams = s->size - 1;
@@ -734,8 +769,7 @@ static pointer scm_set_source(scheme *sc, pointer args)
 // (real-get-source n) → ((x . y) angle thickness mouse-reactive n-beams '(r g b a))
 static pointer scm_get_source(scheme *sc, pointer args)
 {
-  extern int N_SOURCES;
-  extern source_t *sources;
+  extern Sources sources;
 
   float n;
   source_t *s;
@@ -743,11 +777,11 @@ static pointer scm_get_source(scheme *sc, pointer args)
   expect_args("get-source", 1);
   n = rvalue(car(args));
 
-  if (n > N_SOURCES) {
+  if (n > sources.n) {
     TraceLog(LOG_WARNING, "get-source: no such source: %d", n);
     return sc->F;
   }
-  s = &sources[(int)n];
+  s = &sources.v[(int)n];
 
   return
     Cons(Cons(mk_integer(sc, s->pt.x), mk_integer(sc, s->pt.y)),
@@ -761,10 +795,10 @@ static pointer scm_get_source(scheme *sc, pointer args)
 // (get-all-sources) → '((id x y sz...) ...)
 static pointer scm_get_all_sources(scheme *sc, pointer args)
 {
-  extern int N_SOURCES;
+  extern Sources sources;
   expect_args("get-all-sources", 0);
 
-  return scm_get_all_of_thing(sc, N_SOURCES, scm_get_source);
+  return scm_get_all_of_thing(sc, sources.n, scm_get_source);
 }
 
 // (real-draw-line x1 y1 x2 y2 thickness r g b a) → nil
@@ -872,7 +906,7 @@ static pointer scm_create_mirror(scheme *sc, pointer args)
   add_mirror((Vector2){x1,y1}, (Vector2){x2,y2});
   do_hooks(&new, Cons(mk_symbol(sc, "mirror"), Cons(MKI(bounceables.n-1), sc->NIL)));
 
-  return sc->T;
+  return MKI(bounceables.n-1);
 }
 
 
@@ -1085,6 +1119,7 @@ pointer scheme_click_info(struct mouse_information_t *mi)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_delete_all_sources,  "real-delete-all-sources");
   SCHEME_FF(scm_point_in_triangle,   "point-in-triangle?");
   SCHEME_FF(scm_vec_move_towards,    "vec-move-towards");
   SCHEME_FF(scm_normalize_angle,     "normalize-angle");

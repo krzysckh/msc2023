@@ -36,10 +36,9 @@ struct window_conf_t winconf = {
 };
 
 #define MIRROR_THICKNESS 1
-// TODO: sources też powinny być dyn tablicą, a nie realloc-bumpowane raz po razie
-int N_SOURCES = 0;
+
 Bounceables bounceables = {0};
-source_t *sources = NULL;
+Sources sources = {0};
 
 Font get_font_with_size(int size)
 {
@@ -380,13 +379,12 @@ void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, floa
 
 void add_source(source_t s)
 {
-  sources = realloc(sources, sizeof(source_t) * (1 + N_SOURCES));
-
   if (s.n_beam >= s.size) {
     TraceLog(LOG_WARNING, "n_beam cannot be higher or equal size");
     s.n_beam = s.size-1;
   }
-  sources[N_SOURCES] = (source_t){
+
+  source_t src = (source_t){
     .color = (Color){s.color.r, s.color.g, s.color.b, s.color.a},
     .pt = (Vector2){ s.pt.x, s.pt.y },
     .angle = normalize_angle(s.angle),
@@ -397,9 +395,9 @@ void add_source(source_t s)
     .n_beam = s.n_beam
   };
 
-  TraceLog(LOG_INFO, "adding source [%f %f] ang. %f", s.pt.x, s.pt.y, s.angle);
+  dyn_add(sources, src);
 
-  ++N_SOURCES;
+  TraceLog(LOG_INFO, "adding source [%f %f] ang. %f", s.pt.x, s.pt.y, s.angle);
 }
 
 static void silent_tracelog_callback(__attribute__((unused))int a,
@@ -551,9 +549,9 @@ int main(int argc, char **argv)
         draw_all_bounceables();
 
         // TODO: to powinno być w osobnej funkcji. ale to kiedyś
-        for (i = 0; i < N_SOURCES; ++i) {
-          draw_source(&sources[i]);
-          draw_light(&sources[i]);
+        for (i = 0; i < sources.n; ++i) {
+          draw_source(&sources.v[i]);
+          draw_light(&sources.v[i]);
         }
       }
 
@@ -574,7 +572,7 @@ int main(int argc, char **argv)
     mi.first_click = false;
   }
 
-  free(sources);
+  free(sources.v);
   free(bounceables.v);
   scheme_deinit(&scm);
 }

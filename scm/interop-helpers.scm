@@ -230,3 +230,7 @@
    '((p1 . "'(x . y)")
      (p2 . "'(x . y)")))
   (create-mirror (car p1) (cdr p1) (car p2) (cdr p2)))
+
+(define (delete-all-sources)
+  (real-delete-all-sources)
+  (update-sources))

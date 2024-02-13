@@ -66,11 +66,11 @@
                                               (* n text-height) 2)) 18 (aq 'font *colorscheme*)))
       (iota 0 1 (length text)))))
 
-;; TODO: popup powinien zostać rozłożony na pomniejsze funkcje
-;; gui/input-popup
 (define gui/input-popup:ident 'GUI-input-popup)
-(define (gui/input-popup title callback)
-  (when *click-can-be-handled*
+(define *gui/input-popup-force-can-be-handled* #f)
+
+(define (gui/input-popup title callback . force)
+  (when (or *click-can-be-handled* force)
     (stop-simulation)
     (define state "")
     (set! *click-can-be-handled* #f)
@@ -589,3 +589,14 @@ zwraca **destruktor** - funkcję usuwającą go"
                               (set! fps 0)))))
     (→ (delete-hook 'frame frame-id)
        (delete-hook 'clock clock-id))))
+
+(define (gui/save-current)
+  (gui/input-popup "podaj nazwę pliku" (→1 (serialize:save-to x)) #t))
+
+(define (gui/load-example-menu)
+  (let ((opts (map
+               (→1 (let ((e (list-ref *examples* x)))
+                     (cons (string-append (number->string (+ 1 x)) ". " (car e))
+                           (cdr e))))
+               (⍳ 0 1 (length *examples*)))))
+    (gui/option-menu (get-mouse-position) opts)))
