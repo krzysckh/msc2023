@@ -223,7 +223,7 @@ bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_
   return true;
 }
 
-Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp)
+Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *cur_src)
 {
   float cur_angle, hit_angle, rel_angle;
   tp->serio = 0;
@@ -250,7 +250,7 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct 
                normalize_angle(Vector2Angle(next, ld->focal_point1) * 180 / PI));
   } break;
   case B_PRISM: {
-    return prism_create_target(b, cur, next, tp);
+    return prism_create_target(b, cur, next, tp, cur_src);
   } break;
   case B_CUSTOM: {
     float ang;
@@ -285,20 +285,22 @@ void _draw_single_light(source_t *source, Vector2 start, Vector2 s_target, int m
     DrawLineEx(cur, next, source->thickness, source->color);
 
     if (bounced) {
-      cur_target = create_target_by_hit(&hit_bounceable, cur, next, &tp);
+      cur_target = create_target_by_hit(&hit_bounceable, cur, next, &tp, source);
       //cur_target = create_target(next, cur_angle);
       cur = Vector2MoveTowards(next, cur_target, 1);
     }
 
     // ja nawet nie próbuję udawać że ten kodzik robi sens
     // będę się starał pisząc scheme a nie to
+    if (tp.do_trzeciej_warstwy_piekla)
+      return;
     if (tp.serio) {
       cur = tp.luzik;
     }
   }
 }
 
-static void draw_light(source_t *src)
+void draw_light(source_t *src)
 {
   int i, dist = floor(src->size / (1.f+(float)src->n_beam));
   for (i = 1; i <= src->n_beam; ++i) {

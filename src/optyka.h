@@ -165,6 +165,9 @@ typedef struct {
 struct _teleport {
   bool serio;
   Vector2 luzik;
+
+  // co
+  bool do_trzeciej_warstwy_piekla;
 };
 // XDD D JAK CI ZOSTANIE CZAS KRZYSZTOF TO PROSZE ZROB PORTALE
 // PROSZE PROSZE PROSZE PROSZE
@@ -200,6 +203,7 @@ Font get_font_with_size(int size);
 Vector2 create_target(Vector2 a, float angle);
 bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_bounceable);
 bool collision_point_poly(Vector2 point, Vector2 *points, int pointCount);
+void draw_light(source_t *src);
 
 // scheme-interop.c
 void initialize_scheme(void);
@@ -215,7 +219,7 @@ void load_compiled_scripts(void);
 // prism.c
 void draw_prism(bounceable_t *b);
 void calc_prism_pts(prism_data_t *pd);
-Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp);
+Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src);
 
 // custom.c
 void draw_custom(bounceable_t *b);

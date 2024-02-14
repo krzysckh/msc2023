@@ -39,7 +39,41 @@ typedef struct {
   Vector2 p1, p2;
 } Line;
 
-Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp)
+
+static source_t prism_mk_source(void)
+{
+  return (source_t) {
+    .angle = 0,
+    .mouse_reactive = false,
+    .n_beam = 1,
+    .size = 1,
+    .thickness = 1
+  };
+}
+
+static void prism_cast_colors(Color base_color, Vector2 pt, float base_ang)
+{
+  source_t r = prism_mk_source(), g = prism_mk_source(), b = prism_mk_source();
+  r.pt = g.pt = b.pt = pt;
+
+  r.color = (Color){base_color.r, 0, 0, 255};
+  r.target = create_target(pt, base_ang);
+
+  g.color = (Color){0, base_color.g, 0, 255};
+  g.target = create_target(pt, base_ang + 1);
+
+  b.color = (Color){0, 0, base_color.b, 255};
+  b.target = create_target(pt, base_ang + 2);
+
+  if (r.color.r || r.color.g || r.color.b)
+    draw_light(&r);
+  if (g.color.r || g.color.g || g.color.b)
+    draw_light(&g);
+  if (b.color.r || b.color.g || b.color.b)
+    draw_light(&b);
+}
+
+Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src)
 {
   prism_data_t *pd = b->data.prism;
   float phi = pd->phi;
@@ -74,6 +108,7 @@ Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _
   int sw = GetScreenWidth();
   int sh = GetScreenHeight();
 
+
   /* DrawCircleV(end_targ, 20, PINK); */
   tp->serio = true;
   tp->luzik = next;
@@ -86,13 +121,8 @@ Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _
            && tp->luzik.y < sh);
 
   tp->luzik = Vector2MoveTowards(tp->luzik, end_targ, 2);
+  prism_cast_colors(src->color, tp->luzik, line_ang + delta);
 
-  /* DrawLineV(next, create_target(next, line_ang + delta), PINK); */
-  /* DrawLineV(next, create_target(next, hit_ang + alpha), VIOLET); */
-
-  /* DrawText(TextFormat("hit_ang: %f", hit_ang), 500, 100, 30, WHITE); */
-  /* DrawText(TextFormat("line_ang: %f", line_ang), 500, 300, 30, WHITE); */
-  /* DrawText(TextFormat("alpha: %f", alpha), 500, 500, 30, WHITE); */
-
-  return create_target(tp->luzik, line_ang + delta);
+  tp->do_trzeciej_warstwy_piekla = true;
+  return vec(0, 0);
 }
