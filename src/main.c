@@ -437,18 +437,43 @@ static pointer logtype2sym(TraceLogLevel l)
 
 }
 
+// $ cd /path/to/raylib-src
+// $ find . -type f -name '*.c' -exec grep -io 'TraceLog(.*)' '{}' ';' | cut -f2 -d'"' | grep -oP '[A-Z]+(?=:)' | sort | uniq | sed 's/^/"/ ; s/$/",/' | xclip -sel c
+
+static const char *rl_tracelog_tokens[] = {
+  "ANDROID", "AUDIO", "DISPLAY", "DOWN",
+  "FBO", "FILEIO", "FONT", "GESTURE",
+  "GLFW", "IMAGE", "INPUT", "KEY",
+  "MATERIAL", "MESH", "MODEL", "MOTION",
+  "POSITION", "RLGL", "RPI", "SOUND",
+  "STREAM", "SYSTEM", "TEXTURE", "TIMER",
+  "UP", "VAO", "VBO", "WAVE", "WINDOW",
+};
+
+static bool is_raylib_message(char *s)
+{
+  int i;
+#ifdef PROD
+  for (i = 0; i < sizeof(rl_tracelog_tokens)/sizeof(*rl_tracelog_tokens); ++i)
+    if (strstr(s, rl_tracelog_tokens[i]) != NULL)
+      return true;
+#endif
+
+  return false;
+}
+
 #define TRACELOG_BUFSIZE 8196
 static char tracelog_buf[TRACELOG_BUFSIZE];
 static void tracelog_cb(int type, const char *fmt, va_list vl)
 {
-  memset(tracelog_buf, 0, TRACELOG_BUFSIZE);
+  memset(tracelog_buf, 0, TRACELOG_BUFSIZE); // niepotrzebne lol
   vsnprintf(tracelog_buf, TRACELOG_BUFSIZE, fmt, vl);
 
   fprintf(stderr, "%s: %s\n", logtype2string(type), tracelog_buf);
   fflush(stderr);
 
   if (scheme_is_initialized) {
-    if (strncmp(tracelog_buf, "GLFW", 4) != 0)
+    if (!is_raylib_message(tracelog_buf))
       do_hooks(&loge,
                cons(&scm,
                     logtype2sym(type),

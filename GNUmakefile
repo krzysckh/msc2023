@@ -6,9 +6,12 @@ CSTD=-std=gnu11
 
 # do przemyślenia
 FEATURES=-DRCFILE
+# PROD                  - wyłącza debug informacje, panic() etc.
 # ANTIALIAS		- włącza anti-aliasing
 # RCFILE		- uruchamia rc.scm na początku
 # COLOR_HIT_PRISM_LINE	- koloruje uderzoną część pryzmatu (idk czy zostawić czy nie lol)
+
+WINDOWS_FEATURES=-DPROD
 
 CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) $(FEATURES) $(ACFLAGS) -g
 LDFLAGS=-lm -L/usr/local/lib -lraylib $(ALDFLAGS)
@@ -49,7 +52,7 @@ icon.res:
 build-windows: icon.res
 	[ -f "libraylib.a" ] || wget -O libraylib.a https://pub.krzysckh.org/libraylib.a
 	[ -f "libtinyscheme-w64.a" ] || wget -O libtinyscheme-w64.a https://pub.krzysckh.org/libtinyscheme-w64.a
-	$(MAKE) clean $(OFILES) CC=x86_64-w64-mingw32-gcc ACFLAGS=-O2
+	$(MAKE) clean $(OFILES) FEATURES=$(WINDOWS_FEATURES) CC=x86_64-w64-mingw32-gcc ACFLAGS=-O2
 	x86_64-w64-mingw32-gcc -g -O2 $(CFLAGS) $(OFILES) icon.res -L. -l:libraylib.a \
 		-l:libtinyscheme-w64.a \
 		-lm -lwinmm -lgdi32 \
@@ -76,6 +79,8 @@ pubcpy:
 	$(MAKE) clean build-windows
 	yes | pubcpy ./rl-optyka-test.exe
 	yes | pubcpy ./rc.scm
+	$(MAKE) clean dist
+	yes | pubcpy ./msc2023-dist.tgz
 	$(MAKE) clean
 cloc: clean
 	cloc `git ls-files | grep -v tinyscheme`

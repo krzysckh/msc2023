@@ -23,6 +23,8 @@ pdoc() {
 rm -rf /tmp/msc2023*
 rm -f /tmp/lambda-optyka.exe
 
+git archive --format=tgz --prefix=msc2023-src/ HEAD > /tmp/msc2023-src.tgz
+
 $make build-windows
 
 cp ./rl-optyka-test.exe /tmp/lambda-optyka.exe
@@ -31,7 +33,6 @@ $make full-clean
 cd /tmp/ || exit 1
 
 cp -r $cur msc2023
-tar --exclude-vcs --exclude-vcs-ignores -cvzf msc2023-src.tgz msc2023
 mkdir msc2023-dist
 
 cp msc2023-src.tgz ./msc2023-dist/
