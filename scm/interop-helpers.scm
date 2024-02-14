@@ -244,3 +244,11 @@
          (sources-sexps (map serialize:source->sexp sources-kept)))
     (delete-all-sources)
     (for-each eval sources-sexps)))
+
+(define (delete-sources lst)
+  (let* ((sources-kept (map (→1 (list-ref *sources* x))
+                            (filter (→1 (not (memv x lst)))
+                                    (⍳ 0 1 (length *sources*)))))
+         (sources-sexps (map serialize:source->sexp sources-kept)))
+    (delete-all-sources)
+    (for-each eval sources-sexps)))

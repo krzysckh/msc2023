@@ -263,6 +263,11 @@
 (define (prism->ptlist p)
   (list (list-ref p 2) (list-ref p 3) (list-ref p 4)))
 
+(define (reposition-source-by-delta id ∆)
+  (let ((pos (car (list-ref *sources* id))))
+    (set-source-e! id 'pos (cons (+ (car pos) (car ∆))
+                                 (+ (cdr pos) (cdr ∆))))))
+
 (define (reposition-mirror-by-delta id ∆)
   (let* ((mirror (get-bounceable id))
          (p1 (cadr mirror))
@@ -282,7 +287,7 @@
          (n (list-ref prism 6)))
     (set-prism! id center-new vert-len n)))
 
-(define (reposition-thing-by-delta id ∆)
+(define (reposition-bounceable-by-delta id ∆)
   (let* ((thing (get-bounceable id))
          (type (car thing)))
     (cond
@@ -303,11 +308,12 @@
 (define sel-mode:start-position nil)
 (define sel-mode:mirror-rects nil)
 (define sel-mode:prism-rects nil)
-(define sel-mode:last-time 0)
 
-(define sel-mode:selected-mirror-ids nil)
-(define sel-mode:selected-prism-ids nil)
-(define sel-mode:selected-ids nil)
+(define sel-mode:source-rects nil)
+
+(define sel-mode:last-time 0)
+(define sel-mode:selected-bounceable-ids nil)
+(define sel-mode:selected-source-ids nil)
 
 (define (sel-mode:highlight-rects rects sel-map)
   (for-each
@@ -330,6 +336,7 @@
              (set! *click-can-be-handled* #f)
              (set! sel-mode:start-position (get-mouse-position))
              (set! *current-mode* 'selection)
+             (set! sel-mode:source-rects (map src->rect (map car *sources*)))
              (set! sel-mode:prism-rects (map (→1 (apply triangle->rect x)) (map prism->ptlist *prisms*)))
              (set! sel-mode:mirror-rects (map (→1 (apply pts->rect x)) (map cdr *mirrors*))))
            (begin
@@ -339,10 +346,12 @@
                            (cdr sel-mode:start-position)
                            (- (car mp) (car sel-mode:start-position))
                            (- (cdr mp) (cdr sel-mode:start-position))))
+                    (selected-source-map (map (→1 (rect-collision? rect x)) sel-mode:source-rects))
                     (selected-mirror-map (map (→1 (rect-collision? rect x)) sel-mode:mirror-rects))
-                    (selected-prism-map (map (→1 (rect-collision? rect x)) sel-mode:prism-rects)))
+                    (selected-prism-map  (map (→1 (rect-collision? rect x)) sel-mode:prism-rects)))
                (sel-mode:highlight-rects sel-mode:mirror-rects selected-mirror-map)
                (sel-mode:highlight-rects sel-mode:prism-rects selected-prism-map)
+               (sel-mode:highlight-rects sel-mode:source-rects selected-source-map)
 
                (gui/rect rect (aq 'selection *colorscheme*)))))))))
 
@@ -362,19 +371,24 @@
               (prism-ids (map car (filter (→1 (rect-collision?
                                                (apply triangle->rect (prism->ptlist x))
                                                sel-rect))
-                                          *prisms*))))
+                                          *prisms*)))
+              (source-ids (filter (→1 (rect-collision? sel-rect (src->rect (car (list-ref *sources* x))))) (⍳ 0 1 (length *sources*)))))
          (set! *current-mode* 'selected)
-         (set! sel-mode:selected-ids (append mirror-ids prism-ids))
+         (set! sel-mode:selected-source-ids source-ids)
+         (set! sel-mode:selected-bounceable-ids (append mirror-ids prism-ids))
          (start-selected-mode)))))
 
 ;; TODO: sel custom
 ;; stary sposób był (chyba) trochę szybszy chociaż pewności nie mam.
 ;; teraz po prostu co klatkę, jeśli coś się zmieniło robię set-rzecz! bez zatrzymywania symulacji
 (define (start-selected-mode)
-  (if (> (length sel-mode:selected-ids) 0)
+  (if (> (+ (length sel-mode:selected-bounceable-ids)
+            (length sel-mode:selected-source-ids))
+            0)
       (let* ((mp (get-mouse-position))
              (menu-open #f)
-             (rects (map normalize-rectangle (map thing->rect (map get-bounceable sel-mode:selected-ids))))
+             (rects (map normalize-rectangle (append (map thing->rect (map get-bounceable sel-mode:selected-bounceable-ids))
+                                                     (map (→1 (src->rect (car (list-ref *sources* x)))) sel-mode:selected-source-ids))))
              (minx (minl (map car rects)))
              (miny (minl (map cadr rects)))
              (maxx (maxl (map (→1 (+ (car x) (caddr x))) rects)))
@@ -410,9 +424,13 @@
                          (set! ∆x (- (car mp) minx (car ∆mouse)))
                          (set! ∆y (- (cdr mp) miny (cdr ∆mouse)))
                          (for-each
-                          (→1 (reposition-thing-by-delta x (cons (- ∆x (car ∆last))
-                                                                 (- ∆y (cdr ∆last)))))
-                          sel-mode:selected-ids))
+                          (→1 (reposition-source-by-delta x (cons (- ∆x (car ∆last))
+                                                                  (- ∆y (cdr ∆last)))))
+                          sel-mode:selected-source-ids)
+                         (for-each
+                          (→1 (reposition-bounceable-by-delta x (cons (- ∆x (car ∆last))
+                                                                      (- ∆y (cdr ∆last)))))
+                          sel-mode:selected-bounceable-ids))
                        (update-bounding-rect)))))))
              (menu-handler-id
               (add-hook
@@ -424,9 +442,8 @@
                    (gui/option-menu
                     (get-mouse-position)
                     `(("usuń" . ,(→ (set! menu-open #f)
-                                    (for-each
-                                     delete-bounceable
-                                     sel-mode:selected-ids)
+                                    (delete-sources sel-mode:selected-source-ids)
+                                    (for-each delete-bounceable sel-mode:selected-bounceable-ids)
                                     (end-selected-mode))))
                     (→ (set! menu-open #f)))))))
              (end-selected-mode
@@ -449,7 +466,7 @@
 (define (really-end-selected-mode)
   (set! *gui/option-menu-force-can-be-handled* #f)
   (set! sel-mode:last-time
-        (if (> (length sel-mode:selected-ids) 0)
+        (if (> (+ (length sel-mode:selected-bounceable-ids) (length sel-mode:selected-source-ids)) 0)
             (time)
             0))
   (set! *click-can-be-handled* #t)
