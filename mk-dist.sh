@@ -25,9 +25,12 @@ rm -f /tmp/lambda-optyka.exe
 
 git archive --format=tgz --prefix=msc2023-src/ HEAD > /tmp/msc2023-src.tgz
 
-$make build-windows
+$make doc
+cp ./doc/msc2023.pdf /tmp/msc2023-prog-man.pdf
 
+$make build-windows
 cp ./rl-optyka-test.exe /tmp/lambda-optyka.exe
+
 $make full-clean
 
 cd /tmp/ || exit 1
@@ -37,9 +40,13 @@ mkdir msc2023-dist
 
 cp msc2023-src.tgz ./msc2023-dist/
 cp /tmp/lambda-optyka.exe ./msc2023-dist/
+cp /tmp/msc2023-prog-man.pdf ./msc2023-dist/
 cp $cur/doc/USER-MANUAL.md ./msc2023-dist/README.md
+
 pdoc ./msc2023-dist/README.md ./msc2023-dist/README.html
 pdoc ./msc2023-dist/README.md ./msc2023-dist/README.pdf
 
 tar cvzf msc2023-dist.tgz msc2023-dist
+zip -r msc2023-dist.zip msc2023-dist
 cp msc2023-dist.tgz $cur/
+cp msc2023-dist.zip $cur/

@@ -19,7 +19,7 @@
    (split-string (sys '(ls scm)) "\n")))
 
 (define real-filenames
-  (append (map (lambda (s) (string-append "scm/" s)) scm-files) '("tinyscheme/r5rs.scm")))
+  (map (lambda (s) (string-append "scm/" s)) scm-files)) ;; '("tinyscheme/r5rs.scm")))
 
 (define (caar* l)
   (if (pair? l)

@@ -16,3 +16,4 @@ doc/scheme.md
 TAGS
 *.tgz
 *.tar.gz
+*.log

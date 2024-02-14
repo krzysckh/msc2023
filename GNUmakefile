@@ -60,17 +60,24 @@ build-windows: icon.res
 clean:
 	rm -f $(TARGET) $(OFILES) *.core main *.scm.c load-compiled-scripts.c *.exe scdoc.html
 	rm -f ./doc/msc2023.html ./doc/scheme.md
-	rm -f msc2023-dist.tgz
+	rm -f msc2023-dist.tgz msc2023-dist.zip
 full-clean:
 	$(MAKE) -C tinyscheme clean
 	$(MAKE) clean
 doc: all
 	$(TARGET) -F ./generate-docs.scm > doc/scheme.md
-	cat doc/prelude.md doc/scheme.md \
-		| pandoc --toc --toc-depth=2 \
-		-H doc/doc.css \
-                --metadata title="msc2023" -f gfm -t html \
+	cat doc/prelude.md doc/scheme.md                        \
+		| pandoc --toc --toc-depth=2                    \
+		-H doc/doc.css                                  \
+		--metadata title="msc2023" -f gfm -t html       \
 		--standalone -o doc/msc2023.html
+
+	cat doc/prelude.md doc/scheme.md                        \
+		| pandoc --toc --toc-depth=2                    \
+		--pdf-engine=lualatex                           \
+		-H ./doc/cfg.tex                                \
+		--metadata title="msc2023" -f gfm -t pdf        \
+		--standalone -o doc/msc2023.pdf
 pubcpy:
 	([ `whoami` = "krzych" ] || [ `whoami` = "kpm" ]) || exit 1
 
@@ -81,6 +88,7 @@ pubcpy:
 	yes | pubcpy ./rc.scm
 	$(MAKE) clean dist
 	yes | pubcpy ./msc2023-dist.tgz
+	yes | pubcpy ./msc2023-dist.zip
 	$(MAKE) clean
 cloc: clean
 	cloc `git ls-files | grep -v tinyscheme`
