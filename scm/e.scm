@@ -22,7 +22,6 @@
      (create-prism '(552 . 364) 203.0 1.309999943)
      (create-source '((pos 88 . 359) (angle . 353) (thickness . 1) (reactive . #f) (n-beams . 3) (color 214 153 182)))))
 
-
 (define (rand-float)
   (/ (random-next) 2147483647))
 

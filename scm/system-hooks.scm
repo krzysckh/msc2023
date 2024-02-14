@@ -145,7 +145,8 @@
                          ("'mouse-reactive" . ,(→ (set-source-e! x 'mouse-reactive (not (list-ref cur 3)))))
                          ("zmień ilość wiązek" . ,(→ (gui/mp-slider+ok
                                                       0 *source-size*
-                                                      (lambda (v) (set-source-e! x 'n-beams v)) 0))))))
+                                                      (lambda (v) (set-source-e! x 'n-beams v)) 0)))
+                         ("usuń" . ,(→ (delete-source x))))))
                   (set! *gui/option-menu-force-can-be-handled* #t)
                   (gui/option-menu
                    (get-mouse-position)

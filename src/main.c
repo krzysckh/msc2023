@@ -24,7 +24,6 @@ extern hookable_event_t keypress, click, unclick, frame, clocke, loge, resize, f
 /* static void (*input_func)(void) = NULL; */
 /* static char input_buffer[MAX_INPUT_BUFFER_SIZE] = {0}; */
 
-
 Font fontset[MAX_FONT_SIZE] = {0};
 
 /* to jest nieco niespójne ze scheme podejście, ale co klatkę wykonywane jest
@@ -39,6 +38,8 @@ struct window_conf_t winconf = {
 
 Bounceables bounceables = {0};
 Sources sources = {0};
+
+bool dont_tracelog = false;
 
 Font get_font_with_size(int size)
 {
@@ -399,7 +400,7 @@ void add_source(source_t s)
 
   dyn_add(sources, src);
 
-  TraceLog(LOG_INFO, "adding source [%f %f] ang. %f", s.pt.x, s.pt.y, s.angle);
+  /* TraceLog(LOG_INFO, "adding source [%f %f] ang. %f", s.pt.x, s.pt.y, s.angle); */
 }
 
 static void silent_tracelog_callback(__attribute__((unused))int a,
@@ -505,6 +506,7 @@ int main(int argc, char **argv)
       exit(0);
       break;
     case 'F':
+      dont_tracelog = true;
       SetTraceLogCallback(silent_tracelog_callback);
       initialize_scheme();
       FILE *f = fopen(optarg, "r");

@@ -234,3 +234,13 @@
 (define (delete-all-sources)
   (real-delete-all-sources)
   (update-sources))
+
+;; bardzo nieefektywne, ale no cóż
+;; patrz: rant w src/scheme-interop.c
+(define (delete-source id)
+  (let* ((sources-kept (map (→1 (list-ref *sources* x))
+                            (filter (→1 (not (eqv? id x)))
+                                    (⍳ 0 1 (length *sources*)))))
+         (sources-sexps (map serialize:source->sexp sources-kept)))
+    (delete-all-sources)
+    (for-each eval sources-sexps)))

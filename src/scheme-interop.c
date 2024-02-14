@@ -849,6 +849,7 @@ static pointer scm_delete_hook(scheme *sc, pointer args)
   char *sym;
   int id;//, i;
   hookable_event_t *he;
+  extern bool dont_tracelog;
 
   expect_args("delete-hook", 2);
   sym = symname(car(args));
@@ -867,13 +868,15 @@ static pointer scm_delete_hook(scheme *sc, pointer args)
 
   he->v[id] = NULL;
 
-  fprintf(stderr, "(not tracelogged) successfully deleted hook %d for %s\n", id, sym);
+  if (!dont_tracelog)
+    fprintf(stderr, "(not tracelogged) successfully deleted hook %d for %s\n", id, sym);
   return sc->T;
 }
 
 // (real-add-hook 'type f) → #t | #f
 static pointer scm_add_hook(scheme *sc, pointer args)
 {
+  extern bool dont_tracelog;
   char *name;
   pointer f;
   hookable_event_t *he;
@@ -899,7 +902,8 @@ static pointer scm_add_hook(scheme *sc, pointer args)
   /* he->hooks[he->n_hooks] = f; */
   /* he->n_hooks++; */
 
-  fprintf(stderr, "(not tracelogged) successfully added hook %p for %s\n", f, name);
+  if (!dont_tracelog)
+    fprintf(stderr, "(not tracelogged) successfully added hook %p for %s\n", (void*)f, name);
   return mk_integer(sc, he->n - 1);
 }
 

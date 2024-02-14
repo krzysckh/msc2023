@@ -22,6 +22,7 @@
     (cond
      ((eqv? k #\s) (spawn-things))
      ((eqv? k #\m) (rand-mirror))
+     ((eqv? k #\p) (print *sources*))
      ((eqv? k #\+)
       (set! current-thickness (min (+ current-thickness 1) max-thickness))
       (update-thicknesses))
