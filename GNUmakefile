@@ -57,6 +57,7 @@ build-windows: icon.res
 clean:
 	rm -f $(TARGET) $(OFILES) *.core main *.scm.c load-compiled-scripts.c *.exe scdoc.html
 	rm -f ./doc/msc2023.html ./doc/scheme.md
+	rm -f msc2023-dist.tgz
 full-clean:
 	$(MAKE) -C tinyscheme clean
 	$(MAKE) clean
@@ -82,3 +83,5 @@ scan-build:
 	$(MAKE) clean >/dev/null 2>/dev/null
 	$(MAKE) CC="$(SCAN_BUILD) clang" all >/dev/null
 	$(MAKE) clean >/dev/null 2>/dev/null
+dist: clean
+	./mk-dist.sh "$(MAKE)"
