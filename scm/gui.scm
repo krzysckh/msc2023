@@ -352,6 +352,7 @@ zwraca **destruktor** - funkcję usuwającą go"
 
 (define gui/new-source-form:padding 40)
 (define gui/new-source-form:pos nil)
+
 (define (gui/new-source-form)
   "form pytający użytkownika o dane nowego źródła"
 
@@ -368,6 +369,13 @@ zwraca **destruktor** - funkcję usuwającą go"
   (define n-beams 1)
   (define mouse-reactive #f)
   (define angle 0)
+
+  (define default-light (aq 'default-light *colorscheme*))
+  (define color-r (list-ref default-light 0))
+  (define color-g (list-ref default-light 1))
+  (define color-b (list-ref default-light 2))
+
+  (define color-a 255)
 
   (let* ((window-box-rect
           (list
@@ -426,6 +434,41 @@ zwraca **destruktor** - funkcję usuwającą go"
                       16 (aq 'font *colorscheme*))))))
             (→ (delete-hook 'frame id))))
 
+         (_3-line-height (+ _2-line-height 32 16))
+
+         (d-col-label
+          (gui/draw-text-persist
+           "kolor"
+           (cons (+ 10 (car rect))
+                 (+ 10 _3-line-height ))
+           16 (aq 'font *colorscheme*)))
+
+
+         (d-r-slider (gui/slider (list (+ 10 (car rect))
+                                       (+ 10 10 _3-line-height (cdr (measure-text "A" 16)))
+                                       128 32)
+                                 0 255 (→1 (set! color-r x))))
+
+         (d-g-slider (gui/slider (list (+ 128 16 10 (car rect))
+                                       (+ 10 10 _3-line-height (cdr (measure-text "A" 16)))
+                                       128 32)
+                                 0 255 (→1 (set! color-g x))))
+
+         (d-b-slider (gui/slider (list (+ 256 32 10 (car rect))
+                                       (+ 10 10 _3-line-height (cdr (measure-text "A" 16)))
+                                       128 32)
+                                 0 255 (→1 (set! color-b x))))
+
+         (_4-line-height (+ 32 10 10 _3-line-height (cdr (measure-text "A" 16))))
+
+         (d-color-fill
+          (let ((id (add-hook 'frame (→ (fill-rect (list (+ 10 (car rect))
+                                                         (+ 10 _4-line-height)
+                                                         128 32)
+                                                   (list color-r color-g color-b color-a))))))
+            (→ (delete-hook 'frame id))))
+
+
          ;; końcowy przycisk "ok"
          (d-OK-btn (car (gui/btn (cons (+ (car rect) 10)
                                        (- *SCREEN-HEIGHT* 80))
@@ -436,7 +479,11 @@ zwraca **destruktor** - funkcję usuwającą go"
                                    `((n-beams . ,n-beams)
                                      (reactive . ,mouse-reactive)
                                      (angle . ,angle)
-                                     (pos . ,gui/new-source-form:pos)))
+                                     (pos . ,gui/new-source-form:pos)
+                                     (color . ,(list color-r
+                                                     color-g
+                                                     color-b
+                                                     color-a))))
 
 
                                   ;; cleanup gui
@@ -449,6 +496,13 @@ zwraca **destruktor** - funkcję usuwającą go"
 
                                   (d-angle-slider)
                                   (d-angle-label)
+
+                                  (d-col-label)
+                                  (d-r-slider)
+                                  (d-g-slider)
+                                  (d-b-slider)
+
+                                  (d-color-fill)
 
                                   (d-OK-btn)
 
