@@ -78,7 +78,7 @@ pubcpy:
 	yes | pubcpy ./rc.scm
 	$(MAKE) clean
 cloc: clean
-	cloc `ls | grep -v tinyscheme`
+	cloc `git ls-files | grep -v tinyscheme`
 scan-build:
 	$(MAKE) clean >/dev/null 2>/dev/null
 	$(MAKE) CC="$(SCAN_BUILD) clang" all >/dev/null
