@@ -9,9 +9,8 @@
    delete-bounceable
    (map car (append *mirrors* *customs* *prisms*))))
 
-;; (define (load-example n)
-;;   (e:delete-all)
-;;   ((cdr (list-ref *examples* n))))
+(define (load-example n)
+  ((cdr (list-ref *examples* n))))
 
 (define (define-example nam user-f)
   (let ((f (→ (e:delete-all)
