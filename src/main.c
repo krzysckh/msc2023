@@ -337,8 +337,6 @@ void add_bounceable(bounceable_type_t t, void *data)
   b->removed = 0;
 
   dyn_add_ptr_sized((&bounceables), (*b), sizeof(bounceable_t));
-
-  TraceLog(LOG_INFO, "new bounceable with T = %s", strBtype(t));
 }
 
 void add_mirror(Vector2 p1, Vector2 p2)

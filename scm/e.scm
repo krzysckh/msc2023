@@ -14,13 +14,14 @@
 
 (define (define-example nam user-f)
   (let ((f (→ (e:delete-all)
-              (user-f))))
+              (user-f)
+              (tracelog 'info (string-append "załadowano przykład \"" nam "\"")))))
     (set! *examples* (append *examples* (list (cons nam f))))))
 
-(define-example "źródło i pryzmat"
+(define-example "źródło i pryzmaty"
   (→ (create-prism '(305 . 326) 100.0 1.309999943)
      (create-prism '(552 . 364) 203.0 1.309999943)
-     (create-source '((pos 88 . 359) (angle . 353) (thickness . 1) (reactive . #f) (n-beams . 3) (color 214 153 182)))))
+     (create-source '((pos 88 . 359) (angle . 353) (thickness . 1) (reactive . #f) (n-beams . 3) (color 255 255 255 255)))))
 
 (define (rand-float)
   (/ (random-next) 2147483647))
