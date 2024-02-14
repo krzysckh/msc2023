@@ -11,6 +11,15 @@ z przemieszczaniem obiektów na ekranie, etc.
 
 Rdzeń myślący i obliczający rzeczy zostanie jednak w C.
 
+# przykłady
+
+Aktualną "scenę" można zapisać przez menu (RMB → zapisz scenę do pliku → `nazwa-pliku.scm` `RET`), lub
+wykonując funkcję `(serialize:save-to file-name)`.
+
+Pliki `*.scm` można "ładować" po prostu przerzucając je na działający program - jest to równoważne do `(load file-path)`.
+
+Wbudowane jest też kilka przykładów (zapisane w `scm/e.scm`), można je przeglądać przez menu (RMB → załaduj przykład).
+
 # jak korzystać z scheme?
 
 cały zamysł opiera się na pomyśle *hooków* (inaczej eventów), nazwę zaciągnąłem prosto z gnu emacs.
