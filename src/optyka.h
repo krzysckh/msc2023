@@ -212,6 +212,7 @@ Vector2 create_target(Vector2 a, float angle);
 bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_bounceable);
 bool collision_point_poly(Vector2 point, Vector2 *points, int pointCount);
 void draw_light(source_t *src);
+void *rl_get_window_handle(void);
 
 // scheme-interop.c
 void initialize_scheme(void);

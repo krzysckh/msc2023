@@ -58,6 +58,11 @@ Font get_font_with_size(int size)
   return fontset[size];
 }
 
+void *rl_get_window_handle(void)
+{
+  return GetWindowHandle();
+}
+
 float normalize_angle(float f)
 {
   while (f >= 360) f -= 360;

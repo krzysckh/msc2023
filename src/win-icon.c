@@ -8,13 +8,13 @@ void *win_hinstance;
 
 void w32_load_icon(void)
 {
-  HWND window = GetActiveWindow();
-  /* printf("window: %p\n", window); */
+  HWND window = rl_get_window_handle();
 
   /* exit(0); */
-  HICON icon = LoadIcon((HINSTANCE)win_hinstance, MAKEINTRESOURCE(ICON_ID));
-  SendMessage(window, WM_SETICON, ICON_BIG, (LPARAM)icon);
-  SetWindowIcon(window, icon);
+  HICON icon = LoadIcon(win_hinstance, MAKEINTRESOURCE(ICON_ID));
+  if (icon) {
+    SendMessage(window, WM_SETICON, ICON_BIG, (LPARAM)icon);
+  }
 }
 
 #else // _WIN32
