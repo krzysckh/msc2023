@@ -28,12 +28,13 @@ Font fontset[MAX_FONT_SIZE] = {0};
 /* to jest nieco niespójne ze scheme podejście, ale co klatkę wykonywane jest
    ClearBackground(), i robienie tego w scheme było by po prostu zbyt powolne */
 struct window_conf_t winconf = {
-  .bgcolor             = (Color) { 0x2b, 0x33, 0x39, 0xff },
-  .mirror_color        = (Color) { 0x7f, 0xbb, 0xb3, 0xff },
-  .prism_outline_color = (Color) { 0xff, 0x00, 0xff, 0xff },
-  .lens_outline_color  = (Color) { 0xdb, 0xbc, 0x7f, 0xff },
-  .lens_center_color   = (Color) { 0x9d, 0xa9, 0xa0, 0xaa },
-  .lens_focal_pt_color = (Color) { 0xe6, 0x98, 0x75, 0xff },
+  .bgcolor             = (Color){ 0x2b, 0x33, 0x39, 0xff },
+  .mirror_color        = (Color){ 0x7f, 0xbb, 0xb3, 0xff },
+  .prism_outline_color = (Color){ 0xff, 0x00, 0xff, 0xff },
+  .lens_outline_color  = (Color){ 0xdb, 0xbc, 0x7f, 0xff },
+  .lens_center_color   = (Color){ 0x9d, 0xa9, 0xa0, 0xaa },
+  .lens_focal_pt_color = (Color){ 0xe6, 0x98, 0x75, 0xff },
+  .source_color        = (Color){ 0x38, 0x4b, 0x55, 0xff },
 };
 
 #define MIRROR_THICKNESS 1
@@ -89,27 +90,6 @@ Vector2 create_target(Vector2 a, float angle)
     return (Vector2){(ctg((180-angle)*(PI/180.f))*a.y+a.x), 0};
   else
     return (Vector2){a.x + ((H - a.y) / ctg((90-angle)*PI/180.f)), H};
-}
-
-static void draw_source(source_t *s)
-{
-  Vector2 cur_mouse;
-  Rectangle rect = {
-    .x = s->pt.x,
-    .y = s->pt.y,
-    .width = s->size,
-    .height = s->size
-  };
-
-  cur_mouse = GetMousePosition();
-
-  if (s->mouse_reactive)
-    s->angle = normalize_angle(
-      Vector2Angle((Vector2){rect.x, rect.y}, cur_mouse) * 180 / PI);
-  s->target = create_target((Vector2){rect.x, rect.y}, s->angle);
-
-  DrawRectanglePro(rect, (Vector2){s->size / 2.f, s->size / 2.f}, s->angle, RED);
-  DrawCircleV(s->pt, 3, VIOLET);
 }
 
 static void draw_mirror(bounceable_t *b)
@@ -315,42 +295,6 @@ void add_mirror(Vector2 p1, Vector2 p2)
   md->p2 = (Vector2){p2.x,p2.y};
 
   add_bounceable(B_MIRROR, md);
-}
-
-#define φ 60
-void add_prism(Vector2 center, int vert_len, float n)
-{
-  prism_data_t *pd = malloc(sizeof(prism_data_t));
-
-  pd->center = center;
-  pd->vert_len = vert_len;
-  pd->phi = φ;
-  pd->n = n;
-
-  calc_prism_pts(pd);
-
-  add_bounceable(B_PRISM, pd);
-}
-
-void add_source(source_t s)
-{
-  if (s.n_beam >= s.size) {
-    TraceLog(LOG_WARNING, "n_beam cannot be higher or equal size");
-    s.n_beam = s.size-1;
-  }
-
-  source_t src = (source_t){
-    .color = (Color){s.color.r, s.color.g, s.color.b, s.color.a},
-    .pt = (Vector2){ s.pt.x, s.pt.y },
-    .angle = normalize_angle(s.angle),
-    .size = s.size,
-    .thickness = s.thickness,
-    .mouse_reactive = s.mouse_reactive,
-
-    .n_beam = s.n_beam
-  };
-
-  dyn_add(sources, src);
 }
 
 static void silent_tracelog_callback(__attribute__((unused))int a,

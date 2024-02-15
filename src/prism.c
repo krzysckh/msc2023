@@ -1,6 +1,8 @@
 #include "optyka.h"
-#include <raylib.h>
-#include <raymath.h>
+#include "raylib.h"
+#include "raymath.h"
+
+#include <stdlib.h>
 
 #define N0 1.f
 
@@ -125,4 +127,19 @@ Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _
 
   tp->do_trzeciej_warstwy_piekla = true;
   return vec(0, 0);
+}
+
+#define φ 60
+void add_prism(Vector2 center, int vert_len, float n)
+{
+  prism_data_t *pd = malloc(sizeof(prism_data_t));
+
+  pd->center = center;
+  pd->vert_len = vert_len;
+  pd->phi = φ;
+  pd->n = n;
+
+  calc_prism_pts(pd);
+
+  add_bounceable(B_PRISM, pd);
 }

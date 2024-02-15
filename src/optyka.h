@@ -87,6 +87,7 @@ struct window_conf_t {
   Color lens_outline_color;
   Color lens_center_color;
   Color lens_focal_pt_color;
+  Color source_color;
 
   sim_state_t state;
 };
@@ -206,8 +207,6 @@ typedef struct {
 float normalize_angle(float f);
 void add_bounceable(bounceable_type_t t, void *data);
 void add_mirror(Vector2 p1, Vector2 p2);
-void add_prism(Vector2 center, int vert_len, float n);
-void add_source(source_t s);
 Font get_font_with_size(int size);
 Vector2 create_target(Vector2 a, float angle);
 bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_bounceable);
@@ -229,6 +228,7 @@ void load_compiled_scripts(void);
 void draw_prism(bounceable_t *b);
 void calc_prism_pts(prism_data_t *pd);
 Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src);
+void add_prism(Vector2 center, int vert_len, float n);
 
 // custom.c
 void draw_custom(bounceable_t *b);
@@ -241,3 +241,7 @@ bool collision_point_lens(Vector2 pt, lens_data_t *ld);
 bool collision_point_ellipse(Vector2 point, Vector2 center, float rH, float rV);
 Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp);
 void calc_lens_stuff(lens_data_t *ld);
+
+// source.c
+void draw_source(source_t *s);
+void add_source(source_t s);
