@@ -48,7 +48,7 @@ Font get_font_with_size(int size)
 
   if (fontset[size].baseSize == 0) {
     fontset[size] = LoadFontFromMemory(".otf", proggy_otf, proggy_otf_len, size, NULL, 1024);
-    SetTextureFilter(fontset[size].texture, TEXTURE_FILTER_ANISOTROPIC_16X);
+    SetTextureFilter(fontset[size].texture, TEXTURE_FILTER_POINT);
     TraceLog(LOG_INFO, "loaded default font with size %d", size);
   }
 
