@@ -40,8 +40,7 @@ void draw_source(source_t *s)
   cur_mouse = GetMousePosition();
 
   if (s->mouse_reactive)
-    s->angle = normalize_angle(
-      Vector2Angle((Vector2){rect.x, rect.y}, cur_mouse) * DEG2RAD);
+    s->angle = normalize_angle(Vector2Angle((Vector2){rect.x, rect.y}, cur_mouse) * RAD2DEG);
   s->target = create_target((Vector2){rect.x, rect.y}, s->angle);
 
   DrawRectanglePro(rect, (Vector2){s->size / 2.f, s->size / 2.f}, s->angle, winconf.source_color);

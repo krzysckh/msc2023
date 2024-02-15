@@ -212,6 +212,7 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct 
   } break;
   default:
     panic("unreachable");
+    return vec(0, 0);
   }
 }
 
@@ -378,7 +379,12 @@ static void tracelog_cb(int type, const char *fmt, va_list vl)
   }
 }
 
+#ifdef _WIN32
+int WinMain(void *hInstance, __attribute__((unused))void *prevInstance,
+            __attribute__((unused))void *a, __attribute__((unused))int b)
+#else // _WIN32
 int main(int argc, char **argv)
+#endif // _WIN32
 {
   extern scheme scm;
   int i, c, k, charsize, opt;
@@ -392,6 +398,7 @@ int main(int argc, char **argv)
   };
 
   SetTraceLogCallback(tracelog_cb);
+#ifndef _WIN32
   while ((opt = getopt(argc, argv, "e:F:")) != -1) {
     switch (opt) {
     case 'e':
@@ -410,6 +417,7 @@ int main(int argc, char **argv)
       break;
     }
   }
+#endif // _WIN32
 
   // TODO: idk czy resizable + bardzo duzo nowego scheme
   // czy Camera2D + [wasd] + malo nowego kodu
@@ -425,6 +433,12 @@ int main(int argc, char **argv)
   initialize_scheme();
   SetExitKey(-1);
   load_rc();
+
+#ifdef _WIN32
+  extern void *win_hinstance;
+  win_hinstance = hInstance;
+  w32_load_icon();
+#endif
 
   /* add_prism(vec(200, 200), 100, 1.31); */
   /* add_lens(vec(200, 200), vec(200, 300), 20.f, 200.f); */
@@ -505,4 +519,6 @@ int main(int argc, char **argv)
   free(sources.v);
   free(bounceables.v);
   scheme_deinit(&scm);
+
+  return 0;
 }

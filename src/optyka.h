@@ -245,3 +245,6 @@ void calc_lens_stuff(lens_data_t *ld);
 // source.c
 void draw_source(source_t *s);
 void add_source(source_t s);
+
+// win-icon.c
+void w32_load_icon(void);
