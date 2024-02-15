@@ -384,10 +384,11 @@ static pointer scm_create_prism(scheme *sc, pointer args)
   return MKI(bounceables.n-1);
 }
 
+// (real-register-custom l f1 f2)
 static pointer scm_register_custom(scheme *sc, pointer args)
 {
   customb_data_t *cd = malloc(sizeof(customb_data_t));
-  expect_args("register-custom", 3);
+  expect_args("real-register-custom", 3);
 
   cd->poly = list2poly(car(args), &cd->poly_pts), cd->draw = cadr(args), cd->remap = caddr(args);
   add_bounceable(B_CUSTOM, cd);
@@ -1153,7 +1154,7 @@ static void load_scheme_cfunctions(void)
   SCHEME_FF(scm_point_in_line,       "point-in-line?");
   SCHEME_FF(scm_normalize_rectangle, "normalize-rectangle");
   SCHEME_FF(scm_create_prism,        "create-prism");
-  SCHEME_FF(scm_register_custom,     "register-custom");
+  SCHEME_FF(scm_register_custom,     "real-register-custom");
   SCHEME_FF(scm_delete_bounceable,   "delete-bounceable");
   SCHEME_FF(scm_get_all_hooks,       "get-all-hooks");
   SCHEME_FF(scm_get_hook,            "get-hook");

@@ -95,8 +95,8 @@
  "zmienia dane zwierciadła o id `id`")
 
 (document-function
- (register-custom poly-points draw-function light-remap-function)
- "tworzy nowy obiekt w obrębie `poly-points` rysowany co klatkę przez `draw-function`, jeśli wiązka światła napotka obiekt, przemieniana jest wg. `light-remap-function`. więcej doc TBD")
+ (real-register-custom pts f1 f2)
+ "patrz: register-custom")
 
 (document-function
  (create-prism pt vert-len n)

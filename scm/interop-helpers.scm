@@ -181,7 +181,17 @@
 ;; GC Tinyscheme usuwa lambdy przekazywane do FF funkcji (tych zdefiniowanych w c)
 ;; dlatego żeby cały czas o nich "pamiętało" dodaje je do *all-hooks* :33333
 ;; ~ kpm
-(define *all-hooks* '())
+(define *all-hooks* nil)
+
+;; tak samo z funkcjami przekazywanymi do register-custom
+;; ~ kpm
+
+(define *all-custom-fns* nil)
+(define (register-custom poly-points draw-function light-remap-function)
+  "tworzy nowy obiekt w obrębie `poly-points` rysowany co klatkę przez `draw-function`, jeśli wiązka światła napotka obiekt, przemieniana jest wg. `light-remap-function`. więcej doc TBD"
+  (set! *all-custom-fns* (append *all-custom-fns* (list (cons draw-function light-remap-function))))
+  (let ((l (last *all-custom-fns*)))
+    (apply real-register-custom (list poly-points (car l) (cdr l)))))
 
 ;; TODO: zrobić tak żeby nie trzeba było sprawdzać *can-click-be-handled* etc.
 ;; ~ kpm
