@@ -6,25 +6,44 @@
 
 extern struct window_conf_t winconf;
 
-bool collision_point_ellipse(Vector2 point, Vector2 center, float rH, float rV)
-{
-  float dx = point.x - center.x;
-  float dy = point.y - center.y;
-
-  return ((dx * dx) / (rH * rH) + (dy * dy) / (rV * rV) <= 1);
-}
-
 bool collision_point_lens(Vector2 pt, lens_data_t *ld)
 {
-  if (pt.x < ld->center.x)
-    return collision_point_ellipse(pt, (Vector2){ld->center.x, ld->center.y}, ld->r1, ld->center.y - ld->p1.y);
-  else if (pt.x > ld->center.x)
-    return collision_point_ellipse(pt, (Vector2){ld->p1.x, ld->center.y}, ld->r2, ld->center.y - ld->p1.y);
-  else if (pt.y >= ld->p1.y && pt.y <= ld->p2.y) // i pt.x == ld->p{1,2}.x
-    return true;
+  /* Rectangle rec1 = (Rectangle) { */
+  /*   ld->center.x - ld->d/2, */
+  /*   ld->center.y - MAX(ld->r1, ld->r2), */
+  /*   ld->d/2, */
+  /*   2*MAX(ld->r1, ld->r2) */
+  /* }; */
+
+  /* Rectangle rec2 = (Rectangle) { */
+  /*   ld->center.x, */
+  /*   ld->center.y - MAX(ld->r1, ld->r2), */
+  /*   ld->d/2, */
+  /*   2*MAX(ld->r1, ld->r2) */
+  /* }; */
+
+  Rectangle rec1 = (Rectangle) {
+    ld->center.x - ld->d/2,
+    ld->center.y - MAX(ld->r, ld->r),
+    ld->d/2,
+    2*MAX(ld->r, ld->r)
+  };
+
+  Rectangle rec2 = (Rectangle) {
+    ld->center.x,
+    ld->center.y - MAX(ld->r, ld->r),
+    ld->d/2,
+    2*MAX(ld->r, ld->r)
+  };
+
+  if (CheckCollisionPointRec(pt, rec1))
+    return CheckCollisionPointCircle(pt, vec(ld->center.x + ld->r - ld->d/2, ld->center.y), ld->r);
+
+  if (CheckCollisionPointRec(pt, rec2))
+    return CheckCollisionPointCircle(pt, vec(ld->center.x - ld->r + ld->d/2, ld->center.y), ld->r);
+
   return false;
 }
-
 
 void draw_lens(bounceable_t *b)
 {
@@ -32,15 +51,32 @@ void draw_lens(bounceable_t *b)
   DrawCircleV(ld->focal_point1, 2, winconf.lens_focal_pt_color);
   DrawCircleV(ld->focal_point2, 2, winconf.lens_focal_pt_color);
 
-  BeginScissorMode(ld->p1.x - ld->r1, ld->p1.y, ld->r1, ld->p2.y - ld->p1.y);
+  float d = ld->d;
+
+  /* DrawRectangle(ld->center.x - d/2, ld->center.y - MAX(ld->r1, ld->r2), d, 2*MAX(ld->r1, ld->r2), WHITE); */
+  /*
+  BeginScissorMode(ld->center.x - d/2, ld->center.y - MAX(ld->r1, ld->r2), d/2, 2*MAX(ld->r1, ld->r2));
   {
-    DrawEllipseLines(ld->center.x, ld->center.y, ld->r1, ld->center.y - ld->p1.y, winconf.lens_outline_color);
+    DrawCircleLines(ld->center.x + ld->r1 - d/2, ld->center.y, ld->r1, winconf.lens_outline_color);
   }
   EndScissorMode();
 
-  BeginScissorMode(ld->p1.x, ld->p1.y, ld->r2, ld->p2.y - ld->p1.y);
+  BeginScissorMode(ld->center.x, ld->center.y - MAX(ld->r1, ld->r2), d/2, 2*MAX(ld->r1, ld->r2));
   {
-    DrawEllipseLines(ld->center.x, ld->center.y, ld->r2, ld->center.y - ld->p1.y, winconf.lens_outline_color);
+    DrawCircleLines(ld->center.x - ld->r2 + d/2, ld->center.y, ld->r2, winconf.lens_outline_color);
+  }
+  EndScissorMode();
+  */
+
+  BeginScissorMode(ld->center.x - d/2, ld->center.y - MAX(ld->r, ld->r), d/2, 2*MAX(ld->r, ld->r));
+  {
+    DrawCircleLines(ld->center.x + ld->r - d/2, ld->center.y, ld->r, winconf.lens_outline_color);
+  }
+  EndScissorMode();
+
+  BeginScissorMode(ld->center.x, ld->center.y - MAX(ld->r, ld->r), d/2, 2*MAX(ld->r, ld->r));
+  {
+    DrawCircleLines(ld->center.x - ld->r + d/2, ld->center.y, ld->r, winconf.lens_outline_color);
   }
   EndScissorMode();
 
@@ -51,19 +87,21 @@ void draw_lens(bounceable_t *b)
 
 void calc_lens_stuff(lens_data_t *ld)
 {
-  ld->f = 1.f / ((1.f / ld->r1) + (1.f / ld->r2));
-  ld->center = vec(ld->p1.x + (ld->p2.x - ld->p1.x)/2,
-                   ld->p1.y + (ld->p2.y - ld->p1.y)/2);
-
+  ld->f = 1.f / ((1.f / ld->r) + (1.f / ld->r));
   ld->focal_point1 = vec(ld->center.x - ld->f, ld->center.y);
   ld->focal_point2 = vec(ld->center.x + ld->f, ld->center.y);
-  // TODO: nieprawda!!
+
+  ld->p1 = ld->p2 = ld->center;
+  while (collision_point_lens(ld->p1, ld))
+    ld->p1.y--;
+  while (collision_point_lens(ld->p2, ld))
+    ld->p2.y++;
 }
 
-void add_lens(Vector2 p1, Vector2 p2, float r1, float r2)
+void add_lens(Vector2 center, float d, float r)
 {
   lens_data_t *ld = malloc(sizeof(lens_data_t));
-  ld->r1 = r1, ld->r2 = r2, ld->p1 = p1, ld->p2 = p2;
+  ld->center = center, ld->d = d, ld->r = r;
 
   calc_lens_stuff(ld);
   // p1.x == p2.x i p1.y < p2.y
@@ -81,7 +119,7 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
   assert(ld->p1.y <= ld->p2.y);
 
   Vector2 targ;
-  if (rel_angle < 180)
+  if (cur.x <= ld->center.x)
     targ = create_target(ld->focal_point2, normalize_angle(Vector2Angle(next, ld->focal_point2) * RAD2DEG));
   else
     targ = create_target(ld->focal_point1, normalize_angle(Vector2Angle(next, ld->focal_point1) * RAD2DEG));

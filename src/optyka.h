@@ -128,14 +128,13 @@ typedef struct {
   Vector2 p1, p2, p3;
 } prism_data_t;
 
+// TODO: to jest soczewka dwuwypukła :///
 typedef struct {
-  Vector2 p1, p2;
-  float r1, r2;
-
-  float R;
+  float r, d;
+  Vector2 center;
 
   /* reszta jest obliczana przez program */
-  Vector2 focal_point1, focal_point2, center;
+  Vector2 focal_point1, focal_point2, p1, p2;
   float f;
 } lens_data_t;
 
@@ -238,12 +237,10 @@ void custom_get_light_remap(customb_data_t *cd, Vector2 pt, float ang, struct _t
 
 // lens.c
 void draw_lens(bounceable_t *b);
-void add_lens(Vector2 p1, Vector2 p2, float r1, float r2);
+void add_lens(Vector2 center, float d, float r);
 bool collision_point_lens(Vector2 pt, lens_data_t *ld);
-bool collision_point_ellipse(Vector2 point, Vector2 center, float rH, float rV);
 Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src);
 void calc_lens_stuff(lens_data_t *ld);
-
 
 // source.c
 void draw_source(source_t *s);

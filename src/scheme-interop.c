@@ -380,26 +380,21 @@ static pointer scm_normalize_rectangle(scheme *sc, pointer args)
                         Cons(MR(r.height), sc->NIL))));
 }
 
-// (create-lens center R r1 r2)
+// (create-lens center d r)
 // XDDD center jako argument bo mój kod nie jest w stanie zrozumieć, że coś może być POD KĄTEM
 // ~ kpm
 static pointer scm_create_lens(scheme *sc, pointer args)
 {
   extern Bounceables bounceables;
-  Vector2 center, p1, p2;
-  float R, r1, r2;
+  Vector2 center;
+  float d, r;
 
-  expect_args("create-lens", 4);
+  expect_args("create-lens", 3);
   center = cons2vec(car(args));
-  R      = rvalue(cadr(args));
-  r1     = rvalue(caddr(args));
-  r2     = rvalue(cadddr(args));
+  d      = rvalue(cadr(args));
+  r      = rvalue(caddr(args));
 
-  p1 = vec(center.x, center.y - R);
-  p2 = vec(center.x, center.y + R);
-
-  add_lens(p1, p2, r1, r2);
-  bounceables.v[bounceables.n-1].data.lens->R = R;
+  add_lens(center, d, r);
 
   do_hooks(&new, Cons(mk_symbol(sc, "lens"), Cons(MKI(bounceables.n-1), sc->NIL)));
   return MKI(bounceables.n-1);
@@ -1025,13 +1020,13 @@ static pointer scm_get_bounceable(scheme *sc, pointer args)
     case B_LENS: {
       lens_data_t *ld = cur->data.lens;
 
-      // ('lens p1 p2 (r1 . r2) center R)
+      // ('lens p1 p2 r center d)
       return Cons(mk_symbol(sc, "lens"),
                   Cons(vec2cons(ld->p1),
                        Cons(vec2cons(ld->p2),
-                            Cons(vec2cons(vec(ld->r1, ld->r2)),
+                            Cons(MR(ld->r),
                                  Cons(vec2cons(ld->center),
-                                      Cons(MR(ld->R),
+                                      Cons(MR(ld->d),
                                            sc->NIL))))));
     } break;
     default: {
@@ -1080,31 +1075,25 @@ static pointer scm_set_mirror(scheme *sc, pointer args)
   return sc->F;
 }
 
-// (set-lens! id center R r1 r2)
+// (set-lens! id center d r)
 static pointer scm_set_lens(scheme *sc, pointer args)
 {
   extern Bounceables bounceables;
-  Vector2 center, p1, p2;
-  float R, r1, r2;
+  Vector2 center;
+  float d, r;
   int id;
 
-  expect_args("set-lens!", 5);
+  expect_args("set-lens!", 4);
   id     = rvalue(car(args));
   center = cons2vec(cadr(args));
-  R      = rvalue(caddr(args));
-  r1     = rvalue(cadddr(args));
-  r2     = rvalue(cadddr(cdr(args)));
-
-  p1 = vec(center.x, center.y - R);
-  p2 = vec(center.x, center.y + R);
+  d      = rvalue(caddr(args));
+  r      = rvalue(cadddr(args));
 
   if (id >= 0 && id < bounceables.n) {
     if (bounceables.v[id].t == B_LENS) {
-      bounceables.v[id].data.lens->p1 = p1;
-      bounceables.v[id].data.lens->p2 = p2;
-      bounceables.v[id].data.lens->r1 = r1;
-      bounceables.v[id].data.lens->r2 = r2;
-
+      bounceables.v[id].data.lens->center = center;
+      bounceables.v[id].data.lens->r = r;
+      bounceables.v[id].data.lens->d = d;
       calc_lens_stuff(bounceables.v[id].data.lens);
 
       do_hooks(&update, Cons(mk_symbol(sc, "lens"), Cons(MKI(id), sc->NIL)));

@@ -13,7 +13,7 @@ FEATURES=-DRCFILE -DDRAW_LINES_INSIDE
 # LENS_CENTER           - rysuje środek soczewki
 # DRAW_LINES_INSIDE     - rysuje wiązki w {soczewce,pryzmacie}
 
-WINDOWS_FEATURES=-DPROD
+WINDOWS_FEATURES=-DPROD -DDRAW_LINES_INSIDE
 
 CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) $(FEATURES) $(ACFLAGS) -g
 LDFLAGS=-lm -L/usr/local/lib -lraylib $(ALDFLAGS)
@@ -54,7 +54,7 @@ icon.res:
 build-windows:
 	[ -f "libraylib.a" ] || wget -O libraylib.a https://pub.krzysckh.org/libraylib.a
 	[ -f "libtinyscheme-w64.a" ] || wget -O libtinyscheme-w64.a https://pub.krzysckh.org/libtinyscheme-w64.a
-	$(MAKE) clean $(OFILES) FEATURES=$(WINDOWS_FEATURES) CC=x86_64-w64-mingw32-gcc ACFLAGS=-O2
+	$(MAKE) clean $(OFILES) FEATURES="$(WINDOWS_FEATURES)" CC=x86_64-w64-mingw32-gcc ACFLAGS=-O2
 	$(MAKE) icon.res # yikes
 	x86_64-w64-mingw32-gcc -g -O2 $(CFLAGS) $(OFILES) icon.res -L. -l:libraylib.a \
 		-l:libtinyscheme-w64.a \

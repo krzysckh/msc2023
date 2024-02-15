@@ -195,17 +195,17 @@
               (when (point-in-lens? mp id)
                 (set! *current-mode* 'r-click-lens)
                 (let ((lens-settings
-                       `(("zmień r1" . ,(→ (gui/mp-slider+ok
-                                            0.1 100.0
-                                            (→1 (set-lens-e! id 'r1 x))
+                       `(("zmień r" . ,(→ (gui/mp-slider+ok
+                                            10 500.0
+                                            (→1 (set-lens-e! id 'r x))
                                             1)))
-                         ("zmień r2" . ,(→ (gui/mp-slider+ok
-                                            0.1 100.0
-                                            (→1 (set-lens-e! id 'r2 x))
-                                            1)))
-                         ("zmień R" . ,(→ (gui/mp-slider+ok
-                                           10 200.0
-                                           (→1 (set-lens-e! id 'R x))
+                         ;; ("zmień r2" . ,(→ (gui/mp-slider+ok
+                         ;;                    0.1 100.0
+                         ;;                    (→1 (set-lens-e! id 'r2 x))
+                         ;;                    1)))
+                         ("zmień d" . ,(→ (gui/mp-slider+ok
+                                           10 500.0
+                                           (→1 (set-lens-e! id 'd x))
                                            0))))))
                   (set! *gui/option-menu-force-can-be-handled* #t)
                   (gui/option-menu
@@ -229,7 +229,7 @@
                            (tracelog 'info "narysuj nowe zwierciadło...")
                            (set! *current-mode* 'mirror-drawing))))
     ("pryzmat" . ,(→ (create-prism (get-mouse-position) 100 1.31)))
-    ("soczewkę" . ,(→ (create-lens (get-mouse-position) 50 20 20)))))
+    ("soczewkę" . ,(→ (create-lens (get-mouse-position) 20 120)))))
 
 (define advanced-menu
   `(("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
@@ -335,12 +335,10 @@
 
 (define (reposition-lens-by-delta id ∆)
   (let* ((lens (get-bounceable id))
-         (rs (list-ref lens 3))
+         (r (list-ref lens 3))
          (center (list-ref lens 4))
-         (R (list-ref lens 5))
-         (r1 (car rs))
-         (r2 (cdr rs)))
-    (set-lens! id (cons (+ (car center) (car ∆)) (+ (cdr center) (cdr ∆))) R r1 r2)))
+         (d (list-ref lens 5)))
+    (set-lens! id (cons (+ (car center) (car ∆)) (+ (cdr center) (cdr ∆))) d r)))
 
 (define (reposition-bounceable-by-delta id ∆)
   (let* ((thing (get-bounceable id))
@@ -355,12 +353,10 @@
 (define (lens->rect lens)
   (let* ((p1 (list-ref lens 1))
          (p2 (list-ref lens 2))
-         (rs (list-ref lens 3))
-         (r1 (car rs))
-         (r2 (cdr rs)))
-    (list (- (car p1) r1)
+         (d (list-ref lens 5)))
+    (list (- (car p1) (/ d 2))
              (cdr p1)
-             (+ r1 r2)
+             d
              (- (cdr p2) (cdr p1)))))
 
 (define (thing->rect thing)

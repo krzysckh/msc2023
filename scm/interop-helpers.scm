@@ -139,14 +139,12 @@
 
 (define (set-lens-e! id t v)
   (args
-   '((t  . "`r1 | r2 | center | R`")))
+   '((t  . "`r | center | d`")))
   (let* ((lens (get-bounceable id))
-         (orig-rs (list-ref lens 3))
+         (r (if (eqv? t 'r) v (list-ref lens 3)))
          (center (if (eqv? t 'center) v (list-ref lens 4)))
-         (R (if (eqv? t 'R) v (list-ref lens 5)))
-         (r1 (if (eqv? t 'r1) v (car orig-rs)))
-         (r2 (if (eqv? t 'r2) v (cdr orig-rs))))
-    (set-lens! id center R r1 r2)))
+         (d (if (eqv? t 'd) v (list-ref lens 5))))
+    (set-lens! id center d r)))
 
 ; (measure-text text size . spacing) → (w . h)
 (define (measure-text text size . spacing)
