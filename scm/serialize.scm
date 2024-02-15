@@ -8,7 +8,7 @@
      ((eqv? type 'prism)
       `(create-prism (quote ,(list-ref b 1)) ,(list-ref b 5) ,(list-ref b 6)))
      ((eqv? type 'lens)
-      `(create-lens (quote ,(list-ref b 4)) ,(list-ref b 5) ,(car (list-ref b 3)) ,(cdr (list-ref b 3))))
+      `(create-lens (quote ,(list-ref b 4)) ,(list-ref b 5) ,(list-ref b 3)))
      (else
       (error "unsupported type: " type)))))
 
