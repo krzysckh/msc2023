@@ -136,6 +136,17 @@
          (n (if (eqv? t 'n) v (list-ref prism 5))))
     (set-prism! id pt vert-len n)))
 
+(define (set-lens-e! id t v)
+  (args
+   '((t  . "`r1 | r2 | center | R`")))
+  (let* ((lens (get-bounceable id))
+         (orig-rs (list-ref lens 3))
+         (center (if (eqv? t 'center) v (list-ref lens 4)))
+         (R (if (eqv? t 'R) v (list-ref lens 5)))
+         (r1 (if (eqv? t 'r1) v (car orig-rs)))
+         (r2 (if (eqv? t 'r2) v (cdr orig-rs))))
+    (set-lens! id center R r1 r2)))
+
 ; (measure-text text size . spacing) → (w . h)
 (define (measure-text text size . spacing)
   "zwraca (w . h) tekstu text o wielkości size i spacingu spacing (jeśli podany)"

@@ -63,10 +63,15 @@
 #define dyn_add(d, val) dyn_add_ptr((&d), (val))
 
 #ifdef PROD
+#define assert_fn warnx
 #define panic(fmt,...) (void)(0);
 #else
+#define _abort(x) abort()
+#define assert_fn _abort
 #define panic(...) errx(1, __VA_ARGS__);
 #endif
+
+#define assert(x) if (!(x)) { assert_fn("assertion failed: " #x); }
 
 #define TODO(s) panic("TODO: %s", s)
 
@@ -79,6 +84,9 @@ struct window_conf_t {
   Color bgcolor;
   Color mirror_color;
   Color prism_outline_color;
+  Color lens_outline_color;
+  Color lens_center_color;
+  Color lens_focal_pt_color;
 
   sim_state_t state;
 };
@@ -121,7 +129,9 @@ typedef struct {
 
 typedef struct {
   Vector2 p1, p2;
-  float r1, r2, d, n, opacity;
+  float r1, r2;
+
+  float R;
 
   /* reszta jest obliczana przez program */
   Vector2 focal_point1, focal_point2, center;
@@ -196,7 +206,6 @@ typedef struct {
 float normalize_angle(float f);
 void add_bounceable(bounceable_type_t t, void *data);
 void add_mirror(Vector2 p1, Vector2 p2);
-void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, float opacity);
 void add_prism(Vector2 center, int vert_len, float n);
 void add_source(source_t s);
 Font get_font_with_size(int size);
@@ -224,3 +233,11 @@ Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _
 // custom.c
 void draw_custom(bounceable_t *b);
 void custom_get_light_remap(customb_data_t *cd, Vector2 pt, float ang, struct _teleport *tp, float *ret_ang);
+
+// lens.c
+void draw_lens(bounceable_t *b);
+void add_lens(Vector2 p1, Vector2 p2, float r1, float r2);
+bool collision_point_lens(Vector2 pt, lens_data_t *ld);
+bool collision_point_ellipse(Vector2 point, Vector2 center, float rH, float rV);
+Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp);
+void calc_lens_stuff(lens_data_t *ld);

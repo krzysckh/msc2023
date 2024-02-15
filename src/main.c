@@ -9,7 +9,6 @@
 #include <math.h>
 #include <limits.h>
 #include <unistd.h>
-#include <assert.h>
 #include <time.h>
 #include <stdbool.h>
 
@@ -32,6 +31,9 @@ struct window_conf_t winconf = {
   .bgcolor             = (Color) { 0x2b, 0x33, 0x39, 0xff },
   .mirror_color        = (Color) { 0x7f, 0xbb, 0xb3, 0xff },
   .prism_outline_color = (Color) { 0xff, 0x00, 0xff, 0xff },
+  .lens_outline_color  = (Color) { 0xdb, 0xbc, 0x7f, 0xff },
+  .lens_center_color   = (Color) { 0x9d, 0xa9, 0xa0, 0xaa },
+  .lens_focal_pt_color = (Color) { 0xe6, 0x98, 0x75, 0xff },
 };
 
 #define MIRROR_THICKNESS 1
@@ -110,25 +112,6 @@ static void draw_source(source_t *s)
   DrawCircleV(s->pt, 3, VIOLET);
 }
 
-static void draw_lens(bounceable_t *b)
-{
-  lens_data_t *ld = b->data.lens;
-  Vector2 p1 = ld->p1,
-          p2 = ld->p2;
-
-  DrawCircleV(ld->focal_point1, 2, PINK);
-  DrawCircleV(ld->focal_point2, 2, PINK);
-
-  DrawCircleV(ld->center, 2, LIME);
-
-  DrawLineEx(p1, p2, 2, PURPLE);
-
-  DrawLineEx(p1, ld->focal_point1, 1, PURPLE);
-  DrawLineEx(p1, ld->focal_point2, 1, PURPLE);
-  DrawLineEx(p2, ld->focal_point1, 1, PURPLE);
-  DrawLineEx(p2, ld->focal_point2, 1, PURPLE);
-}
-
 static void draw_mirror(bounceable_t *b)
 {
   Vector2 p1 = b->data.mirror->p1,
@@ -181,10 +164,7 @@ bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_
             goto hit;
           break;
         case B_LENS:
-          if (CheckCollisionPointLine(source,
-                                      bounceables.v[i].data.lens->p1,
-                                      bounceables.v[i].data.lens->p2,
-                                      CAST_LIGHT_STEP_SIZE))
+          if (collision_point_lens(source, bounceables.v[i].data.lens))
             goto hit;
           break;
         case B_PRISM:
@@ -236,19 +216,8 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct 
     return create_target(next, cur_angle);
     break;
   case B_LENS: {
-    lens_data_t *ld = b->data.lens;
-    hit_angle = normalize_angle(Vector2Angle(b->data.lens->p1, b->data.lens->p2)
-                                * 180 / PI);
-    rel_angle = normalize_angle(hit_angle -
-                                normalize_angle(Vector2Angle(cur, next) * 180 / PI));
-    assert(ld->p1.x <= ld->p2.x);
-    assert(ld->p1.y <= ld->p2.y);
-    if (rel_angle < 180) {
-      return create_target(ld->focal_point2,
-               normalize_angle(Vector2Angle(next, ld->focal_point2) * 180 / PI));
-    } else
-      return create_target(ld->focal_point1,
-               normalize_angle(Vector2Angle(next, ld->focal_point1) * 180 / PI));
+    return lens_create_target(b->data.lens, cur, next, tp);
+    /* lens_data_t *ld = b->data.lens; */
   } break;
   case B_PRISM: {
     return prism_create_target(b, cur, next, tp, cur_src);
@@ -363,21 +332,6 @@ void add_prism(Vector2 center, int vert_len, float n)
   add_bounceable(B_PRISM, pd);
 }
 
-void add_lens(Vector2 p1, Vector2 p2, float r1, float r2, float d, float n, float opacity)
-{
-  lens_data_t *ld = malloc(sizeof(lens_data_t));
-  ld->d = d, ld->opacity = opacity, ld->r1 = r1, ld->r2 = r2, ld->n = n;
-  ld->p1 = p1, ld->p2 = p2;
-
-  ld->f = 1.f / ((1.f / ld->r1) + (1.f / ld->r2));
-  ld->center = vec(ld->p1.x + (ld->p2.x - ld->p1.x)/2,
-                   ld->p1.y + (ld->p2.y - ld->p1.y)/2);
-  ld->focal_point1 = vec(ld->center.x - ld->f, ld->center.y);
-  ld->focal_point2 = vec(ld->center.x + ld->f, ld->center.y); // TODO: nieprawda!!
-
-  add_bounceable(B_LENS, ld);
-}
-
 void add_source(source_t s)
 {
   if (s.n_beam >= s.size) {
@@ -397,8 +351,6 @@ void add_source(source_t s)
   };
 
   dyn_add(sources, src);
-
-  /* TraceLog(LOG_INFO, "adding source [%f %f] ang. %f", s.pt.x, s.pt.y, s.angle); */
 }
 
 static void silent_tracelog_callback(__attribute__((unused))int a,
@@ -451,8 +403,8 @@ static const char *rl_tracelog_tokens[] = {
 
 static bool is_raylib_message(char *s)
 {
-  int i;
 #ifdef PROD
+  int i;
   for (i = 0; i < sizeof(rl_tracelog_tokens)/sizeof(*rl_tracelog_tokens); ++i)
     if (strstr(s, rl_tracelog_tokens[i]) != NULL)
       return true;
@@ -531,7 +483,7 @@ int main(int argc, char **argv)
   load_rc();
 
   /* add_prism(vec(200, 200), 100, 1.31); */
-  /* add_lens(vec(200, 200), vec(200, 300), 20.f, 20.f, 10.f, 1.5, 100.f); */
+  /* add_lens(vec(200, 200), vec(200, 300), 20.f, 200.f); */
 
   time_prev = time_cur = time(NULL);
   while (!WindowShouldClose()) {

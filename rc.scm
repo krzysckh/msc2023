@@ -67,4 +67,3 @@
 ;;            (pos (car vs))
 ;;            (new-pos (cons (car pos) (+ 1 (cdr pos)))))
 ;;       (set-prism! 1 new-pos 100 1.31))))
-

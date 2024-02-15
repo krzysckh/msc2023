@@ -182,6 +182,36 @@
                    (→ (set! *current-mode* nil)))))))
         *prisms*)))))
 
+;; r-click dla soczewek
+(add-hook
+ 'unclick
+ (lambda (_ l r)
+   (when (and *click-can-be-handled* r)
+     (let ((mp (get-mouse-position)))
+       (for-each
+        (→1 (let ((id (list-ref x 0)))
+              (when (point-in-lens? mp id)
+                (set! *current-mode* 'r-click-lens)
+                (let ((lens-settings
+                       `(("zmień r1" . ,(→ (gui/mp-slider+ok
+                                            0.1 100.0
+                                            (→1 (set-lens-e! id 'r1 x))
+                                            1)))
+                         ("zmień r2" . ,(→ (gui/mp-slider+ok
+                                            0.1 100.0
+                                            (→1 (set-lens-e! id 'r2 x))
+                                            1)))
+                         ("zmień R" . ,(→ (gui/mp-slider+ok
+                                           10 200.0
+                                           (→1 (set-lens-e! id 'R x))
+                                           0))))))
+                  (set! *gui/option-menu-force-can-be-handled* #t)
+                  (gui/option-menu
+                   (get-mouse-position)
+                   lens-settings
+                   (→ (set! *current-mode* nil)))))))
+        *lenss*)))))
+
 ;; mouse-menu
 (define mouse-menu
   `(("stwórz nowe źródło" . ,(→ (set! gui/new-source-form:pos (get-mouse-position))
@@ -191,6 +221,7 @@
                                    (tracelog 'info "narysuj nowe zwierciadło...")
                                    (set! *current-mode* 'mirror-drawing))))
     ("swtórz nowy pryzmat" . ,(→ (create-prism (get-mouse-position) 100 1.31)))
+    ("swtórz nową soczewkę" . ,(→ (create-lens (get-mouse-position) 50 20 20)))
     ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
     ("wyczyść *tracelog-queue*" . ,(→ (set! *tracelog-queue* nil)))
     ("zapisz scenę do pliku" . ,(→ (gui/save-current)))
@@ -287,20 +318,42 @@
          (n (list-ref prism 6)))
     (set-prism! id center-new vert-len n)))
 
+(define (reposition-lens-by-delta id ∆)
+  (let* ((lens (get-bounceable id))
+         (rs (list-ref lens 3))
+         (center (list-ref lens 4))
+         (R (list-ref lens 5))
+         (r1 (car rs))
+         (r2 (cdr rs)))
+    (set-lens! id (cons (+ (car center) (car ∆)) (+ (cdr center) (cdr ∆))) R r1 r2)))
+
 (define (reposition-bounceable-by-delta id ∆)
   (let* ((thing (get-bounceable id))
          (type (car thing)))
     (cond
      ((eqv? type 'mirror) (reposition-mirror-by-delta id ∆))
-     ((eqv? type 'prism) (reposition-prism-by-delta id ∆))
+     ((eqv? type 'prism)  (reposition-prism-by-delta id ∆))
+     ((eqv? type 'lens)   (reposition-lens-by-delta id ∆))
      (else
       (error (string-append (->string type) " unsupported"))))))
+
+(define (lens->rect lens)
+  (let* ((p1 (list-ref lens 1))
+         (p2 (list-ref lens 2))
+         (rs (list-ref lens 3))
+         (r1 (car rs))
+         (r2 (cdr rs)))
+    (list (- (car p1) r1)
+             (cdr p1)
+             (+ r1 r2)
+             (- (cdr p2) (cdr p1)))))
 
 (define (thing->rect thing)
   (let ((type (car thing)))
     (cond
      ((eqv? type 'mirror) (pts->rect (cadr thing) (caddr thing)))
      ((eqv? type 'prism) (apply triangle->rect (prism->ptlist thing)))
+     ((eqv? type 'lens) (lens->rect thing))
      (else
       (error (string-append "thing->rect: unsupported" (->string thing)))))))
 
@@ -308,6 +361,7 @@
 (define sel-mode:start-position nil)
 (define sel-mode:mirror-rects nil)
 (define sel-mode:prism-rects nil)
+(define sel-mode:lens-rects nil)
 
 (define sel-mode:source-rects nil)
 
@@ -337,6 +391,8 @@
              (set! sel-mode:start-position (get-mouse-position))
              (set! *current-mode* 'selection)
              (set! sel-mode:source-rects (map src->rect (map car *sources*)))
+
+             (set! sel-mode:lens-rects (map lens->rect *lenss*))
              (set! sel-mode:prism-rects (map (→1 (apply triangle->rect x)) (map prism->ptlist *prisms*)))
              (set! sel-mode:mirror-rects (map (→1 (apply pts->rect x)) (map cdr *mirrors*))))
            (begin
@@ -347,11 +403,14 @@
                            (- (car mp) (car sel-mode:start-position))
                            (- (cdr mp) (cdr sel-mode:start-position))))
                     (selected-source-map (map (→1 (rect-collision? rect x)) sel-mode:source-rects))
+
+                    (selected-lens-map   (map (→1 (rect-collision? rect x)) sel-mode:lens-rects))
                     (selected-mirror-map (map (→1 (rect-collision? rect x)) sel-mode:mirror-rects))
                     (selected-prism-map  (map (→1 (rect-collision? rect x)) sel-mode:prism-rects)))
                (sel-mode:highlight-rects sel-mode:mirror-rects selected-mirror-map)
                (sel-mode:highlight-rects sel-mode:prism-rects selected-prism-map)
                (sel-mode:highlight-rects sel-mode:source-rects selected-source-map)
+               (sel-mode:highlight-rects sel-mode:lens-rects selected-lens-map)
 
                (gui/rect rect (aq 'selection *colorscheme*)))))))))
 
@@ -372,10 +431,12 @@
                                                (apply triangle->rect (prism->ptlist x))
                                                sel-rect))
                                           *prisms*)))
+              (lens-ids (map car (filter (→1 (rect-collision? (lens->rect x) sel-rect))
+                                         *lenss*)))
               (source-ids (filter (→1 (rect-collision? sel-rect (src->rect (car (list-ref *sources* x))))) (⍳ 0 1 (length *sources*)))))
          (set! *current-mode* 'selected)
          (set! sel-mode:selected-source-ids source-ids)
-         (set! sel-mode:selected-bounceable-ids (append mirror-ids prism-ids))
+         (set! sel-mode:selected-bounceable-ids (append mirror-ids prism-ids lens-ids))
          (start-selected-mode)))))
 
 ;; TODO: sel custom
@@ -475,7 +536,9 @@
 ;;; "toplist"y - listy z przedmiotami
 (define *mirrors* nil)
 (define *prisms* nil)
-(define *customs* nil)
+(define *customs* nil) ;; tak, wiem, że te nazwy nie znaczą tego co mają znaczyć
+(define *lenss* nil)   ;; i są niepoprawnymi słowami
+                       ;; ale ułatwiają potem ustawianie rzeczy
 
 (define (update-toplist l id)
   (eval `(set! ,l (map (→1 (if (eqv? (car x) ,id)

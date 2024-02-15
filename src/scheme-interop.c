@@ -234,6 +234,25 @@ pointer fpl2list(FilePathList fpl)
 
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
 
+// (point-in-lens? pt lens-id)
+static pointer scm_point_in_lens(scheme *sc, pointer args)
+{
+  extern Bounceables bounceables;
+  Vector2 pt;
+  int id;
+  expect_args("point-in-lens?", 2);
+
+  pt = cons2vec(car(args));
+  id = (int)rvalue(cadr(args));
+
+  if (id >= 0 && id < bounceables.n)
+    if (bounceables.v[id].t == B_LENS)
+      return collision_point_lens(pt, bounceables.v[id].data.lens) ? sc->T : sc->F;
+
+  TraceLog(LOG_ERROR, "no such lens: %d", id);
+  return sc->F;
+}
+
 // ups no troche jest to poplątane
 // za późno wpadłem na to, że aktualizowanie listy od nowa przy każdym
 // dodawaniu czegoś nie jest najlepszym pomysłem.
@@ -359,6 +378,31 @@ static pointer scm_normalize_rectangle(scheme *sc, pointer args)
               Cons(MR(r.y),
                    Cons(MR(r.width),
                         Cons(MR(r.height), sc->NIL))));
+}
+
+// (create-lens center R r1 r2)
+// XDDD center jako argument bo mój kod nie jest w stanie zrozumieć, że coś może być POD KĄTEM
+// ~ kpm
+static pointer scm_create_lens(scheme *sc, pointer args)
+{
+  extern Bounceables bounceables;
+  Vector2 center, p1, p2;
+  float R, r1, r2;
+
+  expect_args("create-lens", 4);
+  center = cons2vec(car(args));
+  R      = rvalue(cadr(args));
+  r1     = rvalue(caddr(args));
+  r2     = rvalue(cadddr(args));
+
+  p1 = vec(center.x, center.y - R);
+  p2 = vec(center.x, center.y + R);
+
+  add_lens(p1, p2, r1, r2);
+  bounceables.v[bounceables.n-1].data.lens->R = R;
+
+  do_hooks(&new, Cons(mk_symbol(sc, "lens"), Cons(MKI(bounceables.n-1), sc->NIL)));
+  return MKI(bounceables.n-1);
 }
 
 // (create-prism '(x . y) vert-len n)
@@ -978,6 +1022,18 @@ static pointer scm_get_bounceable(scheme *sc, pointer args)
                        Cons(cd->draw,
                             Cons(cd->remap, sc->NIL))));
     } break;
+    case B_LENS: {
+      lens_data_t *ld = cur->data.lens;
+
+      // ('lens p1 p2 (r1 . r2) center R)
+      return Cons(mk_symbol(sc, "lens"),
+                  Cons(vec2cons(ld->p1),
+                       Cons(vec2cons(ld->p2),
+                            Cons(vec2cons(vec(ld->r1, ld->r2)),
+                                 Cons(vec2cons(ld->center),
+                                      Cons(MR(ld->R),
+                                           sc->NIL))))));
+    } break;
     default: {
       abort();
       warnx("%s: %d not implemented for get-bounceable", __func__, cur->t);
@@ -1019,6 +1075,45 @@ static pointer scm_set_mirror(scheme *sc, pointer args)
     }
   } else {
     TraceLog(LOG_ERROR, "couldn't set-mirror! with id %d: no such bounceable", id);
+  }
+
+  return sc->F;
+}
+
+// (set-lens! id center R r1 r2)
+static pointer scm_set_lens(scheme *sc, pointer args)
+{
+  extern Bounceables bounceables;
+  Vector2 center, p1, p2;
+  float R, r1, r2;
+  int id;
+
+  expect_args("set-lens!", 5);
+  id     = rvalue(car(args));
+  center = cons2vec(cadr(args));
+  R      = rvalue(caddr(args));
+  r1     = rvalue(cadddr(args));
+  r2     = rvalue(cadddr(cdr(args)));
+
+  p1 = vec(center.x, center.y - R);
+  p2 = vec(center.x, center.y + R);
+
+  if (id >= 0 && id < bounceables.n) {
+    if (bounceables.v[id].t == B_LENS) {
+      bounceables.v[id].data.lens->p1 = p1;
+      bounceables.v[id].data.lens->p2 = p2;
+      bounceables.v[id].data.lens->r1 = r1;
+      bounceables.v[id].data.lens->r2 = r2;
+
+      calc_lens_stuff(bounceables.v[id].data.lens);
+
+      do_hooks(&update, Cons(mk_symbol(sc, "lens"), Cons(MKI(id), sc->NIL)));
+      return sc->T;
+    } else {
+      TraceLog(LOG_ERROR, "couldn't set-lens! with id %d: not a lens", id);
+    }
+  } else {
+    TraceLog(LOG_ERROR, "couldn't set-lens! with id %d: no such bounceable", id);
   }
 
   return sc->F;
@@ -1146,6 +1241,9 @@ pointer scheme_click_info(struct mouse_information_t *mi)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_point_in_lens,       "point-in-lens?");
+  SCHEME_FF(scm_set_lens,            "set-lens!");
+  SCHEME_FF(scm_create_lens,         "create-lens");
   SCHEME_FF(scm_delete_all_sources,  "real-delete-all-sources");
   SCHEME_FF(scm_point_in_triangle,   "point-in-triangle?");
   SCHEME_FF(scm_vec_move_towards,    "vec-move-towards");

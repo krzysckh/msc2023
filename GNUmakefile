@@ -10,6 +10,7 @@ FEATURES=-DRCFILE
 # ANTIALIAS		- włącza anti-aliasing
 # RCFILE		- uruchamia rc.scm na początku
 # COLOR_HIT_PRISM_LINE	- koloruje uderzoną część pryzmatu (idk czy zostawić czy nie lol)
+# LENS_CENTER           - rysuje środek soczewki
 
 WINDOWS_FEATURES=-DPROD
 
