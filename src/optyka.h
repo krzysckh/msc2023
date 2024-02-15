@@ -213,6 +213,7 @@ bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_
 bool collision_point_poly(Vector2 point, Vector2 *points, int pointCount);
 void draw_light(source_t *src);
 void *rl_get_window_handle(void);
+Color dim_color(Color c, int alpha);
 
 // scheme-interop.c
 void initialize_scheme(void);
@@ -240,8 +241,9 @@ void draw_lens(bounceable_t *b);
 void add_lens(Vector2 p1, Vector2 p2, float r1, float r2);
 bool collision_point_lens(Vector2 pt, lens_data_t *ld);
 bool collision_point_ellipse(Vector2 point, Vector2 center, float rH, float rV);
-Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp);
+Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src);
 void calc_lens_stuff(lens_data_t *ld);
+
 
 // source.c
 void draw_source(source_t *s);

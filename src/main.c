@@ -58,6 +58,11 @@ Font get_font_with_size(int size)
   return fontset[size];
 }
 
+Color dim_color(Color c, int alpha)
+{
+  return (Color){c.r, c.g, c.b, alpha};
+}
+
 void *rl_get_window_handle(void)
 {
   return GetWindowHandle();
@@ -201,7 +206,7 @@ Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct 
     return create_target(next, cur_angle);
     break;
   case B_LENS: {
-    return lens_create_target(b->data.lens, cur, next, tp);
+    return lens_create_target(b->data.lens, cur, next, tp, cur_src);
     /* lens_data_t *ld = b->data.lens; */
   } break;
   case B_PRISM: {

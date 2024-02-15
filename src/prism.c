@@ -122,6 +122,10 @@ Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _
            && tp->luzik.x < sw
            && tp->luzik.y < sh);
 
+#ifdef DRAW_LINES_INSIDE
+  DrawLineEx(next, tp->luzik, 1, dim_color(src->color, 128));
+#endif
+
   tp->luzik = Vector2MoveTowards(tp->luzik, end_targ, 2);
   prism_cast_colors(src->color, tp->luzik, line_ang + delta);
 

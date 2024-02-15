@@ -5,12 +5,13 @@ TARGET=./main
 CSTD=-std=gnu11
 
 # do przemyślenia
-FEATURES=-DRCFILE
+FEATURES=-DRCFILE -DDRAW_LINES_INSIDE
 # PROD                  - wyłącza debug informacje, panic() etc.
 # ANTIALIAS		- włącza anti-aliasing
 # RCFILE		- uruchamia rc.scm na początku
 # COLOR_HIT_PRISM_LINE	- koloruje uderzoną część pryzmatu (idk czy zostawić czy nie lol)
 # LENS_CENTER           - rysuje środek soczewki
+# DRAW_LINES_INSIDE     - rysuje wiązki w {soczewce,pryzmacie}
 
 WINDOWS_FEATURES=-DPROD
 

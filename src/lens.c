@@ -73,7 +73,7 @@ void add_lens(Vector2 p1, Vector2 p2, float r1, float r2)
 }
 
 
-Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp)
+Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src)
 {
   float hit_angle = normalize_angle(Vector2Angle(ld->p1, ld->p2) * RAD2DEG);
   float rel_angle = normalize_angle(hit_angle - normalize_angle(Vector2Angle(cur, next) * RAD2DEG));
@@ -91,6 +91,11 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
   do {
     tp->luzik = Vector2MoveTowards(tp->luzik, targ, 5);
   } while (collision_point_lens(tp->luzik, ld));
+
+#ifdef DRAW_LINES_INSIDE
+  DrawLineEx(next, tp->luzik, 1, dim_color(src->color, 128));
+#endif
+
 
   return targ;
 }
