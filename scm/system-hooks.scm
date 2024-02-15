@@ -2,6 +2,8 @@
 ; i ogolnie user-hooki zalezne od tego i system-hooki niezalezne
 (define *current-mode* nil)
 
+(define *clipboard* nil)
+
 (define *click-can-be-handled* #t)
 (define *keypress-can-be-handled* #t)
 
@@ -213,30 +215,43 @@
         *lenss*)))))
 
 ;; mouse-menu
+(define (_open-menu vs)
+  (set! *click-can-be-handled* #f)
+  (set! *gui/option-menu-force-can-be-handled*)
+  (gui/option-menu
+   (get-mouse-position) vs (→ (set! *click-can-be-handled* #t))))
+
+(define new-thing-menu
+  `(("źródło" . ,(→ (set! gui/new-source-form:pos (get-mouse-position))
+                    (gui/new-source-form)))
+    ("zwierciadło" . ,(→ (when (eqv? *current-mode* nil)
+                           (set-cursor MOUSE-CURSOR-CROSSHAIR)
+                           (tracelog 'info "narysuj nowe zwierciadło...")
+                           (set! *current-mode* 'mirror-drawing))))
+    ("pryzmat" . ,(→ (create-prism (get-mouse-position) 100 1.31)))
+    ("soczewkę" . ,(→ (create-lens (get-mouse-position) 50 20 20)))))
+
+(define advanced-menu
+  `(("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
+    ("wyczyść *tracelog-queue*" . ,(→ (set! *tracelog-queue* nil)))))
+
 (define mouse-menu
-  `(("stwórz nowe źródło" . ,(→ (set! gui/new-source-form:pos (get-mouse-position))
-                         (gui/new-source-form)))
-    ("narysuj zwierciadło" . ,(→ (when (eqv? *current-mode* nil)
-                                   (set-cursor MOUSE-CURSOR-CROSSHAIR)
-                                   (tracelog 'info "narysuj nowe zwierciadło...")
-                                   (set! *current-mode* 'mirror-drawing))))
-    ("swtórz nowy pryzmat" . ,(→ (create-prism (get-mouse-position) 100 1.31)))
-    ("swtórz nową soczewkę" . ,(→ (create-lens (get-mouse-position) 50 20 20)))
-    ("wyrażenie scheme" . ,(→ (gui/input-popup "eval" loads)))
-    ("wyczyść *tracelog-queue*" . ,(→ (set! *tracelog-queue* nil)))
+  `(("wstaw" . ,(→ (_open-menu new-thing-menu)))
+    ("wklej" . ,(→ (if (> (length *clipboard*) 0)
+                     (let ((ids (map eval *clipboard*)))
+                       (set! sel-mode:selected-bounceable-ids (filter number? ids))
+                       (set! sel-mode:selected-source-ids (map cdr (filter pair? ids)))
+                       (start-selected-mode))
+                     (tracelog 'info "*clipboard* jest puste"))))
     ("zapisz scenę do pliku" . ,(→ (gui/save-current)))
-    ("załaduj przykład" . ,(→ (gui/load-example-menu)))))
+    ("załaduj przykład" . ,(→ (gui/load-example-menu)))
+    ("zaawansowane" . ,(→ (_open-menu advanced-menu)))))
 
 (add-hook
  'unclick
  (lambda (first l r)
    (when (and *click-can-be-handled* r (eqv? *current-mode* nil))
-     (set! *click-can-be-handled* #f)
-     (set! *gui/option-menu-force-can-be-handled*)
-     (gui/option-menu
-      (get-mouse-position)
-      mouse-menu
-      (→ (set! *click-can-be-handled* #t))))))
+     (_open-menu mouse-menu))))
 
 ;;;; tracelog
 (define *tracelog-queue* '())
@@ -434,7 +449,6 @@
               (lens-ids (map car (filter (→1 (rect-collision? (lens->rect x) sel-rect))
                                          *lenss*)))
               (source-ids (filter (→1 (rect-collision? sel-rect (src->rect (car (list-ref *sources* x))))) (⍳ 0 1 (length *sources*)))))
-         (set! *current-mode* 'selected)
          (set! sel-mode:selected-source-ids source-ids)
          (set! sel-mode:selected-bounceable-ids (append mirror-ids prism-ids lens-ids))
          (start-selected-mode)))))
@@ -443,6 +457,7 @@
 ;; stary sposób był (chyba) trochę szybszy chociaż pewności nie mam.
 ;; teraz po prostu co klatkę, jeśli coś się zmieniło robię set-rzecz! bez zatrzymywania symulacji
 (define (start-selected-mode)
+  (set! *current-mode* 'selected)
   (if (> (+ (length sel-mode:selected-bounceable-ids)
             (length sel-mode:selected-source-ids))
             0)
@@ -505,7 +520,16 @@
                     `(("usuń" . ,(→ (set! menu-open #f)
                                     (delete-sources sel-mode:selected-source-ids)
                                     (for-each delete-bounceable sel-mode:selected-bounceable-ids)
-                                    (end-selected-mode))))
+                                    (end-selected-mode)))
+                      ("kopiuj" . ,(→ (set! menu-open #f)
+                                      (set!
+                                       *clipboard*
+                                       (append
+                                        (map (→1 (serialize:bounceable->sexp (get-bounceable x)))
+                                             sel-mode:selected-bounceable-ids)
+                                        (map (→1 (serialize:source->sexp (list-ref *sources* x)))
+                                             sel-mode:selected-source-ids)))
+                                      (end-selected-mode))))
                     (→ (set! menu-open #f)))))))
              (end-selected-mode
               (→ (delete-hook 'frame b-rect-id)

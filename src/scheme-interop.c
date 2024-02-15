@@ -1164,10 +1164,11 @@ static pointer scm_get_all_bounceables(scheme *sc, pointer args)
 }
 
 
-// (real-create-source x y sz angle thickness reactive n_beams color) → nil
+// (real-create-source x y sz angle thickness reactive n_beams color) → id
 // reactive? to #t | #f
 static pointer scm_create_source(scheme *sc, pointer args)
 {
+  extern Sources sources;
   float x, y, sz, thickness, angle;
   Color color;
   bool rel;
@@ -1194,7 +1195,7 @@ static pointer scm_create_source(scheme *sc, pointer args)
     .n_beam = n_beams
   });
 
-  return sc->NIL;
+  return MKI(sources.n-1);
 }
 
 void initialize_scheme(void)

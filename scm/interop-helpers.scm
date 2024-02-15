@@ -82,9 +82,10 @@
          (thickness (aq-or 'thickness a 1))
          (reactive (aq-or 'reactive a #t))
          (n-beams (aq-or 'n-beams a 1))
-         (color (aq-or 'color a (aq 'default-light *colorscheme*))))
-    (real-create-source x y size ang thickness reactive n-beams color))
-  (update-sources))
+         (color (aq-or 'color a (aq 'default-light *colorscheme*)))
+         (id (real-create-source x y size ang thickness reactive n-beams color)))
+    (update-sources)
+    (cons 'source id)))
 
 (define (draw-line pt1 pt2 thick color)
   "rysuje linię od pt1 do pt2 o grubości thick i kolorze color"
