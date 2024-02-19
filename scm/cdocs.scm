@@ -129,3 +129,7 @@
 (document-function
  (real-delete-all-sources)
  nil)
+
+(document-function
+ (create-lens center d r)
+ nil)

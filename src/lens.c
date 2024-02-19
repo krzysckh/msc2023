@@ -1,7 +1,7 @@
 #include "optyka.h"
 #include "raylib.h"
+#include "raymath.h"
 
-#include <raymath.h>
 #include <stdlib.h>
 
 extern struct window_conf_t winconf;
@@ -48,9 +48,6 @@ bool collision_point_lens(Vector2 pt, lens_data_t *ld)
 void draw_lens(bounceable_t *b)
 {
   lens_data_t *ld = b->data.lens;
-  DrawCircleV(ld->focal_point1, 2, winconf.lens_focal_pt_color);
-  DrawCircleV(ld->focal_point2, 2, winconf.lens_focal_pt_color);
-
   float d = ld->d;
 
   /* DrawRectangle(ld->center.x - d/2, ld->center.y - MAX(ld->r1, ld->r2), d, 2*MAX(ld->r1, ld->r2), WHITE); */
@@ -88,8 +85,8 @@ void draw_lens(bounceable_t *b)
 void calc_lens_stuff(lens_data_t *ld)
 {
   ld->f = 1.f / ((1.f / ld->r) + (1.f / ld->r));
-  ld->focal_point1 = vec(ld->center.x - ld->f, ld->center.y);
-  ld->focal_point2 = vec(ld->center.x + ld->f, ld->center.y);
+  /* ld->focal_point1 = vec(ld->center.x - ld->f, ld->center.y); */
+  /* ld->focal_point2 = vec(ld->center.x + ld->f, ld->center.y); */
 
   ld->p1 = ld->p2 = ld->center;
   while (collision_point_lens(ld->p1, ld))
@@ -163,15 +160,19 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
   DrawLineEx(next, tp->luzik, 1, dim_color(src->color, 128));
 #endif /* DRAW_LINES_INSIDE */
 
-  float sintheta1 = sinf(theta2 * DEG2RAD) * (v1 / v2);
-  theta1 = asinf(sintheta1);
+  float a = cur.y - ld->center.y;
+  float x = sqrtf(pow(Vector2Distance(cur, ld->center), 2.f) - pow(fabsf(a), 2.f));
+  float y = 1.f/(1.f/ld->f - 1.f/x);
 
-  if ((ang >= 0.f && ang <= 90.f) || (ang > 180.f && ang <= 270.f))
-    return create_target(tp->luzik, normalize_angle(ang + theta1));
+  Vector2 pt;
+  if (cur.x < ld->center.x)
+    pt = vec(ld->center.x + y, ld->center.y - a);
   else
-    return  create_target(tp->luzik, normalize_angle(ang - theta1));
+    pt = vec(ld->center.x - y, ld->center.y - a);
+
+  float fin_ang = normalize_angle(Vector2Angle(tp->luzik, pt) * RAD2DEG);
+  return create_target(tp->luzik, fin_ang);
 }
-// btw niepoprawne jak skur
 // przez wyjątkowy natłok wyrazistych epitetów, powyższa wypowiedź zastąpiona zostaje
 // materiałem o langustach
 
@@ -186,7 +187,3 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
 
   wikipedia.org
 */
-
-// soczewki nadal nie soczewkują, ale jak na razie nie mam siły
-// nie mam pojęcia czemu nie spotykają się w ognisku ¯\_(ツ)_/¯
-// ~ kpm
