@@ -110,30 +110,67 @@ void add_lens(Vector2 center, float d, float r)
   add_bounceable(B_LENS, ld);
 }
 
+static float get_alpha(float ang)
+{
 
+  float alpha;
+  if (ang >= 0.f && ang <= 90.f)
+    alpha = ang;
+  else if (ang > 90.f && ang <= 180.f)
+    alpha = 180.f - ang;
+  else if (ang > 180.f && ang <= 270.f)
+    alpha = 90.f - (270 - ang);
+  else
+    alpha = 360.f - ang;
+
+  alpha = normalize_angle(alpha);
+
+  return alpha;
+}
+
+// via src/lens.png
 Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src)
 {
-  float hit_angle = normalize_angle(Vector2Angle(ld->p1, ld->p2) * RAD2DEG);
-  float rel_angle = normalize_angle(hit_angle - normalize_angle(Vector2Angle(cur, next) * RAD2DEG));
-  assert(ld->p1.x <= ld->p2.x);
-  assert(ld->p1.y <= ld->p2.y);
-
-  Vector2 targ;
-  if (cur.x <= ld->center.x)
-    targ = create_target(ld->focal_point2, normalize_angle(Vector2Angle(next, ld->focal_point2) * RAD2DEG));
-  else
-    targ = create_target(ld->focal_point1, normalize_angle(Vector2Angle(next, ld->focal_point1) * RAD2DEG));
-
   tp->serio = true;
   tp->luzik = next;
+
+  float ang = normalize_angle(Vector2Angle(cur, next) * RAD2DEG);
+
+  float n1 = 1.f;
+  float n2 = 1.31;
+  float c = 299792458.f;
+
+  float v1 = c;
+  float v2 = c/n2;
+
+  float theta1 = get_alpha(ang) * DEG2RAD;
+  float sintheta2 = (sinf(theta1) * v2) / v1;
+  float theta2 = asinf(sintheta2) * RAD2DEG;
+
+  /* DrawText(TextFormat("ang: %f", ang), 500, 100, 20, WHITE); */
+
+  Vector2 targ;
+  if ((ang >= 0.f && ang <= 90.f) || (ang > 180.f && ang <= 270.f))
+    targ = create_target(tp->luzik, normalize_angle(ang + theta2));
+  else
+    targ = create_target(tp->luzik, normalize_angle(ang - theta2));
+
   do {
-    tp->luzik = Vector2MoveTowards(tp->luzik, targ, 5);
-  } while (collision_point_lens(tp->luzik, ld));
+    tp->luzik = Vector2MoveTowards(tp->luzik, targ, 1);
+  } while(collision_point_lens(tp->luzik, ld));
 
 #ifdef DRAW_LINES_INSIDE
   DrawLineEx(next, tp->luzik, 1, dim_color(src->color, 128));
-#endif
+#endif /* DRAW_LINES_INSIDE */
 
+  float sintheta1 = sinf(theta2 * DEG2RAD) * (v1 / v2);
+  theta1 = asinf(sintheta1);
 
-  return targ;
+  if ((ang >= 0.f && ang <= 90.f) || (ang > 180.f && ang <= 270.f))
+    return create_target(tp->luzik, normalize_angle(ang + theta1));
+  else
+    return  create_target(tp->luzik, normalize_angle(ang - theta1));
 }
+// soczewki nadal nie soczewkują, ale jak na razie nie mam siły
+// nie mam pojęcia czemu nie spotykają się w ognisku ¯\_(ツ)_/¯
+// ~ kpm

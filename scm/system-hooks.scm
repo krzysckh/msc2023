@@ -143,7 +143,10 @@
                 (let ((source-settings
                        `(("zmień kąt" . ,(→ (gui/mp-slider+ok
                                              0 359
-                                             (lambda (v) (set-source-e! x 'angle v)) 0)))
+                                             (lambda (v)
+                                               (set-source-e! x 'mouse-reactive #f)
+                                               (set-source-e! x 'angle v))
+                                             0)))
                          ("'mouse-reactive" . ,(→ (set-source-e! x 'mouse-reactive (not (list-ref cur 3)))))
                          ("zmień ilość wiązek" . ,(→ (gui/mp-slider+ok
                                                       0 *source-size*

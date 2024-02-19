@@ -7,7 +7,7 @@
   (delete-all-sources)
   (for-each
    delete-bounceable
-   (map car (append *mirrors* *customs* *prisms*))))
+   (map car (append *mirrors* *customs* *prisms* *lenss*))))
 
 (define (load-example n)
   ((cdr (list-ref *examples* n))))
@@ -22,6 +22,13 @@
   (→ (create-prism '(305 . 326) 100.0 1.309999943)
      (create-prism '(552 . 364) 203.0 1.309999943)
      (create-source '((pos 88 . 359) (angle . 353) (thickness . 1) (reactive . #f) (n-beams . 3) (color 255 255 255 255)))))
+
+(define-example "spora soczewka"
+  (→ (create-lens '(322 . 358) 50.83333206 276.777771)
+     (create-prism '(622 . 161) 114.0 1.522222281)
+     (add-mirror '(769 . 171) '(769 . 542))
+     (add-mirror '(645 . 251) '(645 . 620))
+     (create-source '((pos 28 . 537) (angle . 329) (thickness . 1) (reactive . #f) (n-beams . 4) (color 214 153 182)))))
 
 (define (rand-float)
   (/ (random-next) 2147483647))

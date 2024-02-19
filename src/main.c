@@ -99,7 +99,7 @@ Vector2 create_target(Vector2 a, float angle)
   if ((angle >= 180 && angle <= 360) || angle == 0)
     return (Vector2){(ctg((180-angle)*(PI/180.f))*a.y+a.x), 0};
   else
-    return (Vector2){a.x + ((H - a.y) / ctg((90-angle)*PI/180.f)), H};
+    return (Vector2){a.x + ((H - a.y) / ctg(normalize_angle(90-angle)*DEG2RAD)), H};
 }
 
 static void draw_mirror(bounceable_t *b)
@@ -197,7 +197,7 @@ bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_
 Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *cur_src)
 {
   float cur_angle, hit_angle, rel_angle;
-  tp->serio = 0;
+
   switch (b->t) {
   case B_MIRROR:
     hit_angle = normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2) * 180 / PI);

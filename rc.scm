@@ -68,4 +68,10 @@
 ;;            (new-pos (cons (car pos) (+ 1 (cdr pos)))))
 ;;       (set-prism! 1 new-pos 100 1.31))))
 
-(create-lens '(300 . 300) 20 120)
+;; (create-lens '(300 . 300) 40 200)
+;; (create-source '((pos . (200 . 400)) (reactive . #t)))
+
+;; (add-mirror '(1 . 1) '(799 . 1))
+;; (add-mirror '(799 . 1) '(799 . 599))
+;; (add-mirror '(1 . 1) '(1 . 599))
+;; (add-mirror '(1 . 599) '(799 . 599))
