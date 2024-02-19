@@ -120,7 +120,7 @@
                 ((eqv? k 263) ; ←
                  (set! cursor-at (max (- cursor-at 1) 0)))
                 ((eqv? k 262) ; →
-                 (set! cursor-at (min (+ cursor-at 1) (string-length state)))))))))))))
+                 (set! cursor-at (min (+ cursor-at 1) (string-length state))))))))))))
 
 (define (gui/message title text timeout . rect)
   "wyświetla wiadomość"
