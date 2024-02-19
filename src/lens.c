@@ -110,22 +110,22 @@ void add_lens(Vector2 center, float d, float r)
   add_bounceable(B_LENS, ld);
 }
 
-static float get_alpha(float ang)
+static float get_theta(float ang)
 {
 
-  float alpha;
+  float theta;
   if (ang >= 0.f && ang <= 90.f)
-    alpha = ang;
+    theta = ang;
   else if (ang > 90.f && ang <= 180.f)
-    alpha = 180.f - ang;
+    theta = 180.f - ang;
   else if (ang > 180.f && ang <= 270.f)
-    alpha = 90.f - (270 - ang);
+    theta = 90.f - (270 - ang);
   else
-    alpha = 360.f - ang;
+    theta = 360.f - ang;
 
-  alpha = normalize_angle(alpha);
+  theta = normalize_angle(theta);
 
-  return alpha;
+  return theta;
 }
 
 // via src/lens.png
@@ -143,7 +143,7 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
   float v1 = c;
   float v2 = c/n2;
 
-  float theta1 = get_alpha(ang) * DEG2RAD;
+  float theta1 = get_theta(ang) * DEG2RAD;
   float sintheta2 = (sinf(theta1) * v2) / v1;
   float theta2 = asinf(sintheta2) * RAD2DEG;
 
@@ -171,6 +171,22 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
   else
     return  create_target(tp->luzik, normalize_angle(ang - theta1));
 }
+// btw niepoprawne jak skur
+// przez wyjątkowy natłok wyrazistych epitetów, powyższa wypowiedź zastąpiona zostaje
+// materiałem o langustach
+
+/*
+  Langusta, langusta pospolita (Palinurus elephas syn. Palinurus
+  vulgaris) – skorupiak morski z rodziny langustowatych. Jadalna,
+  zaliczana do owoców morza, poławiana gospodarczo na dużą
+  skalę. Nazywana czerwoną langustą lub langustą europejską. Nazwą
+  langusta określane są również inne gatunki langustowatych, zwłaszcza z
+  rodzajów Palinurus i Panulirus. Występowanie: Morze Śródziemne i Ocean
+  Atlantycki.
+
+  wikipedia.org
+*/
+
 // soczewki nadal nie soczewkują, ale jak na razie nie mam siły
 // nie mam pojęcia czemu nie spotykają się w ognisku ¯\_(ツ)_/¯
 // ~ kpm
