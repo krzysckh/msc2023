@@ -54,17 +54,24 @@
                     (f (string-append s "a")))))))
     (f "a")))
 
-(define (gui/multiline-text rect txt)
+(define (gui/multiline-text rect txt cursor-at)
   (let* ((w (list-ref rect 2))
          (text-height (cdr (measure-text "a" 18)))
          (max-len (gui/get-max-text-length-for-width w 18))
-         (text (map list->string (split-every (string->list txt) max-len))))
+         (text (map list->string (split-every (string->list txt) max-len)))
+         (cursor-x (modulo cursor-at max-len))
+         (cursor-y (round-off (/ cursor-at max-len) 0)))
     (for-each
-      (lambda (n)
-        (draw-text (list-ref text n)
-                   `(,(list-ref rect 0) . ,(+ (list-ref rect 1)
-                                              (* n text-height) 2)) 18 (aq 'font *colorscheme*)))
-      (iota 0 1 (length text)))))
+     (lambda (n)
+       (when (equal? n cursor-y)
+         (let* ((pt-orig (cons (+ (car rect) (car (measure-text (substring (list-ref text n) 0 cursor-x) 18)))
+                               (+ (cadr rect) (* cursor-y text-height))))
+                (pt (cons (+ 2 (car pt-orig)) (cdr pt-orig))))
+           (draw-line pt (cons (car pt) (+ (cdr pt) text-height)) 1 (aq 'font *colorscheme*))))
+       (draw-text (list-ref text n)
+                  `(,(list-ref rect 0) . ,(+ (list-ref rect 1)
+                                             (* n text-height) 2)) 18 (aq 'font *colorscheme*)))
+     (iota 0 1 (length text)))))
 
 (define gui/input-popup:ident 'GUI-input-popup)
 (define *gui/input-popup-force-can-be-handled* #f)
@@ -73,6 +80,7 @@
   (when (or *click-can-be-handled* force)
     (stop-simulation)
     (define state "")
+    (define cursor-at 0)
     (set! *current-mode* 'input-popup)
     (set! *click-can-be-handled* #f)
     (set! *keypress-can-be-handled* #f)
@@ -83,30 +91,36 @@
             (add-hook
              'frame
              (→ (gui/window-box '(100 100 600 400) title)
-                (gui/multiline-text '(200 200 400 200) state))))
+                (gui/multiline-text '(200 200 400 200) state cursor-at))))
            (key-handler-id
             (add-hook
              'keypress
              (lambda (c k)
-               (if (and (< k 128) (> k 31))
-                   (set! state
-                         (string-append state (string c)))
-                   (cond
-                    ((eqv? k 259)
-                     (set! state
-                           (substring
-                            state 0
-                            (- (string-length state) 1))))
-                    ((eqv? k 257) ;; RET (end popup)
-                     (start-simulation)
-                     (set! *current-mode* nil)
-                     (set! *click-can-be-handled* #t)
-                     (set! *keypress-can-be-handled* #t)
-                     (set! *current-keypress-handler* #f)
-                     (set! *current-click-handler* #f)
-                     (delete-hook 'frame frame-handler-id)
-                     (delete-hook 'keypress key-handler-id)
-                     (callback state)))))))))))
+               (cond
+                ((and (< k 128) (> k 31))
+                 (let ((prev (substring state 0 cursor-at))
+                       (rest (substring state cursor-at (+ cursor-at (- (string-length state) cursor-at)))))
+                   (set! state (string-append prev (string c) rest)))
+                 (++ cursor-at))
+                ((eqv? k 259)
+                 (let ((prev (substring state 0 (- cursor-at 1)))
+                       (rest (substring state cursor-at (+ cursor-at (- (string-length state) cursor-at)))))
+                   (set! state (string-append prev rest)))
+                 (-- cursor-at))
+                ((eqv? k 257) ;; RET (end popup)
+                 (start-simulation)
+                 (set! *current-mode* nil)
+                 (set! *click-can-be-handled* #t)
+                 (set! *keypress-can-be-handled* #t)
+                 (set! *current-keypress-handler* #f)
+                 (set! *current-click-handler* #f)
+                 (delete-hook 'frame frame-handler-id)
+                 (delete-hook 'keypress key-handler-id)
+                 (callback state))
+                ((eqv? k 263) ; ←
+                 (set! cursor-at (max (- cursor-at 1) 0)))
+                ((eqv? k 262) ; →
+                 (set! cursor-at (min (+ cursor-at 1) (string-length state)))))))))))))
 
 (define (gui/message title text timeout . rect)
   "wyświetla wiadomość"

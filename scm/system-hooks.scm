@@ -104,7 +104,10 @@
     (let* ((mp (get-mouse-position)))
       (cond
         ((eqv? c #\A) (create-source-at-mouse-position))
-        ((eqv? c #\e) (gui/input-popup "eval scheme" loads))
+        ((eqv? c #\e) (letrec ((id (add-hook
+                                   'frame
+                                   (→ (gui/input-popup "eval scheme" loads)
+                                      (delete-hook 'frame id)))))))
         ((eqv? c #\`)
          (if (null? fps-dest)
              (begin
