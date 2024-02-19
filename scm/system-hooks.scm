@@ -202,7 +202,7 @@
                 (set! *current-mode* 'r-click-lens)
                 (let ((lens-settings
                        `(("zmień r" . ,(→ (gui/mp-slider+ok
-                                            10 500.0
+                                            5 200.0
                                             (→1 (set-lens-e! id 'r x))
                                             1)))
                          ;; ("zmień r2" . ,(→ (gui/mp-slider+ok
@@ -210,7 +210,7 @@
                          ;;                    (→1 (set-lens-e! id 'r2 x))
                          ;;                    1)))
                          ("zmień d" . ,(→ (gui/mp-slider+ok
-                                           10 500.0
+                                           5 200.0
                                            (→1 (set-lens-e! id 'd x))
                                            0))))))
                   (set! *gui/option-menu-force-can-be-handled* #t)

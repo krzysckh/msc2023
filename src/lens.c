@@ -3,6 +3,7 @@
 #include "raymath.h"
 
 #include <stdlib.h>
+#include <limits.h>
 
 extern struct window_conf_t winconf;
 
@@ -140,8 +141,13 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
   float v1 = c;
   float v2 = c/n2;
 
-  float theta1 = get_theta(ang) * DEG2RAD;
-  float sintheta2 = (sinf(theta1) * v2) / v1;
+  float theta1;
+  theta1 = get_theta(ang) * DEG2RAD;
+  warnx("theta1: %f", theta1);
+  theta1 += 0.00001 * ld->r * (ld->center.y - cur.y);
+  warnx("theta1: %f", theta1);
+
+  float sintheta2 = sinf(theta1) * (v2 / v1);
   float theta2 = asinf(sintheta2) * RAD2DEG;
 
   /* DrawText(TextFormat("ang: %f", ang), 500, 100, 20, WHITE); */
@@ -152,9 +158,12 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
   else
     targ = create_target(tp->luzik, normalize_angle(ang - theta2));
 
+  int ctr = 0;
   do {
     tp->luzik = Vector2MoveTowards(tp->luzik, targ, 1);
-  } while(collision_point_lens(tp->luzik, ld));
+    if (ctr > (INT_MAX - (1<<8)))
+      panic("ups");
+  } while (collision_point_lens(tp->luzik, ld));
 
 #ifdef DRAW_LINES_INSIDE
   DrawLineEx(next, tp->luzik, 1, dim_color(src->color, 128));

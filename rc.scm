@@ -75,3 +75,12 @@
 ;; (add-mirror '(799 . 1) '(799 . 599))
 ;; (add-mirror '(1 . 1) '(1 . 599))
 ;; (add-mirror '(1 . 599) '(799 . 599))
+
+(define-example "zero"
+  (→ (create-source '((pos . (200 . 300)) (angle . 0) (reactive . #f)))
+     (create-lens '(400 . 300) 20 120)))
+
+;; (wait 1 (→ (set-source-e! 0 'angle 180)
+;;            (set-source-e! 0 'pos '(700 . 300))))
+
+(load-example 2)
