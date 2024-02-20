@@ -19,12 +19,7 @@
 #define MIN(x,y) (((x)<(y))?(x):(y))
 #define MAX_FONT_SIZE 1024
 
-#define _vec0 Vector2
-#define _vec1(a) ((Vector2){a,a})
-#define _vec2(a,b)((Vector2){a,b})
-#define _vec3(a,b,c)((Vector3){a,b,c})
-#define _vec_dispatch(_1, _2, _3, nam, ...) nam
-#define vec(...) _vec_dispatch(__VA_ARGS__, _vec3, _vec2, _vec1)(__VA_ARGS__)
+#define vec(a,b) ((Vector2){(a),(b)})
 
 #define Cons(a,b) cons(sc, (a), (b))
 #define MKI(n) mk_integer(sc, (n))

@@ -2,7 +2,7 @@ CC=clang
 OS!=uname -s | tr -d '\n'
 TARGET=./main
 
-CSTD=-std=gnu11
+CSTD=-std=c99 -Wno-empty-translation-unit -Wno-newline-eof
 
 # do przemyślenia
 FEATURES=-DRCFILE -DDRAW_LINES_INSIDE
@@ -15,7 +15,8 @@ FEATURES=-DRCFILE -DDRAW_LINES_INSIDE
 
 WINDOWS_FEATURES=-DPROD -DDRAW_LINES_INSIDE
 
-CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) $(FEATURES) $(ACFLAGS) -g
+CFLAGS=-Wall -Wextra -I. -I./src -I/usr/local/include $(CSTD) $(FEATURES) $(ACFLAGS) -g \
+	-D_XOPEN_SOURCE
 LDFLAGS=-lm -L/usr/local/lib -lraylib $(ALDFLAGS)
 
 SCMFILES!=echo tinyscheme/r5rs.scm `find scm -type f -name '*.scm'`
@@ -54,7 +55,7 @@ icon.res:
 build-windows:
 	[ -f "libraylib.a" ] || wget -O libraylib.a https://pub.krzysckh.org/libraylib.a
 	[ -f "libtinyscheme-w64.a" ] || wget -O libtinyscheme-w64.a https://pub.krzysckh.org/libtinyscheme-w64.a
-	$(MAKE) clean $(OFILES) FEATURES="$(WINDOWS_FEATURES)" CC=x86_64-w64-mingw32-gcc ACFLAGS=-O2
+	$(MAKE) clean $(OFILES) FEATURES="$(WINDOWS_FEATURES)" CC=x86_64-w64-mingw32-gcc ACFLAGS="-O2 -DWIN32"
 	$(MAKE) icon.res # yikes
 	x86_64-w64-mingw32-gcc -g -O2 $(CFLAGS) $(OFILES) icon.res -L. -l:libraylib.a \
 		-l:libtinyscheme-w64.a \

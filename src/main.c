@@ -267,7 +267,7 @@ void draw_light(source_t *src)
   for (i = 1; i <= src->n_beam; ++i) {
     /* int sz = ((float)src->size/2)/sqrt(2); */
     int sz = (((float)src->size/2)-(i*dist))/sqrt(2);
-    Vector2 rot = Vector2Rotate(vec(sz), (-45 - 90 + src->angle) * PI/180);
+    Vector2 rot = Vector2Rotate(vec(sz, sz), (-45 - 90 + src->angle) * PI/180);
     Vector2 pt = vec(src->pt.x + rot.x, src->pt.y + rot.y);
     // witam nazywam sie krzysztof, a te wzory wyciagnalem prosto z dupy
 
