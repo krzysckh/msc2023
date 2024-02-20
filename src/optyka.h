@@ -59,7 +59,7 @@
 
 #ifdef PROD
 #define assert_fn warnx
-#define panic(fmt,...) (void)(0);
+#define panic(s) TraceLog(LOG_ERROR, "panic: %s", (s));
 #else
 #define _abort(x) abort()
 #define assert_fn _abort

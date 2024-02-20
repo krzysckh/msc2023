@@ -158,12 +158,19 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
   else
     targ = create_target(tp->luzik, normalize_angle(ang - theta2));
 
+  int sw = GetScreenWidth();
+  int sh = GetScreenHeight();
+
   int ctr = 0;
   do {
     tp->luzik = Vector2MoveTowards(tp->luzik, targ, 1);
     if (ctr > (INT_MAX - (1<<8)))
-      panic("ups");
-  } while (collision_point_lens(tp->luzik, ld));
+      panic("upsik");
+  } while (collision_point_lens(tp->luzik, ld)
+           && tp->luzik.x > 0.f
+           && tp->luzik.y > 0.f
+           && tp->luzik.x < sw
+           && tp->luzik.y < sh);
 
 #ifdef DRAW_LINES_INSIDE
   DrawLineEx(next, tp->luzik, 1, dim_color(src->color, 128));

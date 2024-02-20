@@ -29,6 +29,10 @@ OFILES!=echo $(CFILES) | sed 's/\.c/.o/g'
 WINDRES=llvm-windres-16
 SCAN_BUILD=scan-build-16
 
+PANDOC_HTML_FLAGS=-H doc/doc.css
+PANDOC_PDF_FLAGS=--pdf-engine=lualatex -V links-as-notes=true -H ./doc/cfg.tex
+PANDOC_COMMON_FLAGS=--toc --toc-depth=2 --metadata title="msc2023" -f gfm --standalone
+
 ifeq "$(OS)" "OpenBSD"
 LDFLAGS:=-lglfw $(LDFLAGS)
 endif
@@ -71,19 +75,13 @@ full-clean:
 	$(MAKE) clean
 doc: all
 	$(TARGET) -F ./generate-docs.scm > doc/scheme.md
-	cat doc/prelude.md doc/scheme.md                        \
-		| pandoc --toc --toc-depth=2                    \
-		-H doc/doc.css                                  \
-		--metadata title="msc2023" -f gfm -t html       \
-		--standalone -o doc/msc2023.html
+	cat doc/prelude.md doc/scheme.md \
+		| pandoc $(PANDOC_COMMON_FLAGS) $(PANDOC_HTML_FLAGS) \
+		-t html -o doc/msc2023.html
 
-	cat doc/prelude.md doc/scheme.md                        \
-		| pandoc --toc --toc-depth=2                    \
-		--pdf-engine=lualatex                           \
-		-V links-as-notes=true                          \
-		-H ./doc/cfg.tex                                \
-		--metadata title="msc2023" -f gfm -t pdf        \
-		--standalone -o doc/msc2023.pdf
+	cat doc/prelude.md doc/scheme.md \
+		| pandoc $(PANDOC_COMMON_FLAGS) $(PANDOC_PDF_FLAGS) \
+		 -t pdf -o doc/msc2023.pdf
 pubcpy:
 	([ `whoami` = "krzych" ] || [ `whoami` = "kpm" ]) || exit 1
 
@@ -102,5 +100,11 @@ scan-build:
 	$(MAKE) clean >/dev/null 2>/dev/null
 	$(MAKE) CC="$(SCAN_BUILD) clang" all >/dev/null
 	$(MAKE) clean >/dev/null 2>/dev/null
-dist: clean
+dist: doc
+	pandoc doc/USER-MANUAL.md $(PANDOC_COMMON_FLAGS) $(PANDOC_HTML_FLAGS) \
+		-t html -o doc/USER-MANUAL.html
+
+	pandoc doc/USER-MANUAL.md $(PANDOC_COMMON_FLAGS) $(PANDOC_PDF_FLAGS) \
+		-t pdf -o doc/USER-MANUAL.pdf
+
 	./mk-dist.sh "$(MAKE)"

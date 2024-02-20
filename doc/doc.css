@@ -45,4 +45,10 @@ body {
 pre, code, .sourceCode, .sourceCode * {
   font-family: apl, monospace !important;
 }
+
+kbd {
+  border-radius: 2px;
+  padding: 2px;
+  border: 1px solid black;
+}
 </style>

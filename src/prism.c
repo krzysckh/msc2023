@@ -110,7 +110,6 @@ Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _
   int sw = GetScreenWidth();
   int sh = GetScreenHeight();
 
-
   /* DrawCircleV(end_targ, 20, PINK); */
   tp->serio = true;
   tp->luzik = next;
