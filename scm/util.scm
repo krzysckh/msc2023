@@ -225,3 +225,10 @@
 
 (define (get-lens-f r)
   (/ 1.0 (+ (/ 1.0 r) (/ 1.0 r))))
+
+(define (get-all-bounceables)
+  (append
+   (map (→1 (append '(mirror) (cdr x))) *mirrors*)
+   (map (→1 (append '(custom) (cdr x))) *customs*)
+   (map (→1 (append '(prism)  (cdr x))) *prisms*)
+   (map (→1 (append '(lens)   (cdr x))) *lenss*)))

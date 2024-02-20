@@ -1144,6 +1144,7 @@ static pointer scm_set_prism(scheme *sc, pointer args)
   return sc->F;
 }
 
+/*
 static pointer scm_get_all_bounceables(scheme *sc, pointer args)
 {
   extern Bounceables bounceables;
@@ -1151,7 +1152,7 @@ static pointer scm_get_all_bounceables(scheme *sc, pointer args)
 
   return scm_get_all_of_thing(sc, bounceables.n, scm_get_bounceable);
 }
-
+*/
 
 // (real-create-source x y sz angle thickness reactive n_beams color) → id
 // reactive? to #t | #f
@@ -1250,7 +1251,7 @@ static void load_scheme_cfunctions(void)
   SCHEME_FF(scm_set_prism,           "set-prism!");
   SCHEME_FF(scm_set_cursor,          "set-cursor");
   SCHEME_FF(scm_rect_collision,      "rect-collision");
-  SCHEME_FF(scm_get_all_bounceables, "get-all-bounceables");
+  /* SCHEME_FF(scm_get_all_bounceables, "get-all-bounceables"); */
   SCHEME_FF(scm_get_bounceable,      "get-bounceable");
   SCHEME_FF(scm_get_window_flag,     "get-window-flag");
   SCHEME_FF(scm_set_window_flag,     "set-window-flag");

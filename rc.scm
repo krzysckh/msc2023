@@ -83,4 +83,5 @@
 ;; (wait 1 (→ (set-source-e! 0 'angle 180)
 ;;            (set-source-e! 0 'pos '(700 . 300))))
 
-(load-example 2)
+(wait 1 (→ (load-example 2)
+           (print *lenss*)))

@@ -13,7 +13,7 @@
   ((cdr (list-ref *examples* n))))
 
 (define (define-example nam user-f)
-  (let ((f (→ (e:delete-all)
+  (let ((f (→ (eval '(e:delete-all))
               (user-f)
               (tracelog 'info (string-append "załadowano przykład \"" nam "\"")))))
     (set! *examples* (append *examples* (list (cons nam f))))))
@@ -28,7 +28,7 @@
      (create-prism '(622 . 161) 114.0 1.522222281)
      (add-mirror '(769 . 171) '(769 . 542))
      (add-mirror '(645 . 251) '(645 . 620))
-     (create-source '((pos 28 . 537) (angle . 329) (thickness . 1) (reactive . #f) (n-beams . 4) (color 214 153 182)))))
+     (create-source '((pos 23 . 535) (angle . 329) (thickness . 1) (reactive . #f) (n-beams . 4) (color 214 153 182)))))
 
 (define (rand-float)
   (/ (random-next) 2147483647))
