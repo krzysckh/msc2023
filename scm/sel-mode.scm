@@ -43,6 +43,8 @@
     (if (eqv? (length sel-mode:selected-bounceable-ids) 0)
         (option-menu-for 'source sel-mode:selected-source-ids)
         sel-mode:default-menu))
+   ((eqv? (id->Btype (car sel-mode:selected-bounceable-ids)) 'mirror)
+    sel-mode:default-menu)
    ((all-same? (map id->Btype sel-mode:selected-bounceable-ids))
     (option-menu-for (id->Btype (car sel-mode:selected-bounceable-ids)) sel-mode:selected-bounceable-ids))
    (else sel-mode:default-menu)))

@@ -86,6 +86,9 @@ pubcpy:
 	([ `whoami` = "krzych" ] || [ `whoami` = "kpm" ]) || exit 1
 
 	$(MAKE) clean doc
+	cp main msc2023-lambda-optyka-linux-x86_64
+	yes | pubcpy ./msc2023-lambda-optyka-linux-x86_64
+	rm msc2023-lambda-optyka-linux-x86_64
 	cd doc && yes | pubcpy ./msc2023.html
 	$(MAKE) clean build-windows
 	yes | pubcpy ./rl-optyka-test.exe

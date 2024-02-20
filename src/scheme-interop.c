@@ -234,6 +234,13 @@ pointer fpl2list(FilePathList fpl)
 
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
 
+// (white? color)
+static pointer scm_white(scheme *sc, pointer args)
+{
+  expect_args("white?", 1);
+  return is_white(list2color(sc, car(args))) ? sc->T : sc->F;
+}
+
 // (point-in-lens? pt lens-id)
 static pointer scm_point_in_lens(scheme *sc, pointer args)
 {
@@ -1232,6 +1239,7 @@ pointer scheme_click_info(struct mouse_information_t *mi)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_white,               "white?");
   SCHEME_FF(scm_point_in_lens,       "point-in-lens?");
   SCHEME_FF(scm_set_lens,            "set-lens!");
   SCHEME_FF(scm_create_lens,         "create-lens");

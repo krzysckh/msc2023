@@ -390,6 +390,7 @@ zwraca **destruktor** - funkcję usuwającą go"
   (define color-r (list-ref default-light 0))
   (define color-g (list-ref default-light 1))
   (define color-b (list-ref default-light 2))
+  (define thickness 1)
 
   (define color-a 255)
 
@@ -484,18 +485,38 @@ zwraca **destruktor** - funkcję usuwającą go"
                                                    (list color-r color-g color-b color-a))))))
             (→ (delete-hook 'frame id))))
 
+         (_5-line-height (+ 32 10 _4-line-height 32))
+
+         (d-thickness-slider (gui/slider
+                              (list (+ 10 (car rect))
+                                    (+ 10 _5-line-height)
+                                    128
+                                    32)
+                              1 10 (→1 (set! thickness (round x)))))
+         (d-thickness-label
+          (let ((id (add-hook
+                    'frame
+                    (→ (gui/draw-text
+                        (string-append "szerokość wiązki (tylko przy kolorze białym): " (number->string thickness))
+                        (cons (+ 10 (car rect) 128 10)
+                              (+ 10 _5-line-height (/ (cdr (measure-text "A" 16)) 2)))
+                        16 (aq 'font *colorscheme*))))))
+            (→ (delete-hook 'frame id))))
+
 
          ;; końcowy przycisk "ok"
          (d-OK-btn (car (gui/btn (cons (+ (car rect) 10)
                                        (- *SCREEN-HEIGHT* 80))
                                  "Ok"
-                                 (→
-                                  (print "reactive: " mouse-reactive)
-                                  (create-source
+                                 (→ (create-source
                                    `((n-beams . ,n-beams)
                                      (reactive . ,mouse-reactive)
                                      (angle . ,angle)
                                      (pos . ,gui/new-source-form:pos)
+                                     (thickness . ,(if (all (→1 (eqv? x 255))
+                                                            (list color-r color-g color-b))
+                                                       thickness
+                                                       1))
                                      (color . ,(list color-r
                                                      color-g
                                                      color-b
@@ -519,6 +540,9 @@ zwraca **destruktor** - funkcję usuwającą go"
                                   (d-b-slider)
 
                                   (d-color-fill)
+
+                                  (d-thickness-label)
+                                  (d-thickness-slider)
 
                                   (d-OK-btn)
 
@@ -579,13 +603,18 @@ zwraca **destruktor** - funkcję usuwającą go"
          (max-text-size (measure-text
                          (string-append "Ok: " (number->string to) after-comma-dummy)
                          gui/button:text-size))
-         (sl-rect (gui/rect-fit-into-screen (list (car mp) (cdr mp) 180 32)))
+         (rect (gui/rect-fit-into-screen (list (car mp) (cdr mp) 240 32)))
+         (sl-rect (list (list-ref rect 0)
+                        (list-ref rect 1)
+                        180
+                        (list-ref rect 3)))
          (real-cb (→1 (set! V (round-off x n-after-comma))
+                      (set! *gui/button:skip-unclick* #t)
                       (cb x))))
     (letrec ((slider-dest (gui/slider sl-rect from to real-cb))
              (btn-dest
               (gui/button-textfn
-               (list (car sl-rect) (+ (cadr sl-rect) 48)
+               (list (+ (car sl-rect) (caddr sl-rect) 16) (+ (cadr sl-rect) 6)
                      (+ (* 2 gui/button:padding) (car max-text-size))
                      (+ (* 2 gui/button:padding) (cdr max-text-size)))
                (→ (string-append "Ok: " (number->string V)))
@@ -685,3 +714,46 @@ zwraca **destruktor** - funkcję usuwającą go"
                            (cdr e))))
                (⍳ 0 1 (length *examples*)))))
     (gui/option-menu (get-mouse-position) opts)))
+
+(define gui/change-source-color-form:ident 'change-source-color)
+(define (gui/change-source-color-form pos cb)
+  (set! *click-can-be-handled* #f)
+  (set! *gui/slider-force-can-be-handled* #t)
+  (set! *gui/button-force-can-be-handled* #t)
+
+  (define r 255)
+  (define g 255)
+  (define b 255)
+
+  (when (eqv? *current-mode* nil)
+    (set! *current-mode* gui/change-source-color-form:ident))
+
+  (when (eqv? *current-mode* 'selected)
+    (set! sel-mode:menu-open #t)
+    (set! sel-mode:wait-a-sec #t))
+
+
+  (let* ((w 128)
+         (el-h 32)
+         (user-rect (list (car pos) (cdr pos) w (* 4 el-h)))
+         (rect (gui/rect-fit-into-screen user-rect))
+         (call-cb (→ (cb (list r g b))))
+         (_ (call-cb))
+         (d-r-slider (gui/slider (list (car rect) (cadr rect) w el-h) 0 255 (→1 (set! r x) (call-cb))))
+         (d-g-slider (gui/slider (list (car rect) (+ (cadr rect) el-h) w el-h) 0 255 (→1 (set! g x) (call-cb))))
+         (d-b-slider (gui/slider (list (car rect) (+ (cadr rect) el-h el-h) w el-h) 0 255 (→1 (set! b x) (call-cb))))
+         (d-ok-btn (car (gui/btn (cons (car rect) (+ (cadr rect) (* 3 el-h))) "ok"
+                                 (→ (when (eqv? *current-mode* gui/change-source-color-form:ident)
+                                      (set! *current-mode* nil))
+                                    (when (eqv? *current-mode* 'selected)
+                                      (set! sel-mode:wait-a-sec #f)
+                                      (set! sel-mode:menu-open #f))
+
+                                    (set! *click-can-be-handled* #t)
+                                    (set! *gui/slider-force-can-be-handled* #f)
+                                    (set! *gui/button-force-can-be-handled* #f)
+                                    (d-r-slider)
+                                    (d-g-slider)
+                                    (d-b-slider)
+                                    (d-ok-btn)
+                                    (call-cb))))))))

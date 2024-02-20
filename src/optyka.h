@@ -227,6 +227,7 @@ void draw_prism(bounceable_t *b);
 void calc_prism_pts(prism_data_t *pd);
 Vector2 prism_create_target(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src);
 void add_prism(Vector2 center, int vert_len, float n);
+bool is_white(Color c);
 
 // custom.c
 void draw_custom(bounceable_t *b);
@@ -238,6 +239,7 @@ void add_lens(Vector2 center, float d, float r);
 bool collision_point_lens(Vector2 pt, lens_data_t *ld);
 Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src);
 void calc_lens_stuff(lens_data_t *ld);
+float get_theta(float ang);
 
 // source.c
 void draw_source(source_t *s);

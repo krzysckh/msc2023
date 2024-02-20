@@ -20,15 +20,21 @@
 
 (define-example "źródło i pryzmaty"
   (→ (create-prism '(305 . 326) 100.0 1.309999943)
-     (create-prism '(552 . 364) 203.0 1.309999943)
-     (create-source '((pos 88 . 359) (angle . 353) (thickness . 1) (reactive . #f) (n-beams . 3) (color 255 255 255 255)))))
+     (create-prism '(552 . 364) 203.0 1.7)
+     (create-source '((pos 88 . 359) (angle . 353) (thickness . 7) (reactive . #f) (n-beams . 1) (color 255 255 255 255)))))
 
-(define-example "spora soczewka"
-  (→ (create-lens '(322 . 358) 50.83333206 276.777771)
-     (create-prism '(622 . 161) 114.0 1.522222281)
-     (add-mirror '(769 . 171) '(769 . 542))
-     (add-mirror '(645 . 251) '(645 . 620))
-     (create-source '((pos 23 . 535) (angle . 329) (thickness . 1) (reactive . #f) (n-beams . 4) (color 214 153 182)))))
+(define-example "źródło światła białego i pryzmat"
+  (→ (create-source `((pos . (150 . 370))
+                      (reactive . #f)
+                      (angle . 340)
+                      (thickness . 10)
+                      (color . ,white)))
+     (create-prism '(400 . 320) 120 1.31)))
+
+(define-example "laser i soczewka"
+  (→ (create-lens '(413 . 282) 20.0 163.1666718)
+     (create-source '((pos 45 . 283) (angle . 0) (thickness . 1) (reactive . #f) (n-beams . 19) (color 255 0 0)))))
+
 
 (define (rand-float)
   (/ (random-next) 2147483647))

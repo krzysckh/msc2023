@@ -109,9 +109,8 @@ void add_lens(Vector2 center, float d, float r)
   add_bounceable(B_LENS, ld);
 }
 
-static float get_theta(float ang)
+float get_theta(float ang)
 {
-
   float theta;
   if (ang >= 0.f && ang <= 90.f)
     theta = ang;
@@ -173,7 +172,7 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
            && tp->luzik.y < sh);
 
 #ifdef DRAW_LINES_INSIDE
-  DrawLineEx(next, tp->luzik, 1, dim_color(src->color, 128));
+  DrawLineEx(next, tp->luzik, src->thickness, dim_color(src->color, 128));
 #endif /* DRAW_LINES_INSIDE */
 
   float a = cur.y - ld->center.y;

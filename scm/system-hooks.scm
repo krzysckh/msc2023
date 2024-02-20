@@ -178,10 +178,17 @@
                                    (set-source-e! x 'angle v))
                                ids))
                         0)))
+    ("zmień kolor" . ,(→ (gui/change-source-color-form
+                          (get-mouse-position)
+                          (lambda (v) (map (→1 (set-source-e! x 'color v)) ids)))))
     ("'mouse-reactive" . ,(→ (map (→1 (set-source-e! x 'mouse-reactive (not (list-ref (list-ref *sources* x) 3)))) ids)))
     ("zmień ilość wiązek" . ,(→ (gui/mp-slider+ok
                                  0 *source-size*
                                  (lambda (v) (map (→1 (set-source-e! x 'n-beams v)) ids))
+                                 0)))
+    ("zmień szerokość wiązki" . ,(→ (gui/mp-slider+ok
+                                 1 10
+                                 (lambda (v) (map (→1 (set-source-e! x 'thickness v)) ids))
                                  0)))
     ("kopiuj" . ,(→ (set!
                      *clipboard*
