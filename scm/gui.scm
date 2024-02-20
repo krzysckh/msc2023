@@ -177,7 +177,7 @@
                (set! *gui/option-menu-force-can-be-handled* #f)
                (set-cursor MOUSE-CURSOR-DEFAULT)
                (onexit)))
-           (mk-cb (→1 (→ (x) (destroy-all)))) ;; WOW
+           (mk-cb (→1 (→ (x) (destroy-all) (exit-handler)))) ;; WOW
            (cursor-handler-id
             (add-hook
              'frame
@@ -560,6 +560,9 @@ zwraca **destruktor** - funkcję usuwającą go"
   (when (eqv? *current-mode* nil)
     (set! *current-mode* gui/mp-slider+ok:ident))
 
+  (when (eqv? *current-mode* 'selected)
+    (set! sel-mode:wait-a-sec #t))
+
   (define V from)
   (let* ((mp (get-mouse-position))
          (start-time (time))
@@ -583,6 +586,8 @@ zwraca **destruktor** - funkcję usuwającą go"
                     (set! *gui/slider-force-can-be-handled* #f)
                     (when (eqv? *current-mode* gui/mp-slider+ok:ident)
                       (set! *current-mode* nil))
+                    (when (eqv? *current-mode* 'selected)
+                      (set! sel-mode:wait-a-sec #f))
                     (slider-dest)
                     (btn-dest))))))
       nil)))

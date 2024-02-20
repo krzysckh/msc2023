@@ -232,3 +232,18 @@
    (map (→1 (append '(custom) (cdr x))) *customs*)
    (map (→1 (append '(prism)  (cdr x))) *prisms*)
    (map (→1 (append '(lens)   (cdr x))) *lenss*)))
+
+(define (id->Btype id)
+  (cond
+   ((assq id *mirrors*) 'mirror)
+   ((assv id *lenss*  ) 'lens)
+   ((assv id *prisms* ) 'prism)
+   ((assv id *customs*) 'custom)
+   (else
+    #f)))
+
+(define (all f lst)
+  (or (null? lst) (and (f (car lst)) (all f (cdr lst)))))
+
+(define (all-same? l)
+  (or (null? l) (all (→1 (eqv? (car l) x)) l)))

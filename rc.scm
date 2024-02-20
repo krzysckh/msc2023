@@ -85,3 +85,6 @@
 
 (wait 1 (→ (load-example 2)
            (print *lenss*)))
+
+
+(print (option-menu-for 'source '(0)))
