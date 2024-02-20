@@ -1,5 +1,19 @@
+# nazewnictwo
+
+Lista rozwiewająca wątpliwości co do nazewnictwa w tym dokumencie.
+
+- <kbd> RET </kbd> - przycisk *"Enter"* / *"Return"* na klawiaturze
+- RMB - prawy przycisk myszy
+- LMB - lewy przycisk myszi
+- scheme - lispo-podobny język programowania wbudowany w program.
+- `bounceable_t` - typ zapisany w języku C, który opisuje dany obiekt, z którym wiązka może się spotkać.
+- implementacja (dla funkcji zdefiniowanych dla scheme) (kod pod sygnaturą funkcji) - mało ważna informacja zawierająca kod implemenujący daną funkcję.
+- `document-function` - sposób dokumentowania funkcji, które zdefiniowane zostały w C.
 
 # co, gdzie i jak
+
+[Ten plik może być przeglądany jako dokument HTML.](https://pub.krzysckh.org/msc2023.html)
+
 
 Główna część programu napisana jest w C, jednakże by ułatwić i usprawnić proces
 tworzenia, wbudowałem do niej [interpreter scheme](https://tinyscheme.sourceforge.net/).
@@ -13,14 +27,18 @@ Rdzeń myślący i obliczający rzeczy zostanie jednak w C.
 
 # przykłady
 
-Aktualną "scenę" można zapisać przez menu (RMB → zapisz scenę do pliku → `nazwa-pliku.scm` `RET`), lub
+Aktualną "scenę" można zapisać przez menu (RMB → `zapisz scenę do pliku` → `nazwa-pliku.scm` <kbd> RET </kbd>), lub
 wykonując funkcję `(serialize:save-to file-name)`.
-
-Pliki `*.scm` można "ładować" po prostu przerzucając je na działający program - jest to równoważne do `(load file-path)`.
 
 Wbudowane jest też kilka przykładów (zapisane w `scm/e.scm`), można je przeglądać przez menu (RMB → załaduj przykład).
 
-# jak korzystać z scheme?
+# jak korzystać ze scheme?
+
+Pliki `*.scm` można "ładować" po prostu przerzucając je na działający program - jest to równoważne do `(load file-path)`.
+
+Proste wyrażenia scheme można wykonywać poprzez kliknięcie klawisze <kbd> e </kbd>, po wpisaniu wyrażenia wystarczy kliknąć <kbd> RET </kbd> i zostanie ono
+wyewaluowane.
+
 
 cały zamysł opiera się na pomyśle *hooków* (inaczej eventów), nazwę zaciągnąłem prosto z gnu emacs.
 o danym hooku należy myśleć jak o evencie w JS na stronie internetowej.

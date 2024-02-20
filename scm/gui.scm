@@ -546,10 +546,18 @@ zwraca **destruktor** - funkcję usuwającą go"
      (if (> (+ x w) *SCREEN-WIDTH*)
          (- x (abs (- *SCREEN-WIDTH* (+ x w))))
          x)
-     (if (> (+ y w) *SCREEN-HEIGHT*)
+     (if (> (+ y h) *SCREEN-HEIGHT*)
          (- y (abs (- *SCREEN-HEIGHT* (+ y h))))
          y)
      w h)))
+
+;; (add-hook
+;;  'frame
+;;  (→ (let* ((mp (get-mouse-position))
+;;            (rect (list (car mp) (cdr mp) 150 50))
+;;            (fit-rect (gui/rect-fit-into-screen rect)))
+;;       (gui/rect rect white)
+;;       (gui/rect fit-rect pink))))
 
 (define gui/mp-slider+ok:ident 'mp-slider+ok)
 (define (gui/mp-slider+ok from to cb n-after-comma)
@@ -561,6 +569,7 @@ zwraca **destruktor** - funkcję usuwającą go"
     (set! *current-mode* gui/mp-slider+ok:ident))
 
   (when (eqv? *current-mode* 'selected)
+    (set! sel-mode:menu-open #t)
     (set! sel-mode:wait-a-sec #t))
 
   (define V from)
@@ -587,6 +596,7 @@ zwraca **destruktor** - funkcję usuwającą go"
                     (when (eqv? *current-mode* gui/mp-slider+ok:ident)
                       (set! *current-mode* nil))
                     (when (eqv? *current-mode* 'selected)
+                      (set! sel-mode:menu-open #f)
                       (set! sel-mode:wait-a-sec #f))
                     (slider-dest)
                     (btn-dest))))))

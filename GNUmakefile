@@ -80,6 +80,7 @@ doc: all
 	cat doc/prelude.md doc/scheme.md                        \
 		| pandoc --toc --toc-depth=2                    \
 		--pdf-engine=lualatex                           \
+		-V links-as-notes=true                          \
 		-H ./doc/cfg.tex                                \
 		--metadata title="msc2023" -f gfm -t pdf        \
 		--standalone -o doc/msc2023.pdf

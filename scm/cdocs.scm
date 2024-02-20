@@ -133,3 +133,7 @@
 (document-function
  (create-lens center d r)
  nil)
+
+(document-function
+ (delete-bounceable id)
+ nil)

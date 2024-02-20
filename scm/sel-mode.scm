@@ -137,9 +137,10 @@
              (cursor-handler-id
               (add-hook
                'frame
-               (→ (if (and (not sel-mode:menu-open) (not sel-mode:wait-a-sec) (point-in-rect? (get-mouse-position) bounding-rect))
-                      (set-cursor MOUSE-CURSOR-RESIZE-ALL)
-                      (set-cursor MOUSE-CURSOR-ARROW)))))
+               (→ (when (and (not sel-mode:menu-open) (not sel-mode:wait-a-sec))
+                    (if (point-in-rect? (get-mouse-position) bounding-rect)
+                        (set-cursor MOUSE-CURSOR-RESIZE-ALL)
+                        (set-cursor MOUSE-CURSOR-ARROW))))))
              (external-close-handler-id
               (add-hook
                'frame

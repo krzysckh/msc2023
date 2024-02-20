@@ -118,6 +118,8 @@
                (fps-dest)
                (set! hook-status-dest nil)
                (set! fps-dest nil))))
+        ((eqv? c #\R) (experimental/toggle-resizable))
+        ((eqv? c #\M) (toggle-mode-display))
         ((eqv? c #\~)
          (if (null? window-opts-dest)
              (set! window-opts-dest (gui/show-window-opts))
@@ -147,7 +149,10 @@
                       0)))
     ("kopiuj" . ,(→ (set!
                      *clipboard*
-                     (map (→1 (serialize:bounceable->sexp (get-bounceable x))) ids))))))
+                     (map (→1 (serialize:bounceable->sexp (get-bounceable x))) ids))))
+    ("usuń" . ,(→ (for-each delete-bounceable ids)
+                  (when (eqv? *current-mode* 'selected)
+                    (set! sel-mode:should-end-selected-mode #t))))))
 
 (define (option-menu-for-prism ids)
   `(("zmień współczynnik załamania pryzmatu" . ,(→ (gui/mp-slider+ok
@@ -160,7 +165,10 @@
                                   0)))
     ("kopiuj" . ,(→ (set!
                      *clipboard*
-                     (map (→1 (serialize:bounceable->sexp (get-bounceable x))) ids))))))
+                     (map (→1 (serialize:bounceable->sexp (get-bounceable x))) ids))))
+    ("usuń" . ,(→ (for-each delete-bounceable ids)
+                  (when (eqv? *current-mode* 'selected)
+                    (set! sel-mode:should-end-selected-mode #t))))))
 
 (define (option-menu-for-source ids)
   `(("zmień kąt" . ,(→ (gui/mp-slider+ok
@@ -200,12 +208,14 @@
         (→1 (let ((pos (car (list-ref *sources* x)))
                   (cur (list-ref *sources* x)))
               (when (point-in-rect? mp (src->rect pos))
-                (set! *current-mode* 'r-click-source)
+                (when (null? *current-mode*)
+                  (set! *current-mode* 'r-click-source))
                 (set! *gui/option-menu-force-can-be-handled* #t)
                 (gui/option-menu
                  (get-mouse-position)
                  (option-menu-for 'source x)
-                 (→ (set! *current-mode* nil))))))
+                 (→ (when (eqv? *current-mode* 'r-click-source)
+                      (set! *current-mode* nil)))))))
         (⍳ 0 1 (length *sources*)))))))
 
 ;; r-click dla pryzmatów
@@ -219,12 +229,14 @@
                   (center (list-ref x 1))
                   (vert-len (list-ref x 5)))
               (when (point-in-triangle? mp center vert-len)
-                (set! *current-mode* 'r-click-prism)
+                (when (null? *current-mode*)
+                  (set! *current-mode* 'r-click-prism))
                 (set! *gui/option-menu-force-can-be-handled* #t)
                 (gui/option-menu
                  (get-mouse-position)
-                 (option-menu-for 'prism x)
-                 (→ (set! *current-mode* nil))))))
+                 (option-menu-for 'prism (car x))
+                 (→ (when (eqv? *current-mode* 'r-click-prism)
+                      (set! *current-mode* nil)))))))
         *prisms*)))))
 
 ;; r-click dla soczewek
@@ -236,12 +248,14 @@
        (for-each
         (→1 (let ((id (list-ref x 0)))
               (when (point-in-lens? mp id)
-                (set! *current-mode* 'r-click-lens)
+                (when (null? *current-mode*)
+                  (set! *current-mode* 'r-click-lens))
                 (set! *gui/option-menu-force-can-be-handled* #t)
                 (gui/option-menu
                  (get-mouse-position)
-                 (option-menu-for 'lens x)
-                 (→ (set! *current-mode* nil))))))
+                 (option-menu-for 'lens (car x))
+                 (→ (when (eqv? *current-mode* 'r-click-lens)
+                      (set! *current-mode* nil)))))))
         *lenss*)))))
 
 ;; mouse-menu
@@ -437,18 +451,25 @@
  'delete
  (→2 (delete-from-toplist (string->symbol (string-append "*" (symbol->string x) "s*")) y)))
 
+(define *mode-display-on* #t)
+
+(define (toggle-mode-display)
+  (set! *mode-display-on* (not *mode-display-on*)))
+
 (add-hook
  'frame
- (→ (draw-text
-     (string-append
-      (if (null? *current-mode*)
-          "normal"
-          (symbol->string *current-mode*))
-      "-mode")
-     (cons 16 (- *SCREEN-HEIGHT* 32)) 16 (aq 'font *colorscheme*))))
+ (→ (when *mode-display-on*
+      (draw-text
+       (string-append
+        (if (null? *current-mode*)
+            "normal"
+            (symbol->string *current-mode*))
+        "-mode")
+       (cons 16 (- *SCREEN-HEIGHT* 32)) 16 (aq 'font *colorscheme*)))))
 
 ;; ładowanie wrzuconych plików
 (define (load-files-handler . vs)
   (for-each load vs))
 
 (add-hook 'files-dropped load-files-handler)
+
