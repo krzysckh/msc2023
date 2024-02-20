@@ -71,6 +71,8 @@
 #define panic(...) errx(1, __VA_ARGS__);
 #endif
 
+#define vecwarnx(v) warnx("%s.x: %f, %s.y: %f", #v, (v).x, #v, (v).y)
+
 #define assert(x) if (!(x)) { assert_fn("assertion failed: " #x); }
 
 #define TODO(s) panic("TODO: %s", s)

@@ -222,3 +222,6 @@
       (round-off-zero z)
       (let ((power (expt 10 n)))
         (/ (round (* power z)) power))))
+
+(define (get-lens-f r)
+  (/ 1.0 (+ (/ 1.0 r) (/ 1.0 r))))

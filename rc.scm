@@ -76,8 +76,8 @@
 ;; (add-mirror '(1 . 1) '(1 . 599))
 ;; (add-mirror '(1 . 599) '(799 . 599))
 
-(define-example "zero"
-  (→ (create-source '((pos . (200 . 300)) (angle . 0) (reactive . #f)))
+(define-example ""
+  (→ (create-source '((pos 341 . 289) (angle . 0) (thickness . 1) (reactive . #f) (n-beams . 1) (color 214 153 182)))
      (create-lens '(400 . 300) 20 120)))
 
 ;; (wait 1 (→ (set-source-e! 0 'angle 180)

@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <limits.h>
+#include <float.h>
 
 extern struct window_conf_t winconf;
 
@@ -126,7 +127,6 @@ static float get_theta(float ang)
   return theta;
 }
 
-// via src/lens.png
 Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *src)
 {
   tp->serio = true;
@@ -143,9 +143,9 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
 
   float theta1;
   theta1 = get_theta(ang) * DEG2RAD;
-  warnx("theta1: %f", theta1);
+  /* warnx("theta1: %f", theta1); */
   theta1 += 0.00001 * ld->r * (ld->center.y - cur.y);
-  warnx("theta1: %f", theta1);
+  /* warnx("theta1: %f", theta1); */
 
   float sintheta2 = sinf(theta1) * (v2 / v1);
   float theta2 = asinf(sintheta2) * RAD2DEG;
@@ -171,7 +171,8 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
 
   float a = cur.y - ld->center.y;
   float x = sqrtf(pow(Vector2Distance(cur, ld->center), 2.f) - pow(fabsf(a), 2.f));
-  float y = 1.f/(1.f/ld->f - 1.f/x);
+  double y = 1.f/fabsf(1.f/ld->f - 1.f/x);
+  // tej wartości bezwzględnej nie było we wzorze :skull:
 
   Vector2 pt;
   if (cur.x < ld->center.x)
@@ -180,6 +181,9 @@ Vector2 lens_create_target(lens_data_t *ld, Vector2 cur, Vector2 next, struct _t
     pt = vec(ld->center.x - y, ld->center.y - a);
 
   float fin_ang = normalize_angle(Vector2Angle(tp->luzik, pt) * RAD2DEG);
+
+  /* vecwarnx(pt); */
+
   return create_target(tp->luzik, fin_ang);
 }
 // przez wyjątkowy natłok wyrazistych epitetów, powyższa wypowiedź zastąpiona zostaje
