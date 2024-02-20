@@ -177,7 +177,7 @@
                (set! *gui/option-menu-force-can-be-handled* #f)
                (set-cursor MOUSE-CURSOR-DEFAULT)
                (onexit)))
-           (mk-cb (→1 (→ (x) (destroy-all) (exit-handler)))) ;; WOW
+           (mk-cb (→1 (→ (x) (destroy-all) (onexit)))) ;; WOW
            (cursor-handler-id
             (add-hook
              'frame
