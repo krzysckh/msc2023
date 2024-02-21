@@ -196,15 +196,13 @@ bool cast_light(Vector2 target, Vector2 source, Vector2 *ret, bounceable_t *hit_
 
 Vector2 create_target_by_hit(bounceable_t *b, Vector2 cur, Vector2 next, struct _teleport *tp, source_t *cur_src)
 {
-  float cur_angle, hit_angle, rel_angle;
-
   switch (b->t) {
-  case B_MIRROR:
-    hit_angle = normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2) * 180 / PI);
-    rel_angle = normalize_angle(hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
-    cur_angle = normalize_angle(hit_angle + rel_angle);
+  case B_MIRROR: {
+    float hit_angle = normalize_angle(Vector2Angle(b->data.mirror->p1, b->data.mirror->p2) * 180 / PI);
+    float rel_angle = normalize_angle(hit_angle - normalize_angle(Vector2Angle(cur, next) * 180 / PI));
+    float cur_angle = normalize_angle(hit_angle + rel_angle);
     return create_target(next, cur_angle);
-    break;
+  } break;
   case B_LENS: {
     return lens_create_target(b->data.lens, cur, next, tp, cur_src);
     /* lens_data_t *ld = b->data.lens; */
@@ -242,6 +240,7 @@ void _draw_single_light(source_t *source, Vector2 start, Vector2 s_target, int m
   struct _teleport tp = {0};
 
   for (i = 0; i < max_depth && bounced; ++i) {
+    tp.serio = 0;
     bounced = cast_light(cur_target, cur, &next, &hit_bounceable);
     DrawLineEx(cur, next, source->thickness, source->color);
 
