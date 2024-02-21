@@ -853,9 +853,9 @@ static pointer scm_get_source(scheme *sc, pointer args)
   s = &sources.v[(int)n];
 
   return
-    Cons(Cons(mk_integer(sc, s->pt.x), mk_integer(sc, s->pt.y)),
-         Cons(mk_integer(sc, s->angle),
-              Cons(mk_integer(sc, s->thickness),
+    Cons(vec2cons(s->pt),
+         Cons(MR(s->angle),
+              Cons(MR(s->thickness),
                    Cons(s->mouse_reactive ? sc->T : sc->F,
                         Cons(mk_integer(sc, s->n_beam),
                              Cons(color2list(sc, s->color), sc->NIL))))));

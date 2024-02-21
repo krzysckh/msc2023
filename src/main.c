@@ -70,8 +70,8 @@ void *rl_get_window_handle(void)
 
 float normalize_angle(float f)
 {
-  while (f >= 360) f -= 360;
-  while (f < 0) f += 360;
+  while (f >= 360) f -= 360.f;
+  while (f < 0) f += 360.f;
 
   return f;
 }

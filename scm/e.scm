@@ -35,6 +35,33 @@
   (→ (create-lens '(413 . 282) 20.0 163.1666718)
      (create-source '((pos 45 . 283) (angle . 0) (thickness . 1) (reactive . #f) (n-beams . 19) (color 255 0 0)))))
 
+(define-example "pełzające źródło"
+  (→ (let* ((pos '(100 . 0))
+            (ang 45)
+            (s-id (cdr (create-source
+                        `((pos . ,pos)
+                          (angle . ,ang)
+                          (color . ,white)
+                          (thickness . 8)
+                          (reactive . #f)))))
+            (sz (get-screen-size))
+            (step-size (/ 45.0 (cdr sz)))
+            (prism-id (create-prism '(439 . 321) 183.0 1.309999943))
+            (f-id (add-hook
+                   'frame
+                   (→ (set! pos (cons (car pos) (+ 0.5 (cdr pos))))
+                      (set! ang (- ang step-size))
+                      (when (<= ang -45)
+                        (set! pos (cons 100 0))
+                        (set! ang 45))
+                      (set-source-e! s-id 'angle (normalize-angle ang))
+                      (set-source-e! s-id 'pos pos))))
+            (k-id (add-hook
+                   'keypress
+                   (→2 (when (and *keypress-can-be-handled* (eqv? x #\;))
+                         (delete-hook 'frame f-id)
+                         (delete-hook 'keypress k-id))))))
+       (tracelog 'info "kliknij średnik by zakończyć"))))
 
 (define (rand-float)
   (/ (random-next) 2147483647))
