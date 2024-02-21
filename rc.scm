@@ -9,7 +9,7 @@
     (create-mirror 0 300 400 600)))
 
 (define current-thickness 1)
-(define max-thickness 64)
+(define max-thickness 128)
 
 (define (update-thicknesses)
   (tracelog 'info "updating thickness to " current-thickness)

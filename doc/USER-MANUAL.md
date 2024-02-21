@@ -44,3 +44,11 @@ Załączone wbudowane przykłady dostępne są w programie - dostać można się
 # więcej informacji
 
 Dodatkowe informacje o bardziej zaawansowanych użyciach programu załączone zostały w pliku msc2023-prog-man.pdf.
+Zachęcam użytkownika do zabawy z wbudowanym językiem, ponieważ pomaga on w tworzeniu ciekawych symulacji (np.: animowanych).
+
+Testowane na:
+- Debian GNU/Linux (kpm),
+- OpenBSD (kpm),
+- MS Windows 7 (kpm),
+- MS Windows 10 (kpm, fyrdan)
+

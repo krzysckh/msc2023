@@ -69,13 +69,14 @@
                     (car ex)) "`" " → " "*" (cadr ex) "*"))
      examples)
     (print "")
-    (print "<details> <summary> implementacja </summary>\n\n")
-    (with-output-to-file "/tmp/gen"
-      (→ (write impl)))
-    (print "```scheme")
-    (print (sys (list scheme-format-path "/tmp/gen")))
-    (print "```")
-    (print "</details>\n")))
+    (when (string=? (getenv "WRITE_IMPL") "YES")
+      (print "<details> <summary> implementacja </summary>\n\n")
+      (with-output-to-file "/tmp/gen"
+        (→ (write impl)))
+      (print "```scheme")
+      (print (sys (list scheme-format-path "/tmp/gen")))
+      (print "```")
+      (print "</details>\n"))))
 
 (define (render d filename)
   (pprint

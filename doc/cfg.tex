@@ -1,5 +1,8 @@
 \usepackage{fvextra, fontspec, newunicodechar}
 \usepackage[margin=2cm]{geometry}
+\usepackage{coffeestains}
+\usepackage{everypage}
+\usepackage{pgf}
 
 \setmainfont{LucidaGrande-Regular}
 \setmonofont{APL385 Unicode}
@@ -11,3 +14,19 @@
 
 \newunicodechar{→}{\textfallback{→}}
 \newunicodechar{∆}{\textfallback{∆}}
+
+%% ślady kawy, zakomentuj resztę żeby ich nie było :3333
+\pgfmathsetseed{\uniformdeviate 10000000}
+
+\pgfmathdeclarerandomlist{scales}{{0.5}{0.7}{0.9}{1.0}}
+\pgfmathdeclarerandomlist{stains}{{\coffeestainA}{\coffeestainB}{\coffeestainC}{\coffeestainD}}
+
+\AddEverypageHook{%
+  \pgfmathrandominteger{\angle}{15}{350}%
+  \pgfmathparse{rand/2.4}\xdef\xoffset{\pgfmathresult}%
+  \pgfmathparse{rand/2.4}\xdef\yoffset{\pgfmathresult}%
+  \pgfmathparse{(0.1 + rnd/3)}\xdef\trans{\pgfmathresult}%
+  \pgfmathrandomitem{\scale}{scales}%
+  \pgfmathrandomitem{\stain}{stains}%
+  \stain{\trans}\scale\angle{\xoffset\textwidth}{\yoffset\textheight}%
+}

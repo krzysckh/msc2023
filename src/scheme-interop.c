@@ -234,6 +234,16 @@ pointer fpl2list(FilePathList fpl)
 
 /* ---------- tu sie zaczyna implementacja scheme funkcji przeróżnych ------------ */
 
+// (getenv env)
+static pointer scm_getenv(scheme *sc, pointer args)
+{
+  expect_args("getenv", 1);
+  char *s = string_value(car(args));
+  char *v = getenv(s);
+  if (!v) return mk_string(sc, "");
+  return mk_string(sc, v);
+}
+
 // (white? color)
 static pointer scm_white(scheme *sc, pointer args)
 {
@@ -1239,6 +1249,7 @@ pointer scheme_click_info(struct mouse_information_t *mi)
 static void load_scheme_cfunctions(void)
 {
   //SCHEME_FF(scm_popen,              "popen"); // krzysztof napraw
+  SCHEME_FF(scm_getenv,              "getenv");
   SCHEME_FF(scm_white,               "white?");
   SCHEME_FF(scm_point_in_lens,       "point-in-lens?");
   SCHEME_FF(scm_set_lens,            "set-lens!");

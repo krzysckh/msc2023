@@ -75,7 +75,8 @@ full-clean:
 	$(MAKE) clean
 doc: all
 	$(TARGET) -F ./generate-docs.scm > doc/scheme.md
-	cat doc/prelude.md doc/scheme.md \
+	WRITE_IMPL=YES $(TARGET) -F ./generate-docs.scm > doc/scheme-impl.md
+	cat doc/prelude.md doc/scheme-impl.md \
 		| pandoc $(PANDOC_COMMON_FLAGS) $(PANDOC_HTML_FLAGS) \
 		-t html -o doc/msc2023.html
 
