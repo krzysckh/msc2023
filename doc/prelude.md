@@ -79,11 +79,11 @@ jest wiele różnych rodzajów hooków o które można się *"zaczepić"*. pełn
            się odbić. przekazuje typ stworzonego `bounceable` (jako symbol).
 - `'update` - wykonywany za każdym razem, gdy dane `bounceable` zostało edytowane.
               przekazuje typ (j.w.) i `id`.
-- `'update` - wykonywany za każdym razem, gdy dane `bounceable` zostało usunięte.
+- `'delete` - wykonywany za każdym razem, gdy dane `bounceable` zostało usunięte.
               przekazuje typ (j.w.) i `id`.
 - `'files-dropped` - wykonywany, gdy pliki zostały "wrzucone" do okna (przeniesione z innego programu - 
                      drag&drop)
-- `'frame` - wykonywany co klatkę. ***UWAGA: bardzo spowalnia mainloop. po wykorzystaniu należy go usunąć***
+- `'frame` - wykonywany co klatkę. ***UWAGA: spowalnia mainloop. po wykorzystaniu należy go usunąć***
 
 hooki dodaje się (j.w.) funkcją `add-hook`. zwraca ona `id` danego hooka, po którym
 można go potem usunąć.
