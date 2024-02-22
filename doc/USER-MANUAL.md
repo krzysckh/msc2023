@@ -50,5 +50,5 @@ Testowane na:
 - Debian GNU/Linux (kpm),
 - OpenBSD (kpm),
 - MS Windows 7 (kpm),
-- MS Windows 10 (kpm, fyrdan)
-
+- MS Windows 10 (kpm, fyrdan),
+- [9front](http://9front.org) ([kpm](https://git.krzysckh.org/kpm/msc9))
