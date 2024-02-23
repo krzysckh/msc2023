@@ -171,31 +171,36 @@
                     (set! sel-mode:should-end-selected-mode #t))))))
 
 (define (option-menu-for-source ids)
-  `(("zmień kąt" . ,(→ (gui/mp-slider+ok
-                        0 359
-                        (lambda (v)
-                          (map (→1 (set-source-e! x 'mouse-reactive #f)
-                                   (set-source-e! x 'angle v))
-                               ids))
-                        0)))
-    ("zmień kolor" . ,(→ (gui/change-source-color-form
-                          (get-mouse-position)
-                          (lambda (v) (map (→1 (set-source-e! x 'color v)) ids)))))
-    ("'mouse-reactive" . ,(→ (map (→1 (set-source-e! x 'mouse-reactive (not (list-ref (list-ref *sources* x) 3)))) ids)))
-    ("zmień ilość wiązek" . ,(→ (gui/mp-slider+ok
-                                 0 *source-size*
-                                 (lambda (v) (map (→1 (set-source-e! x 'n-beams v)) ids))
-                                 0)))
-    ("zmień szerokość wiązki" . ,(→ (gui/mp-slider+ok
-                                 1 10
-                                 (lambda (v) (map (→1 (set-source-e! x 'thickness v)) ids))
-                                 0)))
-    ("kopiuj" . ,(→ (set!
-                     *clipboard*
-                     (map (→1 (serialize:source->sexp (list-ref *sources* x))) ids))))
-    ("usuń" . ,(→ (delete-sources ids)
-                  (when (eqv? *current-mode* 'selected)
-                    (set! sel-mode:should-end-selected-mode #t))))))
+  (append
+   `(("zmień kąt" . ,(→ (gui/mp-slider+ok
+                         0 359
+                         (lambda (v)
+                           (map (→1 (set-source-e! x 'mouse-reactive #f)
+                                    (set-source-e! x 'angle v))
+                                ids))
+                         0)))
+     ("zmień kolor" . ,(→ (gui/change-source-color-form
+                           (get-mouse-position)
+                           (lambda (v) (map (→1 (set-source-e! x 'color v)) ids)))))
+     ("'mouse-reactive" . ,(→ (map (→1 (set-source-e! x 'mouse-reactive (not (list-ref (list-ref *sources* x) 3)))) ids))))
+   (if (all (→1 (white? (list-ref (list-ref *sources* x) 5))) ids)
+       `(("zmień szerokość wiązki" . ,(→ (gui/mp-slider+ok
+                                          1 10
+                                          (lambda (v) (map (→1 (set-source-e! x 'n-beams v)) ids))
+                                          0))))
+       '())
+   (if (all (→1 (not (white? (list-ref (list-ref *sources* x) 5)))) ids)
+       `(("zmień ilość wiązek" . ,(→ (gui/mp-slider+ok
+                          0 *source-size*
+                          (lambda (v) (map (→1 (set-source-e! x 'n-beams v)) ids))
+                          0))))
+       '())
+   `(("kopiuj" . ,(→ (set!
+                      *clipboard*
+                      (map (→1 (serialize:source->sexp (list-ref *sources* x))) ids))))
+     ("usuń" . ,(→ (delete-sources ids)
+                   (when (eqv? *current-mode* 'selected)
+                     (set! sel-mode:should-end-selected-mode #t)))))))
 
 (define (option-menu-for T id-or-ids)
   (let ((ids (if (list? id-or-ids) id-or-ids (list id-or-ids))))

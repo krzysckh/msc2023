@@ -85,3 +85,8 @@
 
 ;; (wait 1 (→ (load-example 2)
 ;;            (print *lenss*)))
+
+(create-source `((x . 300)
+                 (y . 200)
+                 (n-beams . 9)
+                 (reactive . #f)))

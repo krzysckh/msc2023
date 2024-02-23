@@ -12,6 +12,8 @@
 #include <time.h>
 #include <stdbool.h>
 
+#define MAX_THICKNESS 10
+
 #define DEBUG 0
 #undef DEBUG
 
@@ -260,18 +262,33 @@ void _draw_single_light(source_t *source, Vector2 start, Vector2 s_target, int m
   }
 }
 
+static source_t *tmp_src = NULL;
 void draw_light(source_t *src)
 {
-  int i, dist = floor(src->size / (1.f+(float)src->n_beam));
-  for (i = 1; i <= src->n_beam; ++i) {
+  if (!tmp_src)
+    tmp_src = malloc(sizeof(source_t));
+
+  memcpy(tmp_src, src, sizeof(source_t));
+
+  if (is_white(tmp_src->color)) {
+    tmp_src->n_beam = 1;
+    tmp_src->thickness = src->n_beam;
+  } else {
+    tmp_src->n_beam = src->n_beam;
+    tmp_src->thickness = 1;
+  }
+
+  int i, dist = floor(src->size / (1.f+(float)tmp_src->n_beam));
+
+  for (i = 1; i <= tmp_src->n_beam; ++i) {
     /* int sz = ((float)src->size/2)/sqrt(2); */
     int sz = (((float)src->size/2)-(i*dist))/sqrt(2);
     Vector2 rot = Vector2Rotate(vec(sz, sz), (-45 - 90 + src->angle) * PI/180);
     Vector2 pt = vec(src->pt.x + rot.x, src->pt.y + rot.y);
     // witam nazywam sie krzysztof, a te wzory wyciagnalem prosto z dupy
 
-    draw_single_light(src, pt, vec(src->target.x - (src->pt.x - pt.x),
-                                   src->target.y - (src->pt.y - pt.y)));
+    draw_single_light(tmp_src, pt, vec(src->target.x - (src->pt.x - pt.x),
+                                       src->target.y - (src->pt.y - pt.y)));
   }
 }
 
