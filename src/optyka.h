@@ -19,7 +19,7 @@
 #define MIN(x,y) (((x)<(y))?(x):(y))
 #define MAX_FONT_SIZE 1024
 
-#ifndef __attribute__
+#ifndef __has_attribute
 #define __attribute__(x)
 #endif
 
