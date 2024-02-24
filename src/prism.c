@@ -166,20 +166,22 @@ static source_t prism_mk_source(void)
   };
 }
 
-// stworzy src->thickness kolorowych świateł
+// stworzy src->thickness
+// tylko gdy is_white(src->color)
 static void prism_cast_colors(Vector2 prev, float first_ang, float fin_ang, source_t *src, prism_data_t *pd)
 {
   int n = MAX(3, src->thickness);
   int i, step = (700 - 390) / n;
   Color cur_color;
-  int dist = floor((2+src->thickness) / (1.f+(float)src->thickness));
+  /* int dist = floor(src->thickness / 2.f); */
+  int dist = floor(src->thickness / (float)n);
   float darken_by = 255.f - (src->color.r + src->color.g + src->color.b)/3.f;
 
   for (i = 0; i < n; ++i) {
     cur_color = wavelen2rgb(390 + i*step);
     source_t s = prism_mk_source();
 
-    int sz = (((float)src->thickness/2)-((i+1)*dist))/sqrt(2);
+    int sz = (((float)src->thickness/2)-((i-2)*dist))/sqrt(2);
     Vector2 rot = Vector2Rotate(vec(sz, sz), (-45 - 90 + first_ang) * PI/180);
     Vector2 pt = vec(prev.x + rot.x, prev.y + rot.y);
     Vector2 targ = create_target(pt, first_ang);
@@ -187,8 +189,6 @@ static void prism_cast_colors(Vector2 prev, float first_ang, float fin_ang, sour
     targ = vec(targ.x - (prev.x - pt.x), targ.y - (prev.y - pt.y));
 
     Vector2 next = pt;
-
-    /* DrawCircleV(pt, 1, PINK); */
 
     int max_iter = 128;
     while (!CheckCollisionPointTriangle(next, pd->p1, pd->p2, pd->p3) && max_iter) {
@@ -212,7 +212,7 @@ static void prism_cast_colors(Vector2 prev, float first_ang, float fin_ang, sour
 
     s.pt = next;
     s.color = cur_color;
-    s.thickness = 2;
+    s.thickness = 1;
     s.target = create_target(next, fin_ang + i*0.2);
 
 #ifdef DRAW_LINES_INSIDE
