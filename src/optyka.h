@@ -19,6 +19,10 @@
 #define MIN(x,y) (((x)<(y))?(x):(y))
 #define MAX_FONT_SIZE 1024
 
+#if !defined(__clang__) && !defined(__GNUC__) && !defined(__TINYC__)
+#define __attribute__(x)
+#endif
+
 #define vec(a,b) ((Vector2){(a),(b)})
 
 #define Cons(a,b) cons(sc, (a), (b))
@@ -67,9 +71,7 @@
 #endif
 
 #define vecwarnx(v) warnx("%s.x: %f, %s.y: %f", #v, (v).x, #v, (v).y)
-
 #define assert(x) if (!(x)) { assert_fn("assertion failed: " #x); }
-
 #define TODO(s) panic("TODO: %s", s)
 
 typedef enum {

@@ -12,20 +12,16 @@
 #include <time.h>
 #include <stdbool.h>
 
-#define MAX_THICKNESS 10
-
-#define DEBUG 0
-#undef DEBUG
-
 extern bool scheme_is_initialized;
 extern scheme scm;
 extern hookable_event_t keypress, click, unclick, frame, clocke, loge, resize, filesdropped;
 
-#define MAX_INPUT_BUFFER_SIZE 4096
-/* static void (*input_func)(void) = NULL; */
-/* static char input_buffer[MAX_INPUT_BUFFER_SIZE] = {0}; */
-
 Font fontset[MAX_FONT_SIZE] = {0};
+
+Bounceables bounceables = {0};
+Sources sources = {0};
+
+bool dont_tracelog = false;
 
 /* to jest nieco niespójne ze scheme podejście, ale co klatkę wykonywane jest
    ClearBackground(), i robienie tego w scheme było by po prostu zbyt powolne */
@@ -38,13 +34,6 @@ struct window_conf_t winconf = {
   .lens_focal_pt_color = (Color){ 0xe6, 0x98, 0x75, 0xff },
   .source_color        = (Color){ 0x38, 0x4b, 0x55, 0xff },
 };
-
-#define MIRROR_THICKNESS 1
-
-Bounceables bounceables = {0};
-Sources sources = {0};
-
-bool dont_tracelog = false;
 
 Font get_font_with_size(int size)
 {
@@ -65,6 +54,11 @@ Color dim_color(Color c, int alpha)
   return (Color){c.r, c.g, c.b, alpha};
 }
 
+// ta funkcja jest potrzebna, bo (to w sumie ciekawe)
+// - w jednym pliku .c nie mogę mieć na raz winuser.h i raylib.h (bo ze sobą kolidują nazwami)
+// - nie chcę deklarować samemu funkcji z winuser.h
+// - nie chcę żeby kompilator na mnie krzyczał
+// - src/win-icon.c
 void *rl_get_window_handle(void)
 {
   return GetWindowHandle();
@@ -79,7 +73,7 @@ float normalize_angle(float f)
 }
 
 // bo CheckCollisionPointPoly z raylib 4.5 nie działa poprawnie
-// naprawione w raylib 5, C-c C-v tutaj
+// naprawione w raylib 5, `V}y, C-x b main.c RET, p` tutaj
 bool collision_point_poly(Vector2 point, Vector2 *points, int pointCount)
 {
   bool inside = false;
@@ -108,7 +102,7 @@ static void draw_mirror(bounceable_t *b)
 {
   Vector2 p1 = b->data.mirror->p1,
           p2 = b->data.mirror->p2;
-  DrawLineEx(p1, p2, MIRROR_THICKNESS, winconf.mirror_color);
+  DrawLineEx(p1, p2, 1, winconf.mirror_color);
 }
 
 static void draw_all_bounceables(void)
@@ -372,6 +366,7 @@ static const char *rl_tracelog_tokens[] = {
   "UP", "VAO", "VBO", "WAVE", "WINDOW",
 };
 
+// ta funkcja jest po to, żeby tracelog (gdy -DPROD) nie pokazywał wiadomości od raylib
 static bool is_raylib_message(char *s)
 {
 #ifdef PROD

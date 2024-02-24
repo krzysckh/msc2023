@@ -1,3 +1,7 @@
+;;--- system-hooks.scm
+;; ten plik definiuje hooki "systemowe", t.j. odpowiedzialne za menu, gui, etc
+
+
 ; TODO: HACK: to powinna byc funkcja pytajaca typu (can-handle-click?)
 ; i ogolnie user-hooki zalezne od tego i system-hooki niezalezne
 (define *current-mode* nil)

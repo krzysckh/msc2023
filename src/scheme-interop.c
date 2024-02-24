@@ -280,8 +280,8 @@ static pointer scm_point_in_lens(scheme *sc, pointer args)
 // typem jakies idk gowno_dupa_t, i mieć do wszystkiego takie same hooki, a teraz jak jest tak
 // porozrzucane jak gnoj po polu to juz za pozno zeby naprawiac no bez jaj szkoda troche
 //
-// dlatego też NIE DODAM (delete-source) tutaj, tylko idk może kiedyś w scheme.
-// teraz przyda mi się tylko usuwanie wszystkich, więc tylko to zeobie
+// dlatego też NIE DODAM (delete-source) tutaj, tylko idk może kiedyś w scheme. (update: dodałem)
+// teraz przyda mi się tylko usuwanie wszystkich, więc tylko to zrobie
 // nie miałoby to sensu, bo nie ma żadnych hooków, które działałyby po usunięciu źródła,
 // a dodawanie ich tylko pokomplikowałoby wszystko
 // aaaa szkoda gadać,... szkoda strzępić ryjec
