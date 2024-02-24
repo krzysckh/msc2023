@@ -1,3 +1,5 @@
+\newpage
+
 # Uruchamianie
 
 - windows: załączony został plik lambda-optyka.exe - wystarczy go uruchomić
@@ -41,6 +43,8 @@ $ grep '^\$[^\$]' README.md
 - klawisz <kbd> ~ </kbd> pokaże menu pozwalające na zmienianie domyślnych ustawień okna.
 - klawisz <kbd> e </kbd> to skrót do okna do ewaluowania wyrażeń scheme.
 
+\newpage
+
 # Przykłady
 
 Załączone wbudowane przykłady dostępne są w programie - dostać można się do nich z menu głównego.
@@ -51,11 +55,15 @@ Dodatkowe informacje o bardziej zaawansowanych użyciach programu załączone zo
 Zachęcam użytkownika do zabawy z wbudowanym językiem, ponieważ pomaga on w tworzeniu ciekawych symulacji (np.: [animowanych](https://git.krzysckh.org/kpm/science-cup-2023/src/commit/c01b3968497c8b44b6dab7da1110cec04716ac17/scm/e.scm#L38-L64)).
 
 Testowane na:
+
 - [Debian GNU/Linux](https://www.debian.org/) (kpm),
 - [OpenBSD](https://www.openbsd.org/74.html) (kpm),
 - MS Windows 7 (kpm),
 - MS Windows 10 (kpm),
 - [9front](http://9front.org) ([kpm](https://git.krzysckh.org/kpm/msc9))
+
+
+\newpage
 
 # Zastrzeżenia
 
@@ -63,9 +71,11 @@ Testowane na:
 - program gryzie po kostkach,
 - w internecie nikt nie wie, że jesteś psem
 
+
 # Podziękowania
 
 Dziękuję:
+
 - Fyrdan Dyrdan - za pomoc psychiczną,
 - Jezus Chrystus - za zbawienie,
 - Mojej drużynie - za - *sumaryczne* - napisanie 0 linijek kodu.

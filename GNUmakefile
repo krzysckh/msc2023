@@ -31,7 +31,7 @@ SCAN_BUILD=scan-build-16
 
 PANDOC_HTML_FLAGS=-H doc/doc.css
 PANDOC_PDF_FLAGS=--pdf-engine=lualatex -V links-as-notes=true -H ./doc/cfg.tex
-PANDOC_COMMON_FLAGS=--toc --toc-depth=2 --metadata title="msc2023" -f gfm --standalone
+PANDOC_COMMON_FLAGS=--toc --toc-depth=2 --metadata title="msc2023" -f gfm+raw_tex --standalone
 
 ifeq "$(OS)" "OpenBSD"
 LDFLAGS:=-lglfw $(LDFLAGS)
@@ -104,11 +104,15 @@ scan-build:
 	$(MAKE) clean >/dev/null 2>/dev/null
 	$(MAKE) CC="$(SCAN_BUILD) clang" all >/dev/null
 	$(MAKE) clean >/dev/null 2>/dev/null
+
+doc/USER-MANUAL.pdf:
+	pandoc doc/USER-MANUAL.md --toc --toc-depth=2 \
+		--metadata title="USER-MANUAL" -f markdown+raw_tex+raw_html --standalone \
+		--pdf-engine=lualatex -V links-as-notes=true -H ./doc/cfg.tex -H doc/coffee.tex \
+		-t pdf -o doc/USER-MANUAL.pdf
 dist: clean doc
 	pandoc doc/USER-MANUAL.md $(PANDOC_COMMON_FLAGS) $(PANDOC_HTML_FLAGS) \
 		-t html -o doc/USER-MANUAL.html
 
-	pandoc doc/USER-MANUAL.md $(PANDOC_COMMON_FLAGS) $(PANDOC_PDF_FLAGS) -H doc/coffee.tex \
-		-t pdf -o doc/USER-MANUAL.pdf
-
+	$(MAKE) doc/USER-MANUAL.pdf
 	./mk-dist.sh "$(MAKE)"
