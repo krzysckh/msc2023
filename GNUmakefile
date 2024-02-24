@@ -111,8 +111,5 @@ doc/USER-MANUAL.pdf:
 		--pdf-engine=lualatex -V links-as-notes=true -H ./doc/cfg.tex -H doc/coffee.tex \
 		-t pdf -o doc/USER-MANUAL.pdf
 dist: clean doc
-	pandoc doc/USER-MANUAL.md $(PANDOC_COMMON_FLAGS) $(PANDOC_HTML_FLAGS) \
-		-t html -o doc/USER-MANUAL.html
-
 	$(MAKE) doc/USER-MANUAL.pdf
 	./mk-dist.sh "$(MAKE)"

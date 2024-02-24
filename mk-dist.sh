@@ -12,7 +12,6 @@ rm -rf /tmp/msc2023*
 rm -f /tmp/lambda-optyka.exe
 
 cp ./doc/USER-MANUAL.pdf  /tmp/README.pdf
-cp ./doc/USER-MANUAL.html /tmp/README.html
 
 git archive --format=tgz --prefix=msc2023-src/ HEAD > /tmp/msc2023-src.tgz
 
@@ -34,7 +33,6 @@ cp /tmp/lambda-optyka.exe ./msc2023-dist/
 cp /tmp/msc2023-prog-man.pdf ./msc2023-dist/
 
 cp README.pdf  ./msc2023-dist/
-cp README.html ./msc2023-dist/
 
 tar cvzf msc2023-dist.tgz msc2023-dist
 zip -r msc2023-dist.zip msc2023-dist
