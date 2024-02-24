@@ -1,7 +1,8 @@
 # uruchamianie
 
 - windows: załączony został plik lambda-optyka.exe - wystarczy go uruchomić
-- unix: skompilowany plik na debianie 12 można pobrać [tutaj](https://pub.krzysckh.org/msc2023-lambda-optyka-linux-x86_64), lub skompilować ze źródeł
+- linux: skompilowany plik na debianie 12 można pobrać [tutaj](https://pub.krzysckh.org/msc2023-lambda-optyka-linux-x86_64), lub skompilować ze źródeł (patrz unix)
+- unix:
 
 ```sh
 $ tar xvzf msc2023-src.tgz

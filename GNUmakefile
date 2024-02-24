@@ -81,7 +81,7 @@ doc: all
 		-t html -o doc/msc2023.html
 
 	cat doc/prelude.md doc/scheme.md \
-		| pandoc $(PANDOC_COMMON_FLAGS) $(PANDOC_PDF_FLAGS) \
+		| pandoc $(PANDOC_COMMON_FLAGS) $(PANDOC_PDF_FLAGS) -H doc/coffee.tex \
 		 -t pdf -o doc/msc2023.pdf
 pubcpy:
 	([ `whoami` = "krzych" ] || [ `whoami` = "kpm" ]) || exit 1
