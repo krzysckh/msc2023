@@ -104,7 +104,7 @@ scan-build:
 	$(MAKE) clean >/dev/null 2>/dev/null
 	$(MAKE) CC="$(SCAN_BUILD) clang" all >/dev/null
 	$(MAKE) clean >/dev/null 2>/dev/null
-dist: doc
+dist: clean doc
 	pandoc doc/USER-MANUAL.md $(PANDOC_COMMON_FLAGS) $(PANDOC_HTML_FLAGS) \
 		-t html -o doc/USER-MANUAL.html
 
