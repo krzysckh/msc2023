@@ -108,7 +108,7 @@ dist: doc
 	pandoc doc/USER-MANUAL.md $(PANDOC_COMMON_FLAGS) $(PANDOC_HTML_FLAGS) \
 		-t html -o doc/USER-MANUAL.html
 
-	pandoc doc/USER-MANUAL.md $(PANDOC_COMMON_FLAGS) $(PANDOC_PDF_FLAGS) \
+	pandoc doc/USER-MANUAL.md $(PANDOC_COMMON_FLAGS) $(PANDOC_PDF_FLAGS) -H doc/coffee.tex \
 		-t pdf -o doc/USER-MANUAL.pdf
 
 	./mk-dist.sh "$(MAKE)"

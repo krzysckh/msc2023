@@ -1,7 +1,7 @@
-# uruchamianie
+# Uruchamianie
 
 - windows: załączony został plik lambda-optyka.exe - wystarczy go uruchomić
-- linux: skompilowany plik na debianie 12 można pobrać [tutaj](https://pub.krzysckh.org/msc2023-lambda-optyka-linux-x86_64), lub skompilować ze źródeł (patrz unix)
+- GNU/Linux: plik skompilowany na debianie 12 można pobrać [tutaj](https://pub.krzysckh.org/msc2023-lambda-optyka-linux-x86_64), lub skompilować ze źródeł (patrz unix)
 - unix:
 
 ```sh
@@ -12,7 +12,7 @@ $ grep '^\$[^\$]' README.md
 
 (można też użyć [zkonteneryzowanego procesu kompilacji](https://git.krzysckh.org/kpm/msc2023-docker))
 
-# podstawowe używanie
+# Podstawowe używanie
 
 ### GUI
 

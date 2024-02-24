@@ -4,7 +4,11 @@
 \usepackage{everypage}
 \usepackage{pgf}
 
-\setmainfont{LucidaGrande-Regular}
+\setmainfont{LucidaGrande-Regular}[
+  BoldFont = {LucidaGrande-Bold},
+  ItalicFont = {LucidaGrande-Italic},
+  BoldItalicFont = {LucidaGrande-BoldItalic}
+]
 \setmonofont{APL385 Unicode}
 
 \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
