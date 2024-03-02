@@ -1,5 +1,10 @@
 # quickstart
 
+- `doc/USER-MANUAL.md`
+- [plik wykonywalny + wszystko, co potrzebne](https://pub.krzysckh.org/msc2023-dist.zip)
+
+----
+
 ## unix
 
 ``` shell
@@ -23,11 +28,6 @@ $ ./main
 - lol
 - [rl-optyka-test.exe](https://pub.krzysckh.org/rl-optyka-test.exe)
 - [rc.scm](https://pub.krzysckh.org/rc.scm)
-
-# dokumentacja
-
-- [zdefiniowane dla tinyscheme](https://pub.krzysckh.org/msc2023.html)
-- TBD
 
 ## uwagi
 - ![koloryt](https://user-images.githubusercontent.com/58662350/214382274-0108806d-b605-4047-af4b-c49ae06a2e8e.png)
