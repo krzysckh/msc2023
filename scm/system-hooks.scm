@@ -451,7 +451,7 @@
 ;; hooki wykonywane z argumentami 'TYP ..dane
 ;; jako że toplisty nazywają się *TYPs*, dodaję po prostu do typu gwiazdki po obu stronach i -s na koniec
 ;; i mam nazwę zmiennej
-;; z tąd właśnie (string->symbol (string-append "*" (symbol->string x) "s*"))
+;; stąd właśnie (string->symbol (string-append "*" (symbol->string x) "s*"))
 ;; XDDD
 ;; ~ kpm
 
