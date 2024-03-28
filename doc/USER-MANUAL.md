@@ -61,6 +61,7 @@ Testowane na:
 - MS Windows 7 (kpm),
 - MS Windows 10 (kpm),
 - [9front](http://9front.org) ([kpm](https://git.krzysckh.org/kpm/msc9))
+- [Haiku](https://www.haiku-os.org/) ([kpm](https://pub.krzysckh.org/msc2023-haiku-sc/))
 
 
 \newpage
